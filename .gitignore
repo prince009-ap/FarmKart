@@ -1,13 +1,9 @@
-# =========================
 # .NET
-# =========================
 **/bin/
 **/obj/
 .vs/
 
-# =========================
 # Angular / Node
-# =========================
 **/node_modules/
 **/dist/
 .angular/
@@ -15,39 +11,27 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# =========================
 # Environment / Secrets
-# =========================
 .env
 .env.*
 !.env.example
 
-# =========================
 # Local configuration
-# =========================
 appsettings.Local.json
 
-# =========================
-# IDE
-# =========================
+# VS Code
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# =========================
 # OS
-# =========================
 .DS_Store
 Thumbs.db
 
-# =========================
 # Test / Coverage
-# =========================
 coverage/
 TestResults/
 
-# =========================
 # Temporary files
-# =========================
 *.tmp
 *.log
