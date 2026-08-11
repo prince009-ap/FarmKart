@@ -1,0 +1,78 @@
+using FarmKart.Application.Abstractions.Persistence;
+using FarmKart.Domain.Common;
+using FarmKart.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace FarmKart.Infrastructure.Persistence;
+
+public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> options)
+    : DbContext(options), IFarmKartDbContext
+{
+    public DbSet<FarmerProfile> FarmerProfiles => Set<FarmerProfile>();
+    public DbSet<WorkerProfile> WorkerProfiles => Set<WorkerProfile>();
+    public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
+    public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<WorkerSkill> WorkerSkills => Set<WorkerSkill>();
+    public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<JobApplication> JobApplications => Set<JobApplication>();
+    public DbSet<WorkerAssignment> WorkerAssignments => Set<WorkerAssignment>();
+    public DbSet<Attendance> Attendances => Set<Attendance>();
+    public DbSet<WorkerPayment> WorkerPayments => Set<WorkerPayment>();
+    public DbSet<MachineryCategory> MachineryCategories => Set<MachineryCategory>();
+    public DbSet<Machinery> Machinery => Set<Machinery>();
+    public DbSet<MachineryImage> MachineryImages => Set<MachineryImage>();
+    public DbSet<MachineryRentalRequest> MachineryRentalRequests => Set<MachineryRentalRequest>();
+    public DbSet<MachineryRental> MachineryRentals => Set<MachineryRental>();
+    public DbSet<MachineryDamageReport> MachineryDamageReports => Set<MachineryDamageReport>();
+    public DbSet<MachineryDamageReportImage> MachineryDamageReportImages => Set<MachineryDamageReportImage>();
+    public DbSet<Crop> Crops => Set<Crop>();
+    public DbSet<CropListing> CropListings => Set<CropListing>();
+    public DbSet<CropImage> CropImages => Set<CropImage>();
+    public DbSet<Auction> Auctions => Set<Auction>();
+    public DbSet<Bid> Bids => Set<Bid>();
+    public DbSet<AuctionWinner> AuctionWinners => Set<AuctionWinner>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Delivery> Deliveries => Set<Delivery>();
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+    public DbSet<Message> Messages => Set<Message>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Review> Reviews => Set<Review>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(FarmKartDbContext).Assembly);
+        base.OnModelCreating(modelBuilder);
+    }
+
+    public override int SaveChanges()
+    {
+        UpdateAuditTimestamps();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        UpdateAuditTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void UpdateAuditTimestamps()
+    {
+        var entries = ChangeTracker
+            .Entries<BaseEntity>()
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+            entry.Entity.UpdatedAtUtc = DateTime.UtcNow;
+
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAtUtc = DateTime.UtcNow;
+            }
+        }
+    }
+}

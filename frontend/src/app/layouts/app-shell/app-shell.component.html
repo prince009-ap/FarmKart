@@ -1,0 +1,30 @@
+<main class="shell">
+  <section class="hero">
+    <p class="eyebrow">FarmKart foundation</p>
+    <h1>Angular workspace prepared for the next development phases.</h1>
+    <p class="summary">
+      This step intentionally sets up architecture only. Business features, authentication,
+      real-time flows, and AI integrations will be added incrementally in later phases.
+    </p>
+  </section>
+
+  <section class="grid">
+    <mat-card appearance="outlined">
+      <h2>Primary roles</h2>
+      <div class="chips">
+        @for (role of roles; track role) {
+          <mat-chip>{{ role }}</mat-chip>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <h2>Planned modules</h2>
+      <ul>
+        @for (module of plannedModules; track module) {
+          <li>{{ module }}</li>
+        }
+      </ul>
+    </mat-card>
+  </section>
+</main>
