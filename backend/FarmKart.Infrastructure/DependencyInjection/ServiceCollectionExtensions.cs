@@ -15,11 +15,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString =
-            configuration.GetConnectionString("FarmKartDatabase")
+            configuration.GetConnectionString("DefaultConnection")
             ?? "Server=(localdb)\\MSSQLLocalDB;Database=FarmKartDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
         services.AddDbContext<FarmKartDbContext>(options =>
-            options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString));
 
         services.AddScoped<IFarmKartDbContext>(provider => provider.GetRequiredService<FarmKartDbContext>());
 

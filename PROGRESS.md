@@ -83,3 +83,9 @@
 - [x] Add POST /api/auth/register/customer endpoint in AuthController
 - [x] Add integration tests verifying Customer registration, duplicate rejection, and rollback consistency
 - [x] Confirm build and integration tests pass
+
+## Database Connection and Migration Verification
+
+- [x] Local SQL Server database configured (`LAPTOP-K5SJ7HFJ\SQLEXPRESS`)
+- [x] FarmKartDb database created
+- [x] Existing EF Core migrations applied successfully (`InitialFarmKartDomain` and `AddIdentityFoundation`)
