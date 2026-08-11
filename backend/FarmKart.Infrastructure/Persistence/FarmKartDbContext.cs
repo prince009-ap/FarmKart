@@ -1,12 +1,15 @@
 using FarmKart.Application.Abstractions.Persistence;
 using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
+using FarmKart.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FarmKart.Infrastructure.Persistence;
 
 public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> options)
-    : DbContext(options), IFarmKartDbContext
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IFarmKartDbContext
 {
     public DbSet<FarmerProfile> FarmerProfiles => Set<FarmerProfile>();
     public DbSet<WorkerProfile> WorkerProfiles => Set<WorkerProfile>();

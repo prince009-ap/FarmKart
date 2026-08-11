@@ -1,4 +1,5 @@
 using FarmKart.Domain.Entities;
+using FarmKart.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,7 +16,7 @@ public sealed class FarmerProfileConfiguration : IEntityTypeConfiguration<Farmer
 
         builder.ConfigureBaseEntity();
 
-        builder.Property(profile => profile.UserId).HasMaxLength(128).IsRequired();
+        builder.Property(profile => profile.UserId).IsRequired();
         builder.Property(profile => profile.FullName).HasMaxLength(150).IsRequired();
         builder.Property(profile => profile.Phone).HasMaxLength(20).IsRequired();
         builder.Property(profile => profile.ProfileImageUrl).HasMaxLength(500);
@@ -25,6 +26,11 @@ public sealed class FarmerProfileConfiguration : IEntityTypeConfiguration<Farmer
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
         builder.ConfigureAddressInfo(profile => profile.AddressInfo);
+
+        builder.HasOne<ApplicationUser>()
+            .WithOne()
+            .HasForeignKey<FarmerProfile>(profile => profile.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -40,7 +46,7 @@ public sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Worker
 
         builder.ConfigureBaseEntity();
 
-        builder.Property(profile => profile.UserId).HasMaxLength(128).IsRequired();
+        builder.Property(profile => profile.UserId).IsRequired();
         builder.Property(profile => profile.FullName).HasMaxLength(150).IsRequired();
         builder.Property(profile => profile.Phone).HasMaxLength(20).IsRequired();
         builder.Property(profile => profile.ProfileImageUrl).HasMaxLength(500);
@@ -49,6 +55,11 @@ public sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Worker
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
         builder.ConfigureAddressInfo(profile => profile.AddressInfo);
+
+        builder.HasOne<ApplicationUser>()
+            .WithOne()
+            .HasForeignKey<WorkerProfile>(profile => profile.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -58,12 +69,17 @@ public sealed class CustomerProfileConfiguration : IEntityTypeConfiguration<Cust
     {
         builder.ConfigureBaseEntity();
 
-        builder.Property(profile => profile.UserId).HasMaxLength(128).IsRequired();
+        builder.Property(profile => profile.UserId).IsRequired();
         builder.Property(profile => profile.FullName).HasMaxLength(150).IsRequired();
         builder.Property(profile => profile.Phone).HasMaxLength(20).IsRequired();
         builder.Property(profile => profile.ProfileImageUrl).HasMaxLength(500);
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
         builder.ConfigureAddressInfo(profile => profile.AddressInfo);
+
+        builder.HasOne<ApplicationUser>()
+            .WithOne()
+            .HasForeignKey<CustomerProfile>(profile => profile.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -120,10 +120,17 @@ These are application profiles only. They store business-facing profile data and
 
 ## Authentication Relationship
 
-- The eventual authentication user will live in a later ASP.NET Core Identity phase.
-- Each profile stores a stable `UserId` string for future linkage.
-- No duplicate custom authentication model was created in Phase 2.
-- No password, JWT, cookie, refresh-token, or login-flow data is stored in these domain tables.
+- ASP.NET Core Identity foundation is configured in Phase 3.1.
+- Application roles setup is configured in Phase 3.2.
+- The `ApplicationUser` class inherits from `IdentityUser<Guid>` and acts as the central user model.
+- Each profile (`FarmerProfile`, `WorkerProfile`, `CustomerProfile`) defines a `UserId` of type `Guid` which maps one-to-one with `ApplicationUser`.
+- Delete behavior is set to `Restrict` on profile-user relationships to avoid accidental deletion of profile and historical data.
+- The three application roles are centralized as constants in `Roles.cs`:
+  - `Farmer`
+  - `Worker`
+  - `Customer`
+- Roles are automatically seeded at startup in an idempotent manner via `IdentityRoleSeeder` in `Program.cs`. Running the application multiple times will not duplicate roles.
+- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases.
 
 ## Auction Data Model
 

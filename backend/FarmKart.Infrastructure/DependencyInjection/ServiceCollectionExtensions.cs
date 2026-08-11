@@ -1,5 +1,7 @@
 using FarmKart.Application.Abstractions.Persistence;
+using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,17 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(connectionString));
 
         services.AddScoped<IFarmKartDbContext>(provider => provider.GetRequiredService<FarmKartDbContext>());
+
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+        })
+        .AddRoles<IdentityRole<Guid>>()
+        .AddEntityFrameworkStores<FarmKartDbContext>();
 
         return services;
     }

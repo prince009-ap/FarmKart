@@ -28,3 +28,5 @@
 26. Use deliberate delete behaviors for historical or financial records.
 27. Prefer Fluent API for database constraints, indexes, precision, and relationships.
 28. Protect marketplace, auction, rental, and payment history from accidental cascade deletes.
+29. Use ASP.NET Core Identity ApplicationUser (using Guid keys) as the security principal, linked 1-to-1 with profile tables.
+30. Reference central Roles constants (Farmer, Worker, Customer) for authorization and role checks instead of hardcoding strings.

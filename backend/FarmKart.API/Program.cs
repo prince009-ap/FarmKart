@@ -1,6 +1,7 @@
 using FarmKart.API.Extensions;
 using FarmKart.Application.DependencyInjection;
 using FarmKart.Infrastructure.DependencyInjection;
+using FarmKart.Infrastructure.Persistence.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services
     .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+await IdentityRoleSeeder.SeedRolesAsync(app.Services);
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
