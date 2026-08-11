@@ -1,6 +1,8 @@
+using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.Abstractions.Persistence;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
+using FarmKart.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +22,8 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(connectionString));
 
         services.AddScoped<IFarmKartDbContext>(provider => provider.GetRequiredService<FarmKartDbContext>());
+
+        services.AddScoped<IAuthService, AuthService>();
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {

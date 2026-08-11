@@ -122,6 +122,11 @@ These are application profiles only. They store business-facing profile data and
 
 - ASP.NET Core Identity foundation is configured in Phase 3.1.
 - Application roles setup is configured in Phase 3.2.
+- Farmer registration is configured in Phase 3.3.
+  - Farmer registration request is processed via `FarmerRegisterRequest` DTO and validated on the backend.
+  - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Farmer` role, and insert the corresponding `FarmerProfile`.
+  - Email duplicates return a 409 Conflict response.
+  - Successful registration returns a safe `FarmerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).
 - The `ApplicationUser` class inherits from `IdentityUser<Guid>` and acts as the central user model.
 - Each profile (`FarmerProfile`, `WorkerProfile`, `CustomerProfile`) defines a `UserId` of type `Guid` which maps one-to-one with `ApplicationUser`.
 - Delete behavior is set to `Restrict` on profile-user relationships to avoid accidental deletion of profile and historical data.
@@ -130,7 +135,7 @@ These are application profiles only. They store business-facing profile data and
   - `Worker`
   - `Customer`
 - Roles are automatically seeded at startup in an idempotent manner via `IdentityRoleSeeder` in `Program.cs`. Running the application multiple times will not duplicate roles.
-- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases.
+- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases. Login is NOT implemented.
 
 ## Auction Data Model
 

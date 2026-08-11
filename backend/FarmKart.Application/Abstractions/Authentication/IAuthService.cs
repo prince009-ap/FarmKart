@@ -1,0 +1,9 @@
+using FarmKart.Application.DTOs;
+using System.Threading.Tasks;
+
+namespace FarmKart.Application.Abstractions.Authentication;
+
+public interface IAuthService
+{
+    Task<FarmerRegistrationResponse> RegisterFarmerAsync(FarmerRegisterRequest request);
+}

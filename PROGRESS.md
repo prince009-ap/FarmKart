@@ -54,3 +54,14 @@
 - [x] Integrate role seeding in Program.cs startup pipeline
 - [x] Add tests verifying centralized role constants and seeder idempotency
 - [x] Confirm build and integration tests pass
+
+## Phase 3.3 Deliverables — Farmer Registration
+
+- [x] Create FarmerRegisterRequest and FarmerRegistrationResponse DTOs with validators
+- [x] Define custom DuplicateEmailException and RegistrationFailedException types
+- [x] Define IAuthService contract in Application layer
+- [x] Implement concrete AuthService in Infrastructure layer executing in a transaction
+- [x] Register IAuthService in dependency injection container
+- [x] Create AuthController containing POST /api/auth/register/farmer endpoint
+- [x] Add integration tests covering successful registration, database rollback, duplicates, and weak passwords
+- [x] Confirm build and integration tests pass
