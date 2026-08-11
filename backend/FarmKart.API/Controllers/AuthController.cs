@@ -38,4 +38,46 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPost("register/worker")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(WorkerRegistrationResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RegisterWorker([FromBody] WorkerRegisterRequest request)
+    {
+        try
+        {
+            var response = await _authService.RegisterWorkerAsync(request);
+            return StatusCode(StatusCodes.Status201Created, response);
+        }
+        catch (DuplicateEmailException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (RegistrationFailedException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("register/customer")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CustomerRegistrationResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RegisterCustomer([FromBody] CustomerRegisterRequest request)
+    {
+        try
+        {
+            var response = await _authService.RegisterCustomerAsync(request);
+            return StatusCode(StatusCodes.Status201Created, response);
+        }
+        catch (DuplicateEmailException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (RegistrationFailedException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

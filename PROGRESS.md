@@ -65,3 +65,21 @@
 - [x] Create AuthController containing POST /api/auth/register/farmer endpoint
 - [x] Add integration tests covering successful registration, database rollback, duplicates, and weak passwords
 - [x] Confirm build and integration tests pass
+
+## Phase 3.4 Deliverables — Worker Registration
+
+- [x] Create WorkerRegisterRequest and WorkerRegistrationResponse DTOs with validators
+- [x] Add RegisterWorkerAsync to IAuthService contract
+- [x] Implement RegisterWorkerAsync concrete service execution inside AuthService
+- [x] Add POST /api/auth/register/worker endpoint in AuthController
+- [x] Add integration tests verifying Worker registration, duplicate rejection, and rollback consistency
+- [x] Confirm build and integration tests pass
+
+## Phase 3.5 Deliverables — Customer Registration
+
+- [x] Create CustomerRegisterRequest and CustomerRegistrationResponse DTOs with validators
+- [x] Add RegisterCustomerAsync to IAuthService contract
+- [x] Implement RegisterCustomerAsync concrete service execution inside AuthService
+- [x] Add POST /api/auth/register/customer endpoint in AuthController
+- [x] Add integration tests verifying Customer registration, duplicate rejection, and rollback consistency
+- [x] Confirm build and integration tests pass

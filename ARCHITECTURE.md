@@ -127,6 +127,16 @@ These are application profiles only. They store business-facing profile data and
   - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Farmer` role, and insert the corresponding `FarmerProfile`.
   - Email duplicates return a 409 Conflict response.
   - Successful registration returns a safe `FarmerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).
+- Worker registration is configured in Phase 3.4.
+  - Worker registration request is processed via `WorkerRegisterRequest` DTO and validated on the backend.
+  - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Worker` role, and insert the corresponding `WorkerProfile`.
+  - Email duplicates return a 409 Conflict response.
+  - Successful registration returns a safe `WorkerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).
+- Customer registration is configured in Phase 3.5.
+  - Customer registration request is processed via `CustomerRegisterRequest` DTO and validated on the backend.
+  - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Customer` role, and insert the corresponding `CustomerProfile`.
+  - Email duplicates return a 409 Conflict response.
+  - Successful registration returns a safe `CustomerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).
 - The `ApplicationUser` class inherits from `IdentityUser<Guid>` and acts as the central user model.
 - Each profile (`FarmerProfile`, `WorkerProfile`, `CustomerProfile`) defines a `UserId` of type `Guid` which maps one-to-one with `ApplicationUser`.
 - Delete behavior is set to `Restrict` on profile-user relationships to avoid accidental deletion of profile and historical data.
