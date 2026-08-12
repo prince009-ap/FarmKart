@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FarmKart.Application.DependencyInjection;
 using FarmKart.Infrastructure.DependencyInjection;
 
@@ -7,7 +8,11 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
         services.AddEndpointsApiExplorer();
 
         services.AddCors(options =>

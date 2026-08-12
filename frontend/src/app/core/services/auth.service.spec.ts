@@ -70,6 +70,7 @@ describe('AuthService', () => {
       address: '123 Farm Road',
       farmName: 'Happy Farm',
       farmSize: 10.5,
+      farmSizeUnit: 'Vigha',
       farmLocation: null
     };
 

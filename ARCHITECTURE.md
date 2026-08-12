@@ -124,6 +124,9 @@ These are application profiles only. They store business-facing profile data and
 - Application roles setup is configured in Phase 3.2.
 - Farmer registration is configured in Phase 3.3.
   - Farmer registration request is processed via `FarmerRegisterRequest` DTO and validated on the backend.
+  - Farmer farm size is stored as `FarmSize` with an explicit `FarmSizeUnit`. The current supported registration unit is `Vigha`.
+  - `FarmName` is optional during registration.
+  - Farmer registration intentionally uses a single free-text `Address` field. Latitude, longitude, city, state, and pincode are not collected during registration; map-based location selection is deferred to a later phase.
   - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Farmer` role, and insert the corresponding `FarmerProfile`.
   - Email duplicates return a 409 Conflict response.
   - Successful registration returns a safe `FarmerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).

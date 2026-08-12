@@ -105,6 +105,13 @@ public enum MeasurementUnit
     Acre = 6
 }
 
+public enum FarmSizeUnit
+{
+    Vigha = 1,
+    Acre = 2,
+    Hectare = 3
+}
+
 public enum ListingType
 {
     DirectSale = 1,

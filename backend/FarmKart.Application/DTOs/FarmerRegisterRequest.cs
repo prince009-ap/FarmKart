@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FarmKart.Domain.Enums;
 
 namespace FarmKart.Application.DTOs;
 
@@ -21,12 +22,15 @@ public record FarmerRegisterRequest(
     [Required(ErrorMessage = "Address is required.")]
     string Address,
 
-    [Required(ErrorMessage = "FarmName is required.")]
-    string FarmName,
+    string? FarmName,
 
     [Required(ErrorMessage = "FarmSize is required.")]
     [Range(0, double.MaxValue, ErrorMessage = "FarmSize must not be negative.")]
     decimal FarmSize,
+
+    [Required(ErrorMessage = "FarmSizeUnit is required.")]
+    [EnumDataType(typeof(FarmSizeUnit), ErrorMessage = "FarmSizeUnit must be a valid value.")]
+    FarmSizeUnit FarmSizeUnit,
 
     string? FarmLocation
 );

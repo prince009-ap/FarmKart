@@ -89,6 +89,7 @@ public class LoginTests
                     Address: "123 Farm Road",
                     FarmName: "Happy Farm",
                     FarmSize: 10.5m,
+                    FarmSizeUnit: FarmKart.Domain.Enums.FarmSizeUnit.Vigha,
                     FarmLocation: "Near Valley"
                 );
                 await authService.RegisterFarmerAsync(registerRequest);

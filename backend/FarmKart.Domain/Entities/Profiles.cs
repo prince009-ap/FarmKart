@@ -1,4 +1,5 @@
 using FarmKart.Domain.Common;
+using FarmKart.Domain.Enums;
 
 namespace FarmKart.Domain.Entities;
 
@@ -6,6 +7,7 @@ public sealed class FarmerProfile : ProfileBase
 {
     public string? FarmName { get; set; }
     public decimal? FarmSize { get; set; }
+    public FarmSizeUnit? FarmSizeUnit { get; set; }
     public string? FarmLocation { get; set; }
 
     public ICollection<Job> Jobs { get; set; } = [];

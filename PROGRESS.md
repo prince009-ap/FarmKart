@@ -185,6 +185,16 @@
 - [x] Run complete backend test suite (33 tests) and frontend test suite (53 tests) ensuring all pass successfully
 - [x] Compile production-ready bundles for both client and server projects with zero errors
 
+## Farmer Farm Size Unit Change
+
+- [x] Add `FarmSizeUnit` enum with `Vigha` as the current farmer farm-size unit
+- [x] Add nullable `FarmSizeUnit` column to `FarmerProfile` without reinterpreting legacy numeric values
+- [x] Update `FarmerRegisterRequest` to require `FarmSize` + `FarmSizeUnit` and make `FarmName` optional
+- [x] Update Angular farmer registration UI to show `[ number ] [ Vigha ]` and send `farmSizeUnit: "Vigha"`
+- [x] Remove Acres from the active farmer registration flow
+- [x] Add migration `AddFarmerFarmSizeUnit`
+- [x] Update backend and frontend tests for Vigha registration, validation, and legacy null-unit handling
+
 
 
 

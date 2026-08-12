@@ -131,23 +131,33 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Farm Name</mat-label>
+            <mat-label>Farm Name (Optional)</mat-label>
             <input matInput formControlName="farmName" placeholder="Green Valley Farms" type="text" />
-            @if (registerForm.get('farmName')?.hasError('required')) {
-              <mat-error>Farm Name is required</mat-error>
-            }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Farm Size (Acres)</mat-label>
-            <input matInput formControlName="farmSize" placeholder="10" type="number" step="0.01" />
-            @if (registerForm.get('farmSize')?.hasError('required')) {
-              <mat-error>Farm Size is required</mat-error>
-            }
-            @if (registerForm.get('farmSize')?.hasError('min')) {
-              <mat-error>Size must be greater than 0</mat-error>
-            }
-          </mat-form-field>
+          <div class="auth-farm-size-row auth-form-grid__full">
+            <mat-form-field appearance="outline" class="auth-farm-size-row__value">
+              <mat-label>Farm Size</mat-label>
+              <input matInput formControlName="farmSize" placeholder="10" type="number" step="0.01" min="0" />
+              @if (registerForm.get('farmSize')?.hasError('required')) {
+                <mat-error>Farm Size is required</mat-error>
+              }
+              @if (registerForm.get('farmSize')?.hasError('min')) {
+                <mat-error>Size cannot be negative</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="auth-farm-size-row__unit">
+              <mat-select formControlName="farmSizeUnit" aria-label="Farm size unit" placeholder="Unit">
+                @for (unit of farmSizeUnitOptions; track unit) {
+                  <mat-option [value]="unit">{{ unit }}</mat-option>
+                }
+              </mat-select>
+              @if (registerForm.get('farmSizeUnit')?.hasError('required')) {
+                <mat-error>Unit is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Farm Location Description</mat-label>

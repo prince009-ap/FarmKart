@@ -8,8 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { passwordMatchValidator } from './password-match.validator';
+import { FarmSizeUnit } from '../../core/models/auth.models';
 
 @Component({
   selector: 'app-register-farmer',
@@ -23,7 +25,8 @@ import { passwordMatchValidator } from './password-match.validator';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCardModule
+    MatCardModule,
+    MatSelectModule
   ],
   templateUrl: './register-farmer.component.html'
 })
@@ -38,6 +41,8 @@ export class RegisterFarmerComponent {
   errorMessage = '';
   successMessage = '';
 
+  readonly farmSizeUnitOptions: FarmSizeUnit[] = ['Vigha', 'Acre', 'Hectare'];
+
   readonly registerForm = this.fb.group({
     fullName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
@@ -49,8 +54,9 @@ export class RegisterFarmerComponent {
     confirmPassword: ['', [Validators.required]],
     phone: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{10,15}$/)]],
     address: ['', [Validators.required]],
-    farmName: ['', [Validators.required]],
-    farmSize: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    farmName: [''],
+    farmSize: [null as number | null, [Validators.required, Validators.min(0)]],
+    farmSizeUnit: ['Vigha' as FarmSizeUnit, [Validators.required]],
     farmLocation: ['']
   }, { validators: passwordMatchValidator });
 
@@ -71,8 +77,9 @@ export class RegisterFarmerComponent {
       phone: val.phone!,
       profileImageUrl: null,
       address: val.address!,
-      farmName: val.farmName!,
+      farmName: val.farmName?.trim() ? val.farmName.trim() : null,
       farmSize: Number(val.farmSize),
+      farmSizeUnit: val.farmSizeUnit!,
       farmLocation: val.farmLocation || null
     };
 

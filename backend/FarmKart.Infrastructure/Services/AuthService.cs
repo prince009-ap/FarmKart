@@ -3,6 +3,7 @@ using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
 using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
+using FarmKart.Domain.Enums;
 using FarmKart.Domain.ValueObjects;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
@@ -37,6 +38,11 @@ public class AuthService : IAuthService
 
     public async Task<FarmerRegistrationResponse> RegisterFarmerAsync(FarmerRegisterRequest request)
     {
+        if (!Enum.IsDefined(typeof(FarmSizeUnit), request.FarmSizeUnit))
+        {
+            throw new RegistrationFailedException("FarmSizeUnit must be a supported value.");
+        }
+
         // 1. Check if email is already registered
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
@@ -78,8 +84,9 @@ public class AuthService : IAuthService
                 FullName = request.FullName,
                 Phone = request.Phone,
                 ProfileImageUrl = request.ProfileImageUrl,
-                FarmName = request.FarmName,
+                FarmName = string.IsNullOrWhiteSpace(request.FarmName) ? null : request.FarmName.Trim(),
                 FarmSize = request.FarmSize,
+                FarmSizeUnit = request.FarmSizeUnit,
                 FarmLocation = request.FarmLocation,
                 AddressInfo = new AddressInfo
                 {

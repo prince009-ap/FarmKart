@@ -4,6 +4,7 @@ using FarmKart.Application.Exceptions;
 using FarmKart.Application.Options;
 using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
+using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
 using FarmKart.Infrastructure.Services;
@@ -53,42 +54,44 @@ public class FarmerRegistrationTests
         return (services.BuildServiceProvider(), dbName);
     }
 
+    private static FarmerRegisterRequest CreateValidRequest(
+        string email = "farmer.john@example.com",
+        string? farmName = "Happy Farm") =>
+        new(
+            FullName: "John Doe",
+            Email: email,
+            Password: "SecurePassword123!",
+            Phone: "1234567890",
+            ProfileImageUrl: "http://example.com/image.jpg",
+            Address: "123 Farm Road",
+            FarmName: farmName,
+            FarmSize: 10.5m,
+            FarmSizeUnit: FarmSizeUnit.Vigha,
+            FarmLocation: "Near Valley"
+        );
+
     [Fact]
     public async Task RegisterFarmer_Successful_CreatesUserAndProfile_WithRole()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
         {
-            // Create DB
             using (var scope = provider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
 
-                // Seed roles (needed for AddToRoleAsync)
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
             }
 
-            var request = new FarmerRegisterRequest(
-                FullName: "John Doe",
-                Email: "farmer.john@example.com",
-                Password: "SecurePassword123!",
-                Phone: "1234567890",
-                ProfileImageUrl: "http://example.com/image.jpg",
-                Address: "123 Farm Road",
-                FarmName: "Happy Farm",
-                FarmSize: 10.5m,
-                FarmLocation: "Near Valley"
-            );
+            var request = CreateValidRequest();
 
-            // Act
             using var scope2 = provider.CreateScope();
             var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
             var response = await authService.RegisterFarmerAsync(request);
 
-            // Assert response details are safe (no password/JWT/cookies)
             Assert.NotNull(response);
             Assert.Equal(request.FullName, response.FullName);
             Assert.Equal(request.Email, response.Email);
@@ -96,24 +99,22 @@ public class FarmerRegistrationTests
             Assert.True(response.UserId != Guid.Empty);
             Assert.Equal("Farmer registered successfully.", response.Message);
 
-            // Validate in Database
             var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
             var user = await db.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
             Assert.NotNull(user);
             Assert.Equal(user.Id, response.UserId);
 
-            // Check Role assignment
             var userManager = scope2.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var isInRole = await userManager.IsInRoleAsync(user, Roles.Farmer);
             Assert.True(isInRole);
 
-            // Check Profile Creation
             var profile = await db.FarmerProfiles.SingleOrDefaultAsync(p => p.UserId == user.Id);
             Assert.NotNull(profile);
             Assert.Equal(request.FullName, profile.FullName);
             Assert.Equal(request.Phone, profile.Phone);
             Assert.Equal(request.FarmName, profile.FarmName);
             Assert.Equal(request.FarmSize, profile.FarmSize);
+            Assert.Equal(FarmSizeUnit.Vigha, profile.FarmSizeUnit);
             Assert.Equal(request.Address, profile.AddressInfo.AddressLine);
             Assert.Equal(string.Empty, profile.AddressInfo.City);
             Assert.Equal(string.Empty, profile.AddressInfo.State);
@@ -121,10 +122,243 @@ public class FarmerRegistrationTests
             Assert.Null(profile.AddressInfo.Latitude);
             Assert.Null(profile.AddressInfo.Longitude);
 
-            // Ensure no password hashes/details exist in FarmerProfile
             var type = typeof(FarmerProfile);
             Assert.Null(type.GetProperty("Password"));
             Assert.Null(type.GetProperty("PasswordHash"));
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RegisterFarmer_WithVighaUnit_StoresFarmSizeUnitAsVigha()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+                await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
+            }
+
+            var request = CreateValidRequest(farmName: "Green Valley Farm", email: "vigha.farmer@example.com");
+            request = request with { FarmSize = 5m, FarmSizeUnit = FarmSizeUnit.Vigha };
+
+            using var scope2 = provider.CreateScope();
+            var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
+            await authService.RegisterFarmerAsync(request);
+
+            var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            var profile = await db.FarmerProfiles.SingleAsync(p => p.FarmName == "Green Valley Farm");
+            Assert.Equal(5m, profile.FarmSize);
+            Assert.Equal(FarmSizeUnit.Vigha, profile.FarmSizeUnit);
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RegisterFarmer_WithOptionalFarmName_AllowsNullFarmName()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+                await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
+            }
+
+            var request = CreateValidRequest(email: "no.farmname@example.com", farmName: null);
+
+            using var scope2 = provider.CreateScope();
+            var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
+            await authService.RegisterFarmerAsync(request);
+
+            var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            var profile = await db.FarmerProfiles.SingleAsync(p => p.FullName == request.FullName);
+            Assert.Null(profile.FarmName);
+            Assert.Equal(FarmSizeUnit.Vigha, profile.FarmSizeUnit);
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RegisterFarmer_WithAcreUnit_StoresFarmSizeUnitAsAcre()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+                await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
+            }
+
+            var request = CreateValidRequest(email: "acre.farmer@example.com") with
+            {
+                FarmSize = 12m,
+                FarmSizeUnit = FarmSizeUnit.Acre
+            };
+
+            using var scope2 = provider.CreateScope();
+            var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
+            await authService.RegisterFarmerAsync(request);
+
+            var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            var profile = await db.FarmerProfiles.SingleAsync(p => p.FullName == request.FullName);
+            Assert.Equal(FarmSizeUnit.Acre, profile.FarmSizeUnit);
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RegisterFarmer_WithHectareUnit_StoresFarmSizeUnitAsHectare()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+                await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
+            }
+
+            var request = CreateValidRequest(email: "hectare.farmer@example.com") with
+            {
+                FarmSize = 8m,
+                FarmSizeUnit = FarmSizeUnit.Hectare
+            };
+
+            using var scope2 = provider.CreateScope();
+            var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
+            await authService.RegisterFarmerAsync(request);
+
+            var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            var profile = await db.FarmerProfiles.SingleAsync(p => p.FullName == request.FullName);
+            Assert.Equal(FarmSizeUnit.Hectare, profile.FarmSizeUnit);
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task RegisterFarmer_InvalidFarmSizeUnit_ThrowsRegistrationFailedException()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+                await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
+            }
+
+            var request = CreateValidRequest(email: "invalid.unit@example.com") with
+            {
+                FarmSizeUnit = (FarmSizeUnit)999
+            };
+
+            using var scope2 = provider.CreateScope();
+            var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
+
+            await Assert.ThrowsAsync<RegistrationFailedException>(() => authService.RegisterFarmerAsync(request));
+        }
+        finally
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            await context.Database.EnsureDeletedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task LegacyFarmerProfile_WithoutFarmSizeUnit_RemainsNull()
+    {
+        var (provider, _) = SetupServiceProvider();
+        try
+        {
+            var legacyUserId = Guid.NewGuid();
+
+            using (var scope = provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+                await context.Database.EnsureDeletedAsync();
+                await context.Database.EnsureCreatedAsync();
+
+                context.Users.Add(new ApplicationUser
+                {
+                    Id = legacyUserId,
+                    UserName = "legacy.farmer@example.com",
+                    Email = "legacy.farmer@example.com",
+                    NormalizedEmail = "LEGACY.FARMER@EXAMPLE.COM",
+                    NormalizedUserName = "LEGACY.FARMER@EXAMPLE.COM"
+                });
+
+                context.FarmerProfiles.Add(new FarmerProfile
+                {
+                    UserId = legacyUserId,
+                    FullName = "Legacy Farmer",
+                    Phone = "1234567890",
+                    FarmSize = 10.5m,
+                    FarmSizeUnit = null,
+                    AddressInfo = new FarmKart.Domain.ValueObjects.AddressInfo
+                    {
+                        AddressLine = "Legacy Address"
+                    }
+                });
+                await context.SaveChangesAsync();
+            }
+
+            using var scope2 = provider.CreateScope();
+            var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+            var profile = await db.FarmerProfiles.SingleAsync(p => p.FullName == "Legacy Farmer");
+
+            Assert.Equal(10.5m, profile.FarmSize);
+            Assert.Null(profile.FarmSizeUnit);
         }
         finally
         {
@@ -149,28 +383,16 @@ public class FarmerRegistrationTests
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
 
-                // Pre-register user with same email
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var existingUser = new ApplicationUser { UserName = "duplicate@example.com", Email = "duplicate@example.com" };
                 await userManager.CreateAsync(existingUser, "Password123!");
             }
 
-            var request = new FarmerRegisterRequest(
-                FullName: "Duplicate Guy",
-                Email: "duplicate@example.com",
-                Password: "Password123!",
-                Phone: "0987654321",
-                ProfileImageUrl: null,
-                Address: "Addr",
-                FarmName: "Farm",
-                FarmSize: 1.0m,
-                FarmLocation: null
-            );
+            var request = CreateValidRequest(email: "duplicate@example.com", farmName: "Farm");
 
             using var scope2 = provider.CreateScope();
             var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
 
-            // Act & Assert
             await Assert.ThrowsAsync<DuplicateEmailException>(() => authService.RegisterFarmerAsync(request));
         }
         finally
@@ -197,22 +419,14 @@ public class FarmerRegistrationTests
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
             }
 
-            var request = new FarmerRegisterRequest(
-                FullName: "Test Farmer",
-                Email: "weak.password@example.com",
-                Password: "123", // Weak password (fails Identity password policies)
-                Phone: "1234567890",
-                ProfileImageUrl: null,
-                Address: "Addr",
-                FarmName: "Farm",
-                FarmSize: 1.0m,
-                FarmLocation: null
-            );
+            var request = CreateValidRequest(email: "weak.password@example.com", farmName: "Farm") with
+            {
+                Password = "123"
+            };
 
             using var scope2 = provider.CreateScope();
             var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
 
-            // Act & Assert
             await Assert.ThrowsAsync<RegistrationFailedException>(() => authService.RegisterFarmerAsync(request));
         }
         finally
@@ -234,30 +448,15 @@ public class FarmerRegistrationTests
                 var context = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
-
-                // Note: We do NOT seed the "Farmer" role.
-                // This will cause RoleManager.AddToRoleAsync to fail inside AuthService, triggering transaction rollback.
             }
 
-            var request = new FarmerRegisterRequest(
-                FullName: "Rollback Test",
-                Email: "rollback@example.com",
-                Password: "Password123!",
-                Phone: "1234567890",
-                ProfileImageUrl: null,
-                Address: "Addr",
-                FarmName: "Farm",
-                FarmSize: 1.0m,
-                FarmLocation: null
-            );
+            var request = CreateValidRequest(email: "rollback@example.com", farmName: "Farm");
 
             using var scope2 = provider.CreateScope();
             var authService = scope2.ServiceProvider.GetRequiredService<AuthService>();
 
-            // Act & Assert (Should throw RegistrationFailedException because of role assignment failure)
             await Assert.ThrowsAsync<RegistrationFailedException>(() => authService.RegisterFarmerAsync(request));
 
-            // Verify user was NOT created in DB (Transaction rolled back)
             var db = scope2.ServiceProvider.GetRequiredService<FarmKartDbContext>();
             var user = await db.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
             Assert.Null(user);

@@ -1,3 +1,5 @@
+export type FarmSizeUnit = 'Vigha' | 'Acre' | 'Hectare';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -10,8 +12,9 @@ export interface RegisterFarmerRequest {
   phone: string;
   profileImageUrl: string | null;
   address: string;
-  farmName: string;
+  farmName: string | null;
   farmSize: number;
+  farmSizeUnit: FarmSizeUnit;
   farmLocation: string | null;
 }
 

@@ -1,6 +1,7 @@
 using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
+using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -86,7 +87,7 @@ public class CookieAuthTests : IClassFixture<WebApplicationFactory<Program>>, ID
 
         if (role == Roles.Farmer)
         {
-            await authService.RegisterFarmerAsync(new FarmerRegisterRequest(fullName, email, password, "1234567890", null, "123 Farm Road", "Happy Farm", 10.5m, "Near Valley"));
+            await authService.RegisterFarmerAsync(new FarmerRegisterRequest(fullName, email, password, "1234567890", null, "123 Farm Road", "Happy Farm", 10.5m, FarmSizeUnit.Vigha, "Near Valley"));
         }
         else if (role == Roles.Worker)
         {
@@ -161,7 +162,7 @@ public class CookieAuthTests : IClassFixture<WebApplicationFactory<Program>>, ID
             var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "farmer.cookie@test.com");
             if (existingUser == null)
             {
-                await authService.RegisterFarmerAsync(new FarmerRegisterRequest("Farmer Cookie", "farmer.cookie@test.com", "SecurePassword123!", "1234567890", null, "123 Farm Road", "Happy Farm", 10.5m, "Near Valley"));
+                await authService.RegisterFarmerAsync(new FarmerRegisterRequest("Farmer Cookie", "farmer.cookie@test.com", "SecurePassword123!", "1234567890", null, "123 Farm Road", "Happy Farm", 10.5m, FarmSizeUnit.Vigha, "Near Valley"));
             }
         }
 

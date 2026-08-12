@@ -37,7 +37,7 @@ describe('RegisterFarmerComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('should validate form fields as required', () => {
+  it('should validate required fields except optional farm name', () => {
     const form = component.registerForm;
     expect(form.valid).toBe(false);
 
@@ -47,8 +47,22 @@ describe('RegisterFarmerComponent', () => {
     expect(form.get('confirmPassword')?.hasError('required')).toBe(true);
     expect(form.get('phone')?.hasError('required')).toBe(true);
     expect(form.get('address')?.hasError('required')).toBe(true);
-    expect(form.get('farmName')?.hasError('required')).toBe(true);
+    expect(form.get('farmName')?.hasError('required')).toBeFalsy();
     expect(form.get('farmSize')?.hasError('required')).toBe(true);
+    expect(form.get('farmSizeUnit')?.hasError('required')).toBeFalsy();
+    expect(form.get('farmSizeUnit')?.value).toBe('Vigha');
+  });
+
+  it('should default farm size unit to Vigha and expose unit options', () => {
+    expect(component.registerForm.get('farmSizeUnit')?.value).toBe('Vigha');
+    expect(component.farmSizeUnitOptions).toEqual(['Vigha', 'Acre', 'Hectare']);
+    expect(fixture.nativeElement.querySelector('mat-select[formcontrolname="farmSizeUnit"]')).toBeTruthy();
+  });
+
+  it('should reject negative farm size', () => {
+    const farmSizeControl = component.registerForm.get('farmSize');
+    farmSizeControl?.setValue(-1);
+    expect(farmSizeControl?.hasError('min')).toBe(true);
   });
 
   it('should reject password mismatch', () => {
@@ -78,6 +92,7 @@ describe('RegisterFarmerComponent', () => {
       address: '123 Farm Lane',
       farmName: 'Valley Farms',
       farmSize: 15,
+      farmSizeUnit: 'Vigha',
       farmLocation: 'Valley Description'
     });
 
@@ -87,7 +102,6 @@ describe('RegisterFarmerComponent', () => {
     
     expect(authServiceMock.registerFarmer).toHaveBeenCalled();
     
-    // Check parameters to ensure no lat/lng/city/state/pincode are included in DTO
     const callArgs = authServiceMock.registerFarmer.mock.calls[0][0];
     expect(callArgs.latitude).toBeUndefined();
     expect(callArgs.longitude).toBeUndefined();
@@ -95,9 +109,89 @@ describe('RegisterFarmerComponent', () => {
     expect(callArgs.state).toBeUndefined();
     expect(callArgs.pincode).toBeUndefined();
     expect(callArgs.address).toBe('123 Farm Lane');
+    expect(callArgs.farmSize).toBe(15);
+    expect(callArgs.farmSizeUnit).toBe('Vigha');
 
     vi.advanceTimersByTime(2000);
     expect(navigateSpy).toHaveBeenCalledWith(['/auth/login']);
     vi.useRealTimers();
+  });
+
+  it('should send selected Acre unit to the backend', () => {
+    authServiceMock.registerFarmer.mockReturnValue(of({
+      farmerId: '1',
+      email: 'farmer@test.com',
+      fullName: 'Farmer John',
+      message: 'Success'
+    }));
+
+    component.registerForm.patchValue({
+      fullName: 'Farmer John',
+      email: 'farmer@test.com',
+      password: 'Password123!',
+      confirmPassword: 'Password123!',
+      phone: '1234567890',
+      address: '123 Farm Lane',
+      farmSize: 10,
+      farmSizeUnit: 'Acre'
+    });
+
+    component.onSubmit();
+
+    const callArgs = authServiceMock.registerFarmer.mock.calls[0][0];
+    expect(callArgs.farmSizeUnit).toBe('Acre');
+  });
+
+  it('should send selected Hectare unit to the backend', () => {
+    authServiceMock.registerFarmer.mockReturnValue(of({
+      farmerId: '1',
+      email: 'farmer@test.com',
+      fullName: 'Farmer John',
+      message: 'Success'
+    }));
+
+    component.registerForm.patchValue({
+      fullName: 'Farmer John',
+      email: 'farmer@test.com',
+      password: 'Password123!',
+      confirmPassword: 'Password123!',
+      phone: '1234567890',
+      address: '123 Farm Lane',
+      farmSize: 8,
+      farmSizeUnit: 'Hectare'
+    });
+
+    component.onSubmit();
+
+    const callArgs = authServiceMock.registerFarmer.mock.calls[0][0];
+    expect(callArgs.farmSizeUnit).toBe('Hectare');
+  });
+
+  it('should send null farm name when left blank', () => {
+    authServiceMock.registerFarmer.mockReturnValue(of({
+      farmerId: '1',
+      email: 'farmer@test.com',
+      fullName: 'Farmer John',
+      message: 'Success'
+    }));
+
+    component.registerForm.patchValue({
+      fullName: 'Farmer John',
+      email: 'farmer@test.com',
+      password: 'Password123!',
+      confirmPassword: 'Password123!',
+      phone: '1234567890',
+      address: '123 Farm Lane',
+      farmName: '',
+      farmSize: 5,
+      farmSizeUnit: 'Vigha',
+      farmLocation: null
+    });
+
+    component.onSubmit();
+
+    const callArgs = authServiceMock.registerFarmer.mock.calls[0][0];
+    expect(callArgs.farmName).toBeNull();
+    expect(callArgs.farmSizeUnit).toBe('Vigha');
   });
 });

@@ -52,4 +52,6 @@ The repository currently includes:
 - SQL Server-ready domain model for profiles, jobs, machinery rentals, crops, marketplace, auctions, chat, notifications, and reviews
 - Initial EF Core migration: `InitialFarmKartDomain`
 
+Farmer registration currently stores farm area as `FarmSize` with an explicit `FarmSizeUnit`. The active registration unit is **Vigha**. Location coordinates are not part of farmer registration; map-based location selection will be added later.
+
 Authentication, controllers, business workflows, SignalR, payments integration, and AI features are still intentionally deferred.

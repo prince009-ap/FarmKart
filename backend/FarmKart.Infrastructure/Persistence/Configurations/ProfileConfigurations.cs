@@ -1,4 +1,5 @@
 using FarmKart.Domain.Entities;
+using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -22,6 +23,9 @@ public sealed class FarmerProfileConfiguration : IEntityTypeConfiguration<Farmer
         builder.Property(profile => profile.ProfileImageUrl).HasMaxLength(500);
         builder.Property(profile => profile.FarmName).HasMaxLength(150);
         builder.Property(profile => profile.FarmSize).HasPrecision(18, 2);
+        builder.Property(profile => profile.FarmSizeUnit)
+            .HasConversion<int>()
+            .HasColumnName("FarmSizeUnit");
         builder.Property(profile => profile.FarmLocation).HasMaxLength(250);
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
