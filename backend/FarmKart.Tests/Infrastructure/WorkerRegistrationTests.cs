@@ -1,5 +1,7 @@
+using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
+using FarmKart.Application.Options;
 using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Infrastructure.Identity;
@@ -36,6 +38,15 @@ public class WorkerRegistrationTests
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<FarmKartDbContext>();
 
+        services.Configure<JwtOptions>(options =>
+        {
+            options.Secret = "ThisIsADevelopmentSecretKeyForTestingOnlyAndMustBeAtLeast32Bytes!";
+            options.Issuer = "FarmKart";
+            options.Audience = "FarmKartUsers";
+            options.ExpiryMinutes = 60;
+        });
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddLogging();
         services.AddScoped<AuthService>();
 

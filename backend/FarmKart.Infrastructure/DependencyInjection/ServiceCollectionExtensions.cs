@@ -3,10 +3,14 @@ using FarmKart.Application.Abstractions.Persistence;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
 using FarmKart.Infrastructure.Services;
+using FarmKart.Application.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace FarmKart.Infrastructure.DependencyInjection;
 
@@ -24,6 +28,33 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFarmKartDbContext>(provider => provider.GetRequiredService<FarmKartDbContext>());
 
         services.AddScoped<IAuthService, AuthService>();
+
+        // Register JWT options and services
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+        var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
+        if (jwtSettings != null && !string.IsNullOrEmpty(jwtSettings.Secret))
+        {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidAudience = jwtSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+                };
+            });
+        }
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {

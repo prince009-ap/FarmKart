@@ -30,3 +30,11 @@
 28. Protect marketplace, auction, rental, and payment history from accidental cascade deletes.
 29. Use ASP.NET Core Identity ApplicationUser (using Guid keys) as the security principal, linked 1-to-1 with profile tables.
 30. Reference central Roles constants (Farmer, Worker, Customer) for authorization and role checks instead of hardcoding strings.
+
+## Active Authentication Rules
+
+- JWT generation is implemented with HmacSha256 signature containing user ID, email, and role.
+- JWT is currently returned in the response body ONLY for development/API testing.
+- HttpOnly cookie storage is NOT implemented yet (to be implemented in a subsequent phase).
+- Browser-side token persistence is NOT implemented (do not use localStorage or sessionStorage).
+- Protected business endpoints are NOT implemented yet (do not add [Authorize] or role restrictions to controllers yet).

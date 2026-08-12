@@ -6,8 +6,10 @@ using FarmKart.Domain.Entities;
 using FarmKart.Domain.ValueObjects;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
+using FarmKart.Application.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,11 +20,19 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly FarmKartDbContext _dbContext;
+    private readonly IJwtTokenService _jwtTokenService;
+    private readonly JwtOptions _jwtOptions;
 
-    public AuthService(UserManager<ApplicationUser> userManager, FarmKartDbContext dbContext)
+    public AuthService(
+        UserManager<ApplicationUser> userManager, 
+        FarmKartDbContext dbContext,
+        IJwtTokenService jwtTokenService,
+        IOptions<JwtOptions> jwtOptions)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _jwtTokenService = jwtTokenService;
+        _jwtOptions = jwtOptions.Value;
     }
 
     public async Task<FarmerRegistrationResponse> RegisterFarmerAsync(FarmerRegisterRequest request)
@@ -314,11 +324,16 @@ public class AuthService : IAuthService
             throw new InvalidCredentialsException();
         }
 
+        var token = _jwtTokenService.GenerateToken(user.Id, user.Email!, role);
+        var expiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes);
+
         return new LoginResponse(
             UserId: user.Id,
             Email: user.Email!,
             FullName: fullName,
             Role: role,
+            Token: token,
+            ExpiresAt: expiresAt,
             Message: "Login successful."
         );
     }

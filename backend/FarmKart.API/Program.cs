@@ -15,6 +15,7 @@ var app = builder.Build();
 await IdentityRoleSeeder.SeedRolesAsync(app.Services);
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

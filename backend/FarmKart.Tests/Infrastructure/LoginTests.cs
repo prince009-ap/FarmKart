@@ -1,5 +1,7 @@
+using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
+using FarmKart.Application.Options;
 using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Infrastructure.Identity;
@@ -8,8 +10,13 @@ using FarmKart.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -17,6 +24,11 @@ namespace FarmKart.Tests.Infrastructure;
 
 public class LoginTests
 {
+    private const string TestSecret = "ThisIsADevelopmentSecretKeyForTestingOnlyAndMustBeAtLeast32Bytes!";
+    private const string TestIssuer = "FarmKart";
+    private const string TestAudience = "FarmKartUsers";
+    private const int TestExpiryMinutes = 60;
+
     private (ServiceProvider Provider, string DbName) SetupServiceProvider()
     {
         var dbName = $"FarmKartDb_LoginTest_{Guid.NewGuid()}";
@@ -36,6 +48,16 @@ public class LoginTests
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<FarmKartDbContext>();
 
+        // Register JWT configuration and services
+        services.Configure<JwtOptions>(options =>
+        {
+            options.Secret = TestSecret;
+            options.Issuer = TestIssuer;
+            options.Audience = TestAudience;
+            options.ExpiryMinutes = TestExpiryMinutes;
+        });
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddLogging();
         services.AddScoped<AuthService>();
 
@@ -43,7 +65,7 @@ public class LoginTests
     }
 
     [Fact]
-    public async Task Login_Farmer_WithValidCredentials_Succeeds()
+    public async Task Login_Farmer_WithValidCredentials_GeneratesValidJwtAndExpiresAt()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
@@ -54,11 +76,9 @@ public class LoginTests
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
 
-                // Seed roles
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Farmer));
 
-                // Pre-register Farmer
                 var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
                 var registerRequest = new FarmerRegisterRequest(
                     FullName: "Farmer John",
@@ -80,20 +100,45 @@ public class LoginTests
             var loginRequest = new LoginRequest("farmer.john@test.com", "SecurePassword123!");
             var response = await authService2.LoginAsync(loginRequest);
 
-            // Assert
+            // Assert response fields
             Assert.NotNull(response);
             Assert.Equal("farmer.john@test.com", response.Email);
             Assert.Equal("Farmer John", response.FullName);
             Assert.Equal(Roles.Farmer, response.Role);
             Assert.True(response.UserId != Guid.Empty);
+            Assert.False(string.IsNullOrWhiteSpace(response.Token));
+            Assert.True(response.ExpiresAt > DateTime.UtcNow);
             Assert.Equal("Login successful.", response.Message);
 
-            // Verify no sensitive properties in output DTO properties
+            // Verify JWT payload, claims, and signature
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = TestIssuer,
+                ValidAudience = TestAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestSecret))
+            };
+
+            var principal = tokenHandler.ValidateToken(response.Token, validationParameters, out var validatedToken);
+            Assert.NotNull(validatedToken);
+
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            Assert.Equal(response.UserId.ToString(), jwtToken.Claims.First(c => c.Type == "sub" || c.Type == "nameid" || c.Type == ClaimTypes.NameIdentifier).Value);
+            Assert.Equal("farmer.john@test.com", jwtToken.Claims.First(c => c.Type == "email" || c.Type == ClaimTypes.Email).Value);
+            Assert.Equal(Roles.Farmer, jwtToken.Claims.First(c => c.Type == "role" || c.Type == ClaimTypes.Role).Value);
+            Assert.Equal(TestIssuer, jwtToken.Issuer);
+            Assert.Equal(TestAudience, jwtToken.Audiences.First());
+
+            // Ensure password details or secrets are not in response or JWT
+            Assert.DoesNotContain("Password", response.Token);
+            Assert.DoesNotContain(TestSecret, response.Token);
             var type = typeof(LoginResponse);
             Assert.Null(type.GetProperty("Password"));
             Assert.Null(type.GetProperty("PasswordHash"));
-            Assert.Null(type.GetProperty("Token"));
-            Assert.Null(type.GetProperty("Jwt"));
         }
         finally
         {
@@ -104,7 +149,7 @@ public class LoginTests
     }
 
     [Fact]
-    public async Task Login_Worker_WithValidCredentials_Succeeds()
+    public async Task Login_Worker_WithValidCredentials_GeneratesValidJwtAndExpiresAt()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
@@ -115,11 +160,9 @@ public class LoginTests
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
 
-                // Seed roles
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Worker));
 
-                // Pre-register Worker
                 var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
                 var registerRequest = new WorkerRegisterRequest(
                     FullName: "Worker Jane",
@@ -142,11 +185,12 @@ public class LoginTests
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal("worker.jane@test.com", response.Email);
-            Assert.Equal("Worker Jane", response.FullName);
             Assert.Equal(Roles.Worker, response.Role);
-            Assert.True(response.UserId != Guid.Empty);
-            Assert.Equal("Login successful.", response.Message);
+            Assert.False(string.IsNullOrWhiteSpace(response.Token));
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(response.Token);
+            Assert.Equal(Roles.Worker, jwtToken.Claims.First(c => c.Type == "role" || c.Type == ClaimTypes.Role).Value);
         }
         finally
         {
@@ -157,7 +201,7 @@ public class LoginTests
     }
 
     [Fact]
-    public async Task Login_Customer_WithValidCredentials_Succeeds()
+    public async Task Login_Customer_WithValidCredentials_GeneratesValidJwtAndExpiresAt()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
@@ -168,11 +212,9 @@ public class LoginTests
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
 
-                // Seed roles
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Customer));
 
-                // Pre-register Customer
                 var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
                 var registerRequest = new CustomerRegisterRequest(
                     FullName: "Customer Alice",
@@ -193,11 +235,12 @@ public class LoginTests
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal("customer.alice@test.com", response.Email);
-            Assert.Equal("Customer Alice", response.FullName);
             Assert.Equal(Roles.Customer, response.Role);
-            Assert.True(response.UserId != Guid.Empty);
-            Assert.Equal("Login successful.", response.Message);
+            Assert.False(string.IsNullOrWhiteSpace(response.Token));
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(response.Token);
+            Assert.Equal(Roles.Customer, jwtToken.Claims.First(c => c.Type == "role" || c.Type == ClaimTypes.Role).Value);
         }
         finally
         {
@@ -208,7 +251,7 @@ public class LoginTests
     }
 
     [Fact]
-    public async Task Login_UnknownEmail_ThrowsInvalidCredentialsException()
+    public async Task Login_UnknownEmail_DoesNotGenerateJwt_ThrowsInvalidCredentialsException()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
@@ -220,12 +263,10 @@ public class LoginTests
                 await context.Database.EnsureCreatedAsync();
             }
 
-            // Act
             using var scope2 = provider.CreateScope();
             var authService2 = scope2.ServiceProvider.GetRequiredService<AuthService>();
             var loginRequest = new LoginRequest("unknown@test.com", "SecurePassword123!");
 
-            // Assert
             await Assert.ThrowsAsync<InvalidCredentialsException>(() => authService2.LoginAsync(loginRequest));
         }
         finally
@@ -237,7 +278,7 @@ public class LoginTests
     }
 
     [Fact]
-    public async Task Login_IncorrectPassword_ThrowsInvalidCredentialsException()
+    public async Task Login_IncorrectPassword_DoesNotGenerateJwt_ThrowsInvalidCredentialsException()
     {
         var (provider, dbName) = SetupServiceProvider();
         try
@@ -248,11 +289,9 @@ public class LoginTests
                 await context.Database.EnsureDeletedAsync();
                 await context.Database.EnsureCreatedAsync();
 
-                // Seed roles
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
                 await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Customer));
 
-                // Pre-register Customer
                 var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
                 var registerRequest = new CustomerRegisterRequest(
                     FullName: "Customer Alice",
@@ -265,12 +304,10 @@ public class LoginTests
                 await authService.RegisterCustomerAsync(registerRequest);
             }
 
-            // Act
             using var scope2 = provider.CreateScope();
             var authService2 = scope2.ServiceProvider.GetRequiredService<AuthService>();
             var loginRequest = new LoginRequest("customer.alice@test.com", "WrongPassword123!");
 
-            // Assert
             await Assert.ThrowsAsync<InvalidCredentialsException>(() => authService2.LoginAsync(loginRequest));
         }
         finally
