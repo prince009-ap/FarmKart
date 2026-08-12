@@ -129,3 +129,15 @@
 - [x] Add integration tests verifying cookie structure (HttpOnly, Path, Expiration, Secure), claims authentication, and unauthorized request rejections
 - [x] Confirm backend build and tests pass successfully
 
+## Phase 3.9 Deliverables — Angular Authentication Service
+
+- [x] Configure Angular environments for API URL matching `http://localhost:5055/api`
+- [x] Register `provideHttpClient()` in `app.config.ts`
+- [x] Create TS interfaces/models matching backend DTO schemas (camelCase)
+- [x] Create centralized `AuthService` handling farmer/worker/customer registration and cookie logins
+- [x] Configure `withCredentials: true` on login and auth requests to allow automatic HttpOnly cookie transmission
+- [x] Implement simple reactive `currentUser$` authentication state using RxJS `BehaviorSubject`
+- [x] Add focused Vitest unit tests verifying login calls, registration endpoints, state updates, and JWT isolation properties
+- [x] Confirm frontend build compiles and all unit tests pass successfully
+
+
