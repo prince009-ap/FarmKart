@@ -261,5 +261,36 @@ public class CookieAuthTests : IClassFixture<WebApplicationFactory<Program>>, ID
         Assert.False(string.IsNullOrWhiteSpace(userClaims.UserId));
     }
 
+    [Fact]
+    public async Task GetCurrentUser_WithValidCookie_Returns200OK_WithUserInfo()
+    {
+        // Arrange
+        await SetupTestUserAsync("current.user@test.com", "SecurePassword123!", "Farmer Joe", Roles.Farmer);
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var loginRequest = new LoginRequest("current.user@test.com", "SecurePassword123!");
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        Assert.True(loginResponse.Headers.Contains("Set-Cookie"));
+
+        var cookieHeader = loginResponse.Headers.GetValues("Set-Cookie").First();
+        var nameValuePair = cookieHeader.Split(';').First(p => p.Trim().StartsWith("FarmKartAuth=")).Trim();
+
+        var authenticatedClient = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        authenticatedClient.DefaultRequestHeaders.Add("Cookie", nameValuePair);
+
+        // Act
+        var response = await authenticatedClient.GetAsync("/api/auth/current-user");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var userInfo = await response.Content.ReadFromJsonAsync<AuthUserResponse>();
+        Assert.NotNull(userInfo);
+        Assert.Equal("current.user@test.com", userInfo.Email);
+        Assert.Equal(Roles.Farmer, userInfo.Role);
+        Assert.Equal("Farmer Joe", userInfo.FullName);
+        Assert.NotEqual(Guid.Empty, userInfo.UserId);
+    }
+
     private record TestAuthResult(string UserId, string Email, string Role);
 }

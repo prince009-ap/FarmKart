@@ -126,6 +126,35 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("current-user")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthUserResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdStr, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        if (string.IsNullOrEmpty(role))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var response = await _authService.GetCurrentUserAsync(userId, role);
+            return Ok(response);
+        }
+        catch (InvalidCredentialsException)
+        {
+            return Unauthorized();
+        }
+    }
+
+    [Authorize]
     [HttpGet("test-auth")]
     public IActionResult TestAuth()
     {

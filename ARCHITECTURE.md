@@ -190,7 +190,8 @@ The Angular app follows a feature-based structure:
 
 - The Angular client communicates with the ASP.NET Core API over HTTP using the registered `provideHttpClient()` mechanism.
 - Authentication is handled using a centralized Angular `AuthService` which manages a reactive `currentUser$` state based on a `BehaviorSubject`.
-- A functional HTTP interceptor (`authInterceptor`) is registered globally via `provideHttpClient(withInterceptors([authInterceptor]))`.
-- For all requests targeting the FarmKart backend API (both absolute configurations and relative API routes), the interceptor automatically configures `withCredentials: true`.
-- The JWT remains completely hidden from client-side Angular code; the browser's storage engines (localStorage, sessionStorage) and JS cookie API (document.cookie) are never used to access or manage token payloads.
+- On application bootstrap or page refreshes, `checkAuthSession()` queries the backend `/api/auth/current-user` endpoint to re-establish the user's session safely. The request is cached using RxJS `shareReplay` to prevent redundant concurrent API requests.
+- A functional HTTP interceptor (`authInterceptor`) is registered globally via `provideHttpClient(withInterceptors([authInterceptor]))` to automatically configure `withCredentials: true` for all backend requests.
+- The JWT remains completely hidden from client-side Angular code; browser storage and cookie APIs are never used to access or manage token payloads.
+- Angular route guards (`authGuard` and `roleGuard`) protect features routes (such as `/farmer`, `/worker`, and `/customer`) using metadata configured in `app.routes.ts`. Unauthorized attempts redirect unauthenticated requests to `/login` and unauthorized roles to `/unauthorized`.
 - SignalR will be introduced later for auctions, chat, and notifications.

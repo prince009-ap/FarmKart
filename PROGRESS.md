@@ -149,5 +149,19 @@
 - [x] Add focused Vitest unit tests verifying credential appending, external requests bypass, request cloning, and token access isolation audits (spying on storage and cookies)
 - [x] Confirm frontend build compiles and all unit tests pass successfully
 
+## Phase 3.11 Deliverables — Angular Authentication and Role Guards
+
+- [x] Create backend `AuthUserResponse` DTO and update `IAuthService` contract
+- [x] Implement backend `GetCurrentUserAsync` resolving the profile's full name based on claims and role
+- [x] Expose `[Authorize] GET /api/auth/current-user` endpoint in `AuthController`
+- [x] Implement Angular `checkAuthSession()` caching session states using `shareReplay` to avoid duplicate concurrent checks
+- [x] Create functional `authGuard` redirecting unauthenticated requests to `/login` preserving target in query params (`returnUrl`)
+- [x] Create functional `roleGuard` validating user roles against route data criteria, redirecting unauthorized requests to `/unauthorized`
+- [x] Create standalone placeholder components (`LoginComponent`, `RegisterComponent`, `UnauthorizedComponent`, `FarmerDashboardComponent`, `WorkerDashboardComponent`, `CustomerDashboardComponent`)
+- [x] Wire up routes and attach guards in `app.routes.ts`
+- [x] Add focused Vitest unit tests in `auth.guard.spec.ts`, `role.guard.spec.ts`, and `app.routes.spec.ts` verifying access, redirections, and token isolation properties
+- [x] Confirm frontend/backend builds compile and all tests pass successfully
+
+
 
 

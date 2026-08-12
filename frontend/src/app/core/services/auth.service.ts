@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, catchError, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   LoginRequest,
@@ -24,6 +24,9 @@ export class AuthService {
 
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
   public readonly currentUser$: Observable<AuthUser | null> = this.currentUserSubject.asObservable();
+
+  private hasCheckedSession = false;
+  private sessionCheck$: Observable<AuthUser | null> | null = null;
 
   registerFarmer(request: RegisterFarmerRequest): Observable<FarmerRegistrationResponse> {
     return this.http.post<FarmerRegistrationResponse>(
@@ -60,6 +63,7 @@ export class AuthService {
           role: response.role
         };
         this.currentUserSubject.next(user);
+        this.hasCheckedSession = true;
       })
     );
   }
@@ -68,6 +72,8 @@ export class AuthService {
     // Note: Since HttpOnly cookie deletion is handled by the backend, and no backend logout endpoint exists yet,
     // we clear the local user state here. In subsequent phases, we will call a backend logout API.
     this.currentUserSubject.next(null);
+    this.hasCheckedSession = false;
+    this.sessionCheck$ = null;
   }
 
   getCurrentUser(): Observable<AuthUser> {
@@ -77,6 +83,32 @@ export class AuthService {
     ).pipe(
       tap(user => this.currentUserSubject.next(user))
     );
+  }
+
+  checkAuthSession(): Observable<AuthUser | null> {
+    if (this.hasCheckedSession) {
+      return of(this.currentUserSubject.value);
+    }
+
+    if (this.sessionCheck$) {
+      return this.sessionCheck$;
+    }
+
+    this.sessionCheck$ = this.getCurrentUser().pipe(
+      tap(() => {
+        this.hasCheckedSession = true;
+        this.sessionCheck$ = null;
+      }),
+      catchError(() => {
+        this.hasCheckedSession = true;
+        this.currentUserSubject.next(null);
+        this.sessionCheck$ = null;
+        return of(null);
+      }),
+      shareReplay(1)
+    );
+
+    return this.sessionCheck$;
   }
 
   get currentUserValue(): AuthUser | null {

@@ -9,4 +9,5 @@ public interface IAuthService
     Task<WorkerRegistrationResponse> RegisterWorkerAsync(WorkerRegisterRequest request);
     Task<CustomerRegistrationResponse> RegisterCustomerAsync(CustomerRegisterRequest request);
     Task<LoginResult> LoginAsync(LoginRequest request);
+    Task<AuthUserResponse> GetCurrentUserAsync(System.Guid userId, string role);
 }

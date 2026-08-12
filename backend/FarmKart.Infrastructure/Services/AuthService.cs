@@ -337,4 +337,41 @@ public class AuthService : IAuthService
             Message: "Login successful."
         );
     }
+
+    public async Task<AuthUserResponse> GetCurrentUserAsync(Guid userId, string role)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        string fullName = string.Empty;
+        if (role == Roles.Farmer)
+        {
+            var profile = await _dbContext.FarmerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else if (role == Roles.Worker)
+        {
+            var profile = await _dbContext.WorkerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else if (role == Roles.Customer)
+        {
+            var profile = await _dbContext.CustomerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        return new AuthUserResponse(
+            UserId: user.Id,
+            Email: user.Email!,
+            FullName: fullName,
+            Role: role
+        );
+    }
 }
