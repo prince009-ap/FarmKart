@@ -12,16 +12,40 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    redirectTo: 'auth/login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'register',
+    redirectTo: 'auth/register/customer',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth/login',
     loadComponent: () =>
       import('./features/auth/login.component').then(
         (module) => module.LoginComponent,
       ),
   },
   {
-    path: 'register',
+    path: 'auth/register/farmer',
     loadComponent: () =>
-      import('./features/auth/register.component').then(
-        (module) => module.RegisterComponent,
+      import('./features/auth/register-farmer.component').then(
+        (module) => module.RegisterFarmerComponent,
+      ),
+  },
+  {
+    path: 'auth/register/worker',
+    loadComponent: () =>
+      import('./features/auth/register-worker.component').then(
+        (module) => module.RegisterWorkerComponent,
+      ),
+  },
+  {
+    path: 'auth/register/customer',
+    loadComponent: () =>
+      import('./features/auth/register-customer.component').then(
+        (module) => module.RegisterCustomerComponent,
       ),
   },
   {

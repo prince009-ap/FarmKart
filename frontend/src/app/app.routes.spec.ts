@@ -30,40 +30,40 @@ describe('App Routes', () => {
     router.initialNavigation();
   });
 
-  it('should redirect unauthenticated users from /farmer to /login', async () => {
+  it('should redirect unauthenticated users from /farmer to /auth/login', async () => {
     authServiceMock.checkAuthSession.mockReturnValue(of(null));
     
     await router.navigate(['/farmer']);
     
-    expect(location.path()).toBe('/login?returnUrl=%2Ffarmer');
+    expect(location.path()).toBe('/auth/login?returnUrl=%2Ffarmer');
   });
 
-  it('should redirect unauthenticated users from /worker to /login', async () => {
+  it('should redirect unauthenticated users from /worker to /auth/login', async () => {
     authServiceMock.checkAuthSession.mockReturnValue(of(null));
     
     await router.navigate(['/worker']);
     
-    expect(location.path()).toBe('/login?returnUrl=%2Fworker');
+    expect(location.path()).toBe('/auth/login?returnUrl=%2Fworker');
   });
 
-  it('should redirect unauthenticated users from /customer to /login', async () => {
+  it('should redirect unauthenticated users from /customer to /auth/login', async () => {
     authServiceMock.checkAuthSession.mockReturnValue(of(null));
     
     await router.navigate(['/customer']);
     
-    expect(location.path()).toBe('/login?returnUrl=%2Fcustomer');
+    expect(location.path()).toBe('/auth/login?returnUrl=%2Fcustomer');
   });
 
-  it('should allow access to public /login route', async () => {
+  it('should allow access to public /login route and redirect to /auth/login', async () => {
     await router.navigate(['/login']);
     
-    expect(location.path()).toBe('/login');
+    expect(location.path()).toBe('/auth/login');
   });
 
-  it('should allow access to public /register route', async () => {
+  it('should allow access to public /register route and redirect to /auth/register/customer', async () => {
     await router.navigate(['/register']);
     
-    expect(location.path()).toBe('/register');
+    expect(location.path()).toBe('/auth/register/customer');
   });
 
   it('should allow access to public /unauthorized route', async () => {

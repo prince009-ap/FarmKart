@@ -162,6 +162,21 @@
 - [x] Add focused Vitest unit tests in `auth.guard.spec.ts`, `role.guard.spec.ts`, and `app.routes.spec.ts` verifying access, redirections, and token isolation properties
 - [x] Confirm frontend/backend builds compile and all tests pass successfully
 
+## Phase 3.12 Deliverables — Angular Login and Registration UI
+
+- [x] Create visually-polished, responsive `LoginComponent` with Reactive Forms validation, visibility toggles, loading indicators, and redirect configurations
+- [x] Create `RegisterFarmerComponent` matching simplified address contracts and farmer specific attributes (Farm Name, Farm Size, Farm Location)
+- [x] Create `RegisterWorkerComponent` matching experience and expected wage constraint validators
+- [x] Create `RegisterCustomerComponent` utilizing common registration fields
+- [x] Configure password pattern matching in registration forms compatible with backend ASP.NET Identity rules
+- [x] Configure password/confirmPassword mismatch validation checks
+- [x] Set up automatic dashboard role redirects (Farmer $\rightarrow$ `/farmer`, Worker $\rightarrow$ `/worker`, Customer $\rightarrow$ `/customer`) on login completion
+- [x] Set up auto-dashboard redirection for already authenticated users hitting `/auth/login`
+- [x] Wire up routing paths `/auth/login` and `/auth/register/...` under `app.routes.ts`
+- [x] Add focused Vitest unit tests in `login.component.spec.ts`, `register-farmer.component.spec.ts`, `register-worker.component.spec.ts`, and `register-customer.component.spec.ts` verifying inputs, validation flows, loading states, redirects, and token isolation parameters
+- [x] Confirm frontend build compiles and all unit tests pass successfully
+
+
 
 
 

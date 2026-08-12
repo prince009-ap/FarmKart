@@ -1,0 +1,66 @@
+<div class="min-h-screen flex items-center justify-center p-4">
+  <mat-card class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-emerald-100 p-8">
+    <div class="text-center mb-8">
+      <div class="inline-flex p-3 bg-emerald-50 rounded-2xl text-emerald-600 mb-3">
+        <mat-icon class="scale-125">grass</mat-icon>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800">Welcome to FarmKart</h2>
+      <p class="text-slate-500 text-sm mt-1">Please enter your credentials to access your account</p>
+    </div>
+
+    <!-- Error Alert -->
+    @if (errorMessage) {
+      <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 text-sm rounded-r-lg">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      
+      <!-- Email -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Email Address</mat-label>
+        <input matInput formControlName="email" placeholder="john@example.com" type="email" />
+        @if (loginForm.get('email')?.hasError('required')) {
+          <mat-error>Email is required</mat-error>
+        }
+        @if (loginForm.get('email')?.hasError('email')) {
+          <mat-error>Please enter a valid email address</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (loginForm.get('password')?.hasError('required')) {
+          <mat-error>Password is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Submit Button -->
+      <button mat-flat-button color="primary" type="submit" class="w-full py-6 mt-2 rounded-xl text-base font-semibold" [disabled]="loginForm.invalid || loading">
+        @if (loading) {
+          <mat-spinner diameter="24" class="inline-block mr-2"></mat-spinner>
+          Logging in...
+        } @else {
+          Login
+        }
+      </button>
+
+      <!-- Register Switch Options -->
+      <div class="text-center mt-6 text-sm text-slate-600 border-t border-slate-100 pt-6">
+        <p class="mb-3 font-semibold text-slate-700">Don't have an account? Register as:</p>
+        <div class="flex flex-col gap-2">
+          <a routerLink="/auth/register/farmer" class="text-emerald-600 font-semibold hover:underline">Farmer</a>
+          <a routerLink="/auth/register/worker" class="text-emerald-600 font-semibold hover:underline">Worker</a>
+          <a routerLink="/auth/register/customer" class="text-emerald-600 font-semibold hover:underline">Customer</a>
+        </div>
+      </div>
+    </form>
+  </mat-card>
+</div>
