@@ -7,6 +7,7 @@ using FarmKart.Domain.ValueObjects;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -265,5 +266,60 @@ public class AuthService : IAuthService
             await transaction.RollbackAsync();
             throw new RegistrationFailedException($"Registration failed: {ex.Message}");
         }
+    }
+
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    {
+        // 1. Find user by email
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        // 2. Verify password
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (!isPasswordValid)
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        // 3. Resolve role
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault();
+        if (string.IsNullOrEmpty(role))
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        // 4. Retrieve profile info for the full name
+        string fullName = string.Empty;
+        if (role == Roles.Farmer)
+        {
+            var profile = await _dbContext.FarmerProfiles.SingleOrDefaultAsync(p => p.UserId == user.Id);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else if (role == Roles.Worker)
+        {
+            var profile = await _dbContext.WorkerProfiles.SingleOrDefaultAsync(p => p.UserId == user.Id);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else if (role == Roles.Customer)
+        {
+            var profile = await _dbContext.CustomerProfiles.SingleOrDefaultAsync(p => p.UserId == user.Id);
+            fullName = profile?.FullName ?? string.Empty;
+        }
+        else
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        return new LoginResponse(
+            UserId: user.Id,
+            Email: user.Email!,
+            FullName: fullName,
+            Role: role,
+            Message: "Login successful."
+        );
     }
 }

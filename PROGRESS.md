@@ -96,3 +96,13 @@
 - [x] Update AuthService to map Address and default other address/coordinate fields
 - [x] Update Farmer, Worker, and Customer registration integration tests
 - [x] Confirm build and integration tests pass
+
+## Phase 3.6 Deliverables — Login API
+
+- [x] Create LoginRequest and LoginResponse DTOs with validations
+- [x] Define custom generic InvalidCredentialsException type returning 401 Unauthorized
+- [x] Add LoginAsync to IAuthService contract
+- [x] Implement LoginAsync concrete service execution inside AuthService resolving roles and profile names
+- [x] Add POST /api/auth/login endpoint in AuthController
+- [x] Add integration tests verifying Farmer, Worker, and Customer login successes, invalid passwords, unknown emails, and DTO security constraints
+- [x] Confirm build and integration tests pass

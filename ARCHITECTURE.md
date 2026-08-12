@@ -137,6 +137,12 @@ These are application profiles only. They store business-facing profile data and
   - Registration runs under an EF Core transaction to consistently create `ApplicationUser` (hashing password via Identity), assign the `Customer` role, and insert the corresponding `CustomerProfile`.
   - Email duplicates return a 409 Conflict response.
   - Successful registration returns a safe `CustomerRegistrationResponse` (includes `UserId`, `Role`, `FullName`, `Email`, and a success message; excludes JWT or password details).
+- Login API is configured in Phase 3.6.
+  - Login request is processed via `LoginRequest` DTO containing `Email` and `Password`.
+  - Validates credentials against Identity database via `UserManager<ApplicationUser>`.
+  - Resolves role and queries profile (`FarmerProfile`, `WorkerProfile`, `CustomerProfile`) for the `FullName`.
+  - Invalid credentials return a generic `401 Unauthorized` response to avoid email enumeration.
+  - Returns safe user details (`LoginResponse`) excluding JWT/cookies/passwords.
 - The `ApplicationUser` class inherits from `IdentityUser<Guid>` and acts as the central user model.
 - Each profile (`FarmerProfile`, `WorkerProfile`, `CustomerProfile`) defines a `UserId` of type `Guid` which maps one-to-one with `ApplicationUser`.
 - Delete behavior is set to `Restrict` on profile-user relationships to avoid accidental deletion of profile and historical data.
@@ -145,7 +151,7 @@ These are application profiles only. They store business-facing profile data and
   - `Worker`
   - `Customer`
 - Roles are automatically seeded at startup in an idempotent manner via `IdentityRoleSeeder` in `Program.cs`. Running the application multiple times will not duplicate roles.
-- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases. Login is NOT implemented.
+- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases.
 
 ## Auction Data Model
 

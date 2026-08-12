@@ -8,4 +8,5 @@ public interface IAuthService
     Task<FarmerRegistrationResponse> RegisterFarmerAsync(FarmerRegisterRequest request);
     Task<WorkerRegistrationResponse> RegisterWorkerAsync(WorkerRegisterRequest request);
     Task<CustomerRegistrationResponse> RegisterCustomerAsync(CustomerRegisterRequest request);
+    Task<LoginResponse> LoginAsync(LoginRequest request);
 }
