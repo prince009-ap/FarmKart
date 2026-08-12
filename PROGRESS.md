@@ -140,4 +140,14 @@
 - [x] Add focused Vitest unit tests verifying login calls, registration endpoints, state updates, and JWT isolation properties
 - [x] Confirm frontend build compiles and all unit tests pass successfully
 
+## Phase 3.10 Deliverables — Angular HTTP Interceptor
+
+- [x] Create functional `authInterceptor` (`HttpInterceptorFn`) under `src/app/core/interceptors/`
+- [x] Configure interceptor to append `withCredentials: true` only to requests targeting the FarmKart backend API (absolute or relative)
+- [x] Clone the request objects preserving all headers, bodies, parameters, and HTTP properties (immutability rule)
+- [x] Register the interceptor in `app.config.ts` using `provideHttpClient(withInterceptors([authInterceptor]))`
+- [x] Add focused Vitest unit tests verifying credential appending, external requests bypass, request cloning, and token access isolation audits (spying on storage and cookies)
+- [x] Confirm frontend build compiles and all unit tests pass successfully
+
+
 

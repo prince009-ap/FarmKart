@@ -37,4 +37,5 @@
 - JWT is stored in an HttpOnly, secure (in production) cookie (`FarmKartAuth`) and is NO LONGER returned in the login JSON response.
 - Browser-side token persistence is NOT implemented (do not use localStorage or sessionStorage).
 - CORS is configured to explicitly allow credentials and the development Angular origins (`http://localhost:4200` and `https://localhost:4200`).
+- A functional HTTP interceptor (`authInterceptor`) automatically configures `withCredentials: true` for all backend API requests, enabling the browser to automatically forward the cookie.
 - Protected business endpoints are NOT implemented yet (do not add [Authorize] or role restrictions to business controllers yet).

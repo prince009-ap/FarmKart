@@ -190,6 +190,7 @@ The Angular app follows a feature-based structure:
 
 - The Angular client communicates with the ASP.NET Core API over HTTP using the registered `provideHttpClient()` mechanism.
 - Authentication is handled using a centralized Angular `AuthService` which manages a reactive `currentUser$` state based on a `BehaviorSubject`.
-- All authentication requests utilize `withCredentials: true` to enable automatic transmission of the HttpOnly secure cookie (`FarmKartAuth`).
+- A functional HTTP interceptor (`authInterceptor`) is registered globally via `provideHttpClient(withInterceptors([authInterceptor]))`.
+- For all requests targeting the FarmKart backend API (both absolute configurations and relative API routes), the interceptor automatically configures `withCredentials: true`.
 - The JWT remains completely hidden from client-side Angular code; the browser's storage engines (localStorage, sessionStorage) and JS cookie API (document.cookie) are never used to access or manage token payloads.
 - SignalR will be introduced later for auctions, chat, and notifications.
