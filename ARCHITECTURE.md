@@ -195,4 +195,6 @@ The Angular app follows a feature-based structure:
 - The JWT remains completely hidden from client-side Angular code; browser storage and cookie APIs are never used to access or manage token payloads.
 - Angular route guards (`authGuard` and `roleGuard`) protect features routes (such as `/farmer`, `/worker`, and `/customer`) using metadata configured in `app.routes.ts`. Unauthorized attempts redirect unauthenticated requests to `/auth/login` and unauthorized roles to `/unauthorized`.
 - Authentication forms (`LoginComponent`, `RegisterFarmerComponent`, `RegisterWorkerComponent`, `RegisterCustomerComponent`) are designed with Angular Reactive Forms, enforcing strict format constraints matching backend requirements (such as password complexities, non-negative labor attributes, and address lines). On successful login, the application redirects the user automatically to their dashboard route. Already authenticated users visiting `/auth/login` are immediately redirected to their dashboards.
+- Backend business authorization will be applied as feature APIs are implemented.
+- Logout, password reset, email verification, and refresh token strategies are intentionally deferred to future iterations.
 - SignalR will be introduced later for auctions, chat, and notifications.

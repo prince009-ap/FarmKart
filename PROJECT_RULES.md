@@ -38,4 +38,8 @@
 - Browser-side token persistence is NOT implemented (do not use localStorage or sessionStorage).
 - CORS is configured to explicitly allow credentials and the development Angular origins (`http://localhost:4200` and `https://localhost:4200`).
 - A functional HTTP interceptor (`authInterceptor`) automatically configures `withCredentials: true` for all backend API requests, enabling the browser to automatically forward the cookie.
+- Route guards (`authGuard` and `roleGuard`) validate user sessions by executing `checkAuthSession()` which is cached using `shareReplay` to prevent redundant concurrent API checks.
+- Authentication forms (`LoginComponent`, `RegisterFarmerComponent`, `RegisterWorkerComponent`, `RegisterCustomerComponent`) are built with Reactive Forms enforcing complexity rules, cross-field validation, and redirect mappings.
+- Already authenticated users visiting `/auth/login` are immediately redirected to their respective dashboards.
+- Angular never attempts to read or manipulate the `FarmKartAuth` cookie or JWT secrets directly.
 - Protected business endpoints are NOT implemented yet (do not add [Authorize] or role restrictions to business controllers yet).
