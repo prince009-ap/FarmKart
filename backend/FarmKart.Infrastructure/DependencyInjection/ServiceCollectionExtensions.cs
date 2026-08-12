@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -33,28 +34,41 @@ public static class ServiceCollectionExtensions
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-        var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
-        if (jwtSettings != null && !string.IsNullOrEmpty(jwtSettings.Secret))
+        services.AddAuthentication(options =>
         {
-            services.AddAuthentication(options =>
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer();
+
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
+                var settings = jwtOptions.Value;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings.Issuer,
-                    ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+                    ValidIssuer = settings.Issuer,
+                    ValidAudience = settings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Secret))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var cookieName = settings.CookieName ?? "FarmKartAuth";
+                        if (context.Request.Cookies.TryGetValue(cookieName, out var token))
+                        {
+                            context.Token = token;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
-        }
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {

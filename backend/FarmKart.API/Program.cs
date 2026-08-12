@@ -15,6 +15,7 @@ var app = builder.Build();
 await IdentityRoleSeeder.SeedRolesAsync(app.Services);
 
 app.UseHttpsRedirection();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -27,3 +28,5 @@ app.MapGet("/health", () => Results.Ok(new
 }));
 
 app.Run();
+
+public partial class Program { }

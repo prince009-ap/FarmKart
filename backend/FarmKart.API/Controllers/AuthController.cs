@@ -1,8 +1,12 @@
 using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
+using FarmKart.Application.Options;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
 
 namespace FarmKart.API.Controllers;
@@ -12,10 +16,12 @@ namespace FarmKart.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly JwtOptions _jwtOptions;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IOptions<JwtOptions> jwtOptions)
     {
         _authService = authService;
+        _jwtOptions = jwtOptions.Value;
     }
 
     [HttpPost("register/farmer")]
@@ -89,12 +95,59 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var response = await _authService.LoginAsync(request);
+            var result = await _authService.LoginAsync(request);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = _jwtOptions.CookieSecure,
+                SameSite = ParseSameSite(_jwtOptions.CookieSameSite),
+                Path = "/",
+                Expires = result.ExpiresAt
+            };
+
+            HttpContext.Response.Cookies.Append(_jwtOptions.CookieName, result.Token, cookieOptions);
+
+            var response = new LoginResponse(
+                UserId: result.UserId,
+                Email: result.Email,
+                FullName: result.FullName,
+                Role: result.Role,
+                ExpiresAt: result.ExpiresAt,
+                Message: result.Message
+            );
+
             return Ok(response);
         }
         catch (InvalidCredentialsException ex)
         {
             return Unauthorized(new { message = ex.Message });
         }
+    }
+
+    [Authorize]
+    [HttpGet("test-auth")]
+    public IActionResult TestAuth()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        return Ok(new
+        {
+            userId,
+            email,
+            role
+        });
+    }
+
+    private SameSiteMode ParseSameSite(string policy)
+    {
+        return policy?.ToLower() switch
+        {
+            "strict" => SameSiteMode.Strict,
+            "none" => SameSiteMode.None,
+            _ => SameSiteMode.Lax
+        };
     }
 }

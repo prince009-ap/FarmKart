@@ -278,7 +278,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
         // 1. Find user by email
         var user = await _userManager.FindByEmailAsync(request.Email);
@@ -327,7 +327,7 @@ public class AuthService : IAuthService
         var token = _jwtTokenService.GenerateToken(user.Id, user.Email!, role);
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes);
 
-        return new LoginResponse(
+        return new LoginResult(
             UserId: user.Id,
             Email: user.Email!,
             FullName: fullName,

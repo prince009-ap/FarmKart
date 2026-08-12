@@ -106,3 +106,26 @@
 - [x] Add POST /api/auth/login endpoint in AuthController
 - [x] Add integration tests verifying Farmer, Worker, and Customer login successes, invalid passwords, unknown emails, and DTO security constraints
 - [x] Confirm build and integration tests pass
+
+## Phase 3.7 Deliverables — JWT Token Generation
+
+- [x] Define JwtOptions configuration model mapping to JwtSettings
+- [x] Define IJwtTokenService abstraction in Application layer
+- [x] Implement concrete JwtTokenService in Infrastructure layer signing tokens with HmacSha256
+- [x] Configure framework token validation parameters inside ServiceCollectionExtensions
+- [x] Configure local development secrets inside API project's User Secrets store
+- [x] Inject IJwtTokenService into AuthService and include generated JWT inside direct LoginResponse
+- [x] Add unit and integration tests verifying claims, signature validation, and token lifetimes
+
+## Phase 3.8 Deliverables — JWT Storage using HttpOnly Cookie
+
+- [x] Extend JwtOptions to support CookieName, CookieSecure, and CookieSameSite configurations
+- [x] Define LoginResult in Application to hold token between service and presentation layers
+- [x] Update LoginResponse DTO to remove direct Token parameter (prevent JS exposure)
+- [x] Implement HTTP-level cookie-writing inside API's AuthController.Login
+- [x] Configure JwtBearer authentication handler to extract token from HttpOnly cookie
+- [x] Configure CORS to allow Angular dev server origins (http/https localhost:4200) with credentials
+- [x] Add test-only authenticated endpoint `/api/auth/test-auth` for integration testing
+- [x] Add integration tests verifying cookie structure (HttpOnly, Path, Expiration, Secure), claims authentication, and unauthorized request rejections
+- [x] Confirm backend build and tests pass successfully
+

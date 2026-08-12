@@ -34,7 +34,7 @@
 ## Active Authentication Rules
 
 - JWT generation is implemented with HmacSha256 signature containing user ID, email, and role.
-- JWT is currently returned in the response body ONLY for development/API testing.
-- HttpOnly cookie storage is NOT implemented yet (to be implemented in a subsequent phase).
+- JWT is stored in an HttpOnly, secure (in production) cookie (`FarmKartAuth`) and is NO LONGER returned in the login JSON response.
 - Browser-side token persistence is NOT implemented (do not use localStorage or sessionStorage).
-- Protected business endpoints are NOT implemented yet (do not add [Authorize] or role restrictions to controllers yet).
+- CORS is configured to explicitly allow credentials and the development Angular origins (`http://localhost:4200` and `https://localhost:4200`).
+- Protected business endpoints are NOT implemented yet (do not add [Authorize] or role restrictions to business controllers yet).

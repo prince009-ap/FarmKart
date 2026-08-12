@@ -100,7 +100,7 @@ public class LoginTests
             var loginRequest = new LoginRequest("farmer.john@test.com", "SecurePassword123!");
             var response = await authService2.LoginAsync(loginRequest);
 
-            // Assert response fields
+            // Assert response fields (returns LoginResult at service level)
             Assert.NotNull(response);
             Assert.Equal("farmer.john@test.com", response.Email);
             Assert.Equal("Farmer John", response.FullName);
@@ -136,7 +136,10 @@ public class LoginTests
             // Ensure password details or secrets are not in response or JWT
             Assert.DoesNotContain("Password", response.Token);
             Assert.DoesNotContain(TestSecret, response.Token);
+
+            // Assert LoginResponse DTO does NOT expose token or password details
             var type = typeof(LoginResponse);
+            Assert.Null(type.GetProperty("Token"));
             Assert.Null(type.GetProperty("Password"));
             Assert.Null(type.GetProperty("PasswordHash"));
         }

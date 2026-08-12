@@ -10,6 +10,17 @@ public static class ServiceCollectionExtensions
         services.AddControllers();
         services.AddEndpointsApiExplorer();
 
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        });
+
         return services;
     }
 }

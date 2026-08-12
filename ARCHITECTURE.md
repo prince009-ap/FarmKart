@@ -151,7 +151,7 @@ These are application profiles only. They store business-facing profile data and
   - `Worker`
   - `Customer`
 - Roles are automatically seeded at startup in an idempotent manner via `IdentityRoleSeeder` in `Program.cs`. Running the application multiple times will not duplicate roles.
-- The authentication flow (JWT generation/validation, HttpOnly Secure Cookie mechanism, and Angular client integration) is NOT implemented yet and will be added in later phases.
+- The authentication flow (JWT generation, validation, and HttpOnly Secure Cookie storage (`FarmKartAuth`)) is implemented on the backend. Angular client integration is NOT implemented yet and will be added in later phases.
 
 ## Auction Data Model
 
@@ -190,5 +190,5 @@ The Angular app follows a feature-based structure:
 
 - The Angular client will communicate with the ASP.NET Core API over HTTP.
 - Angular `HttpClient` and reactive forms will be used in future phases.
-- Authentication will later use JWT stored in HttpOnly cookies, not browser storage.
+- Authentication is implemented using JWT stored in HttpOnly cookies (`FarmKartAuth`), completely isolated from browser-side JavaScript.
 - SignalR will be introduced later for auctions, chat, and notifications.
