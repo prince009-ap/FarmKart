@@ -25,6 +25,21 @@ import { Subscription } from 'rxjs';
     MatProgressSpinnerModule,
     MatCardModule
   ],
+  styles: [`
+    ::ng-deep .mat-mdc-form-field {
+      --mdc-outlined-text-field-container-shape: 14px;
+      --mdc-outlined-text-field-outline-color: rgba(16, 185, 129, 0.25);
+      --mdc-outlined-text-field-focus-outline-color: #10b981;
+      --mdc-outlined-text-field-hover-outline-color: #059669;
+      --mdc-outlined-text-field-label-text-color: #064e3b;
+      --mdc-outlined-text-field-focus-label-text-color: #064e3b;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: rgba(243, 244, 246, 0.45) !important;
+    }
+  `],
   templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit, OnDestroy {
@@ -44,7 +59,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    // If user is already authenticated, redirect them directly
     this.authSubscription = this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.redirectToDashboard(user.role);
@@ -68,7 +82,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.authService.login({ email: val.email!, password: val.password! }).subscribe({
       next: (response) => {
         this.loading = false;
-        // User state will update and trigger subscription in ngOnInit, but we can also trigger direct redirect
         const returnUrl = this.route.snapshot.queryParams['returnUrl'];
         if (returnUrl) {
           this.router.navigateByUrl(returnUrl);

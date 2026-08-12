@@ -1,119 +1,158 @@
-<div class="min-h-screen flex items-center justify-center p-4 py-12">
-  <mat-card class="w-full max-w-xl bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-emerald-100 p-8">
-    <div class="text-center mb-8">
-      <div class="inline-flex p-3 bg-emerald-50 rounded-2xl text-emerald-600 mb-3">
-        <mat-icon class="scale-125">shopping_basket</mat-icon>
-      </div>
-      <h2 class="text-2xl font-bold text-slate-800">Register as a Customer</h2>
-      <p class="text-slate-500 text-sm mt-1">Start purchasing fresh crops and hiring farm machinery</p>
-    </div>
+<div class="auth-page">
+  <div class="auth-shell">
+    <aside class="auth-hero auth-hero--customer" aria-hidden="true">
+      <div class="auth-hero__bg"></div>
+      <div class="auth-hero__overlay"></div>
 
-    <!-- Feedback Alerts -->
-    @if (errorMessage) {
-      <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 text-sm rounded-r-lg">
-        {{ errorMessage }}
-      </div>
-    }
+      <div class="auth-hero__content">
+        <div class="auth-hero__brand">
+          <span class="auth-hero__brand-icon">
+            <mat-icon>shopping_basket</mat-icon>
+          </span>
+          <span class="auth-hero__brand-name">Farm<span>Kart</span></span>
+        </div>
 
-    @if (successMessage) {
-      <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 text-sm rounded-r-lg">
-        {{ successMessage }}
-      </div>
-    }
-
-    <!-- Registration Form -->
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        <!-- Full Name -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Full Name</mat-label>
-          <input matInput formControlName="fullName" placeholder="Jane Doe" type="text" />
-          @if (registerForm.get('fullName')?.hasError('required')) {
-            <mat-error>Full Name is required</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Email -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Email Address</mat-label>
-          <input matInput formControlName="email" placeholder="jane@example.com" type="email" />
-          @if (registerForm.get('email')?.hasError('required')) {
-            <mat-error>Email is required</mat-error>
-          }
-          @if (registerForm.get('email')?.hasError('email')) {
-            <mat-error>Please enter a valid email address</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Password -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (registerForm.get('password')?.hasError('required')) {
-            <mat-error>Password is required</mat-error>
-          }
-          @if (registerForm.get('password')?.hasError('minlength')) {
-            <mat-error>Must be at least 6 characters</mat-error>
-          }
-          @if (registerForm.get('password')?.hasError('pattern') && !registerForm.get('password')?.hasError('minlength')) {
-            <mat-error>Requires uppercase, lowercase, number, and symbol</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Confirm Password -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Confirm Password</mat-label>
-          <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" />
-          <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'Toggle confirm password visibility'">
-            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (registerForm.get('confirmPassword')?.hasError('required')) {
-            <mat-error>Please confirm your password</mat-error>
-          }
-          @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
-            <mat-error>Passwords do not match</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Phone -->
-        <mat-form-field appearance="outline" class="w-full md:col-span-2">
-          <mat-label>Phone Number</mat-label>
-          <input matInput formControlName="phone" placeholder="9876543210" type="tel" />
-          @if (registerForm.get('phone')?.hasError('required')) {
-            <mat-error>Phone is required</mat-error>
-          }
-          @if (registerForm.get('phone')?.hasError('pattern')) {
-            <mat-error>Please enter a valid phone number (10-15 digits)</mat-error>
-          }
-        </mat-form-field>
+        <h1 class="auth-hero__title">Shop fresh produce and hire farm equipment.</h1>
+        <p class="auth-hero__subtitle">
+          Join as a customer to buy crops directly from farmers and access machinery rentals in your area.
+        </p>
       </div>
 
-      <!-- Address -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Home Address</mat-label>
-        <textarea matInput formControlName="address" rows="2" placeholder="789 Main Street"></textarea>
-        @if (registerForm.get('address')?.hasError('required')) {
-          <mat-error>Address is required</mat-error>
-        }
-      </mat-form-field>
-
-      <button mat-flat-button color="primary" type="submit" class="w-full py-6 mt-2 rounded-xl text-base font-semibold" [disabled]="registerForm.invalid || loading">
-        @if (loading) {
-          <mat-spinner diameter="24" class="inline-block mr-2"></mat-spinner>
-          Registering...
-        } @else {
-          Register as Customer
-        }
-      </button>
-
-      <div class="text-center mt-4 text-sm text-slate-600">
-        Already have an account? 
-        <a routerLink="/auth/login" class="text-emerald-600 font-semibold hover:underline">Login here</a>
+      <div class="auth-hero__stats">
+        <div class="auth-hero__stat">
+          <span class="auth-hero__stat-value">Fresh</span>
+          <span class="auth-hero__stat-label">Local crops</span>
+        </div>
+        <div class="auth-hero__stat">
+          <span class="auth-hero__stat-value">Direct</span>
+          <span class="auth-hero__stat-label">From farms</span>
+        </div>
+        <div class="auth-hero__stat">
+          <span class="auth-hero__stat-value">Rent</span>
+          <span class="auth-hero__stat-label">Machinery</span>
+        </div>
       </div>
-    </form>
-  </mat-card>
+    </aside>
+
+    <main class="auth-panel auth-panel--scroll">
+      <div class="auth-mobile-brand">
+        <mat-icon class="text-sky-600">shopping_basket</mat-icon>
+        <span class="auth-mobile-brand__name">Farm<span>Kart</span></span>
+      </div>
+
+      <a routerLink="/auth/login" class="auth-back-link">
+        <mat-icon>arrow_back</mat-icon>
+        Back to sign in
+      </a>
+
+      <header class="auth-header">
+        <div class="auth-header__icon auth-header__icon--customer">
+          <mat-icon>shopping_basket</mat-icon>
+        </div>
+        <h2 class="auth-header__title">Register as a Customer</h2>
+        <p class="auth-header__subtitle">Start purchasing fresh crops and hiring farm machinery</p>
+      </header>
+
+      @if (errorMessage) {
+        <div class="auth-alert auth-alert--error" role="alert">
+          <mat-icon class="auth-alert__icon">error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="auth-alert auth-alert--success" role="status">
+          <mat-icon class="auth-alert__icon">check_circle_outline</mat-icon>
+          <span>{{ successMessage }}</span>
+        </div>
+      }
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="auth-form-grid">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Full Name</mat-label>
+            <input matInput formControlName="fullName" placeholder="Jane Doe" type="text" />
+            @if (registerForm.get('fullName')?.hasError('required')) {
+              <mat-error>Full Name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" placeholder="jane@example.com" type="email" />
+            @if (registerForm.get('email')?.hasError('required')) {
+              <mat-error>Email is required</mat-error>
+            }
+            @if (registerForm.get('email')?.hasError('email')) {
+              <mat-error>Please enter a valid email address</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (registerForm.get('password')?.hasError('required')) {
+              <mat-error>Password is required</mat-error>
+            }
+            @if (registerForm.get('password')?.hasError('minlength')) {
+              <mat-error>Must be at least 6 characters</mat-error>
+            }
+            @if (registerForm.get('password')?.hasError('pattern') && !registerForm.get('password')?.hasError('minlength')) {
+              <mat-error>Requires uppercase, lowercase, number, and symbol</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" />
+            <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'Toggle confirm password visibility'">
+              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (registerForm.get('confirmPassword')?.hasError('required')) {
+              <mat-error>Please confirm your password</mat-error>
+            }
+            @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
+              <mat-error>Passwords do not match</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full auth-form-grid__full">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phone" placeholder="9876543210" type="tel" />
+            @if (registerForm.get('phone')?.hasError('required')) {
+              <mat-error>Phone is required</mat-error>
+            }
+            @if (registerForm.get('phone')?.hasError('pattern')) {
+              <mat-error>Please enter a valid phone number (10-15 digits)</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full auth-form-grid__full">
+            <mat-label>Home Address</mat-label>
+            <textarea matInput formControlName="address" rows="2" placeholder="789 Main Street"></textarea>
+            @if (registerForm.get('address')?.hasError('required')) {
+              <mat-error>Address is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <button mat-flat-button color="primary" type="submit" class="auth-submit" [disabled]="registerForm.invalid || loading">
+          @if (loading) {
+            <mat-spinner diameter="24" class="inline-block mr-2"></mat-spinner>
+            Registering...
+          } @else {
+            Register as Customer
+          }
+        </button>
+
+        <div class="text-center text-sm text-slate-600">
+          Already have an account?
+          <a routerLink="/auth/login" class="auth-link">Login here</a>
+        </div>
+      </form>
+    </main>
+  </div>
 </div>

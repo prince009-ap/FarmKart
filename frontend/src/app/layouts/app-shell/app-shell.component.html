@@ -1,30 +1,63 @@
-<main class="shell">
-  <section class="hero">
-    <p class="eyebrow">FarmKart foundation</p>
-    <h1>Angular workspace prepared for the next development phases.</h1>
-    <p class="summary">
-      This step intentionally sets up architecture only. Business features, authentication,
-      real-time flows, and AI integrations will be added incrementally in later phases.
-    </p>
-  </section>
+<div class="landing-page">
+  <nav class="landing-nav">
+    <a href="/" class="landing-nav__brand">
+      <span class="landing-nav__brand-mark" aria-hidden="true">🌿</span>
+      <span class="landing-nav__brand-name">Farm<span>Kart</span></span>
+    </a>
 
-  <section class="grid">
-    <mat-card appearance="outlined">
-      <h2>Primary roles</h2>
-      <div class="chips">
-        @for (role of roles; track role) {
-          <mat-chip>{{ role }}</mat-chip>
-        }
+    <div class="landing-nav__actions">
+      <a href="/auth/login" class="landing-nav__link landing-nav__link--ghost">Sign in</a>
+      <a href="/auth/register/customer" class="landing-nav__link landing-nav__link--primary">Get started</a>
+    </div>
+  </nav>
+
+  <section class="landing-hero">
+    <div>
+      <p class="landing-hero__eyebrow">FarmKart foundation</p>
+      <h1 class="landing-hero__title">A modern platform for agriculture, labor, and trade.</h1>
+      <p class="landing-hero__summary">
+        This step intentionally sets up architecture only. Business features, authentication,
+        real-time flows, and AI integrations will be added incrementally in later phases.
+      </p>
+
+      <div class="landing-hero__cta-row">
+        <a href="/auth/login" class="landing-hero__cta landing-hero__cta--primary">
+          Sign in to your account
+        </a>
+        <a href="/auth/register/farmer" class="landing-hero__cta landing-hero__cta--secondary">
+          Register as Farmer
+        </a>
       </div>
-    </mat-card>
+    </div>
 
-    <mat-card appearance="outlined">
-      <h2>Planned modules</h2>
-      <ul>
-        @for (module of plannedModules; track module) {
-          <li>{{ module }}</li>
-        }
-      </ul>
-    </mat-card>
+    <div class="landing-hero__visual" aria-hidden="true">
+      <div class="landing-hero__visual-bg"></div>
+      <div class="landing-hero__visual-card">
+        <strong>Built for every role in the farm economy</strong>
+        <span>Farmers, workers, and customers connected through one workspace.</span>
+      </div>
+    </div>
   </section>
-</main>
+
+  <section class="landing-grid-section">
+    <div class="landing-grid">
+      <article class="landing-card">
+        <h2>Primary roles</h2>
+        <div class="landing-card__chips">
+          @for (role of roles; track role) {
+            <span class="landing-chip">{{ role }}</span>
+          }
+        </div>
+      </article>
+
+      <article class="landing-card">
+        <h2>Planned modules</h2>
+        <ul class="landing-card__list">
+          @for (module of plannedModules; track module) {
+            <li>{{ module }}</li>
+          }
+        </ul>
+      </article>
+    </div>
+  </section>
+</div>
