@@ -67,14 +67,9 @@ public class FarmerRegistrationTests
                 Phone: "1234567890",
                 ProfileImageUrl: "http://example.com/image.jpg",
                 Address: "123 Farm Road",
-                City: "Farmville",
-                State: "Farming State",
-                Pincode: "123456",
                 FarmName: "Happy Farm",
                 FarmSize: 10.5m,
-                FarmLocation: "Near Valley",
-                Latitude: 45.1234m,
-                Longitude: -93.5678m
+                FarmLocation: "Near Valley"
             );
 
             // Act
@@ -109,7 +104,11 @@ public class FarmerRegistrationTests
             Assert.Equal(request.FarmName, profile.FarmName);
             Assert.Equal(request.FarmSize, profile.FarmSize);
             Assert.Equal(request.Address, profile.AddressInfo.AddressLine);
-            Assert.Equal(request.Latitude, profile.AddressInfo.Latitude);
+            Assert.Equal(string.Empty, profile.AddressInfo.City);
+            Assert.Equal(string.Empty, profile.AddressInfo.State);
+            Assert.Equal(string.Empty, profile.AddressInfo.Pincode);
+            Assert.Null(profile.AddressInfo.Latitude);
+            Assert.Null(profile.AddressInfo.Longitude);
 
             // Ensure no password hashes/details exist in FarmerProfile
             var type = typeof(FarmerProfile);
@@ -152,14 +151,9 @@ public class FarmerRegistrationTests
                 Phone: "0987654321",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 FarmName: "Farm",
                 FarmSize: 1.0m,
-                FarmLocation: null,
-                Latitude: null,
-                Longitude: null
+                FarmLocation: null
             );
 
             using var scope2 = provider.CreateScope();
@@ -199,14 +193,9 @@ public class FarmerRegistrationTests
                 Phone: "1234567890",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 FarmName: "Farm",
                 FarmSize: 1.0m,
-                FarmLocation: null,
-                Latitude: null,
-                Longitude: null
+                FarmLocation: null
             );
 
             using var scope2 = provider.CreateScope();
@@ -246,14 +235,9 @@ public class FarmerRegistrationTests
                 Phone: "1234567890",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 FarmName: "Farm",
                 FarmSize: 1.0m,
-                FarmLocation: null,
-                Latitude: null,
-                Longitude: null
+                FarmLocation: null
             );
 
             using var scope2 = provider.CreateScope();

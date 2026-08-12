@@ -67,13 +67,8 @@ public class WorkerRegistrationTests
                 Phone: "0987654321",
                 ProfileImageUrl: "http://example.com/worker.jpg",
                 Address: "456 Field Lane",
-                City: "Harvest City",
-                State: "Farming Region",
-                Pincode: "654321",
                 ExperienceYears: 5,
-                ExpectedDailyWage: 150.00m,
-                Latitude: 12.3456m,
-                Longitude: 78.9012m
+                ExpectedDailyWage: 150.00m
             );
 
             // Act
@@ -108,7 +103,11 @@ public class WorkerRegistrationTests
             Assert.Equal(request.ExperienceYears, profile.ExperienceYears);
             Assert.Equal(request.ExpectedDailyWage, profile.ExpectedDailyWage);
             Assert.Equal(request.Address, profile.AddressInfo.AddressLine);
-            Assert.Equal(request.Latitude, profile.AddressInfo.Latitude);
+            Assert.Equal(string.Empty, profile.AddressInfo.City);
+            Assert.Equal(string.Empty, profile.AddressInfo.State);
+            Assert.Equal(string.Empty, profile.AddressInfo.Pincode);
+            Assert.Null(profile.AddressInfo.Latitude);
+            Assert.Null(profile.AddressInfo.Longitude);
 
             // Ensure no password hashes/details exist in WorkerProfile
             var type = typeof(WorkerProfile);
@@ -151,13 +150,8 @@ public class WorkerRegistrationTests
                 Phone: "0987654321",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 ExperienceYears: 2,
-                ExpectedDailyWage: 120.00m,
-                Latitude: null,
-                Longitude: null
+                ExpectedDailyWage: 120.00m
             );
 
             using var scope2 = provider.CreateScope();
@@ -197,13 +191,8 @@ public class WorkerRegistrationTests
                 Phone: "1234567890",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 ExperienceYears: 1,
-                ExpectedDailyWage: 100.00m,
-                Latitude: null,
-                Longitude: null
+                ExpectedDailyWage: 100.00m
             );
 
             using var scope2 = provider.CreateScope();
@@ -242,13 +231,8 @@ public class WorkerRegistrationTests
                 Phone: "1234567890",
                 ProfileImageUrl: null,
                 Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
                 ExperienceYears: 3,
-                ExpectedDailyWage: 130.00m,
-                Latitude: null,
-                Longitude: null
+                ExpectedDailyWage: 130.00m
             );
 
             using var scope2 = provider.CreateScope();

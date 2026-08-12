@@ -89,3 +89,10 @@
 - [x] Local SQL Server database configured (`LAPTOP-K5SJ7HFJ\SQLEXPRESS`)
 - [x] FarmKartDb database created
 - [x] Existing EF Core migrations applied successfully (`InitialFarmKartDomain` and `AddIdentityFoundation`)
+
+## Registration Simplification (Requirement Change)
+
+- [x] Remove Latitude, Longitude, City, State, and Pincode from DTOs and validations
+- [x] Update AuthService to map Address and default other address/coordinate fields
+- [x] Update Farmer, Worker, and Customer registration integration tests
+- [x] Confirm build and integration tests pass

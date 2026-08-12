@@ -72,12 +72,7 @@ public class AuthService : IAuthService
                 FarmLocation = request.FarmLocation,
                 AddressInfo = new AddressInfo
                 {
-                    AddressLine = request.Address,
-                    City = request.City,
-                    State = request.State,
-                    Pincode = request.Pincode,
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude
+                    AddressLine = request.Address
                 }
             };
 
@@ -159,12 +154,7 @@ public class AuthService : IAuthService
                 IsAvailable = true,
                 AddressInfo = new AddressInfo
                 {
-                    AddressLine = request.Address,
-                    City = request.City,
-                    State = request.State,
-                    Pincode = request.Pincode,
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude
+                    AddressLine = request.Address
                 }
             };
 
@@ -243,12 +233,7 @@ public class AuthService : IAuthService
                 ProfileImageUrl = request.ProfileImageUrl,
                 AddressInfo = new AddressInfo
                 {
-                    AddressLine = request.Address,
-                    City = request.City,
-                    State = request.State,
-                    Pincode = request.Pincode,
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude
+                    AddressLine = request.Address
                 }
             };
 

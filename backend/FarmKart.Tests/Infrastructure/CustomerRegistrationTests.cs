@@ -66,12 +66,7 @@ public class CustomerRegistrationTests
                 Password: "SecurePassword123!",
                 Phone: "5551234567",
                 ProfileImageUrl: "http://example.com/customer.jpg",
-                Address: "789 Main Street",
-                City: "Metropolis",
-                State: "Central State",
-                Pincode: "54321",
-                Latitude: 40.7128m,
-                Longitude: -74.0060m
+                Address: "789 Main Street"
             );
 
             // Act
@@ -104,7 +99,11 @@ public class CustomerRegistrationTests
             Assert.Equal(request.FullName, profile.FullName);
             Assert.Equal(request.Phone, profile.Phone);
             Assert.Equal(request.Address, profile.AddressInfo.AddressLine);
-            Assert.Equal(request.Latitude, profile.AddressInfo.Latitude);
+            Assert.Equal(string.Empty, profile.AddressInfo.City);
+            Assert.Equal(string.Empty, profile.AddressInfo.State);
+            Assert.Equal(string.Empty, profile.AddressInfo.Pincode);
+            Assert.Null(profile.AddressInfo.Latitude);
+            Assert.Null(profile.AddressInfo.Longitude);
 
             // Ensure no password hashes exist in CustomerProfile
             var type = typeof(CustomerProfile);
@@ -146,12 +145,7 @@ public class CustomerRegistrationTests
                 Password: "Password123!",
                 Phone: "0987654321",
                 ProfileImageUrl: null,
-                Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
-                Latitude: null,
-                Longitude: null
+                Address: "Addr"
             );
 
             using var scope2 = provider.CreateScope();
@@ -190,12 +184,7 @@ public class CustomerRegistrationTests
                 Password: "123", // Weak password
                 Phone: "1234567890",
                 ProfileImageUrl: null,
-                Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
-                Latitude: null,
-                Longitude: null
+                Address: "Addr"
             );
 
             using var scope2 = provider.CreateScope();
@@ -233,12 +222,7 @@ public class CustomerRegistrationTests
                 Password: "Password123!",
                 Phone: "1234567890",
                 ProfileImageUrl: null,
-                Address: "Addr",
-                City: "City",
-                State: "State",
-                Pincode: "111111",
-                Latitude: null,
-                Longitude: null
+                Address: "Addr"
             );
 
             using var scope2 = provider.CreateScope();

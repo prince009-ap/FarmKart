@@ -19,20 +19,5 @@ public record CustomerRegisterRequest(
     string? ProfileImageUrl,
 
     [Required(ErrorMessage = "Address is required.")]
-    string Address,
-
-    [Required(ErrorMessage = "City is required.")]
-    string City,
-
-    [Required(ErrorMessage = "State is required.")]
-    string State,
-
-    [Required(ErrorMessage = "Pincode is required.")]
-    string Pincode,
-
-    [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90.")]
-    decimal? Latitude,
-
-    [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180.")]
-    decimal? Longitude
+    string Address
 );
