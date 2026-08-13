@@ -73,6 +73,22 @@ public class FarmKartDbContextTests
             constraint => constraint.Name == "CK_Auction_EndTime_After_StartTime");
     }
 
+    [Fact]
+    public void Simplified_Address_Contract_Preserves_Legacy_Profile_Columns()
+    {
+        using var context = CreateContext();
+
+        var farmerAddress = context.Model
+            .FindEntityType(typeof(FarmerProfile))!
+            .FindNavigation(nameof(FarmerProfile.AddressInfo))!
+            .TargetEntityType;
+
+        Assert.Equal("Address", farmerAddress.FindProperty("AddressLine")!.GetColumnName());
+        Assert.Equal("AddressInfo_City", farmerAddress.FindProperty("City")!.GetColumnName());
+        Assert.Equal("AddressInfo_State", farmerAddress.FindProperty("State")!.GetColumnName());
+        Assert.Equal("AddressInfo_Pincode", farmerAddress.FindProperty("Pincode")!.GetColumnName());
+    }
+
     private static FarmKartDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()

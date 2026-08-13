@@ -201,3 +201,13 @@ The Angular app follows a feature-based structure:
 - Backend business authorization will be applied as feature APIs are implemented.
 - Logout, password reset, email verification, and refresh token strategies are intentionally deferred to future iterations.
 - SignalR will be introduced later for auctions, chat, and notifications.
+
+## Farmer Profile Management
+
+- **Endpoint Security**: GET & PUT `/api/farmer/profile` are secured on the backend using `[Authorize(Roles = Roles.Farmer)]`.
+- **Identity Isolation**: The client never passes the `UserId` to the profile endpoints. Instead, the backend controller resolves the profile owner exclusively from the token's authenticated claim (`ClaimTypes.NameIdentifier`).
+- **Read-Only Email**: Email addresses are considered read-only in this flow. The DTO `FarmerProfileUpdateRequest` does not accept email, and the service does not alter the underlying ASP.NET Identity email record.
+- **Owned Address Info**: Address updates are saved directly into the owned value object `AddressInfo` associated with the farmer's profile, keeping the simple one-line address representation.
+- **Frontend Flow**: The standalone `FarmerProfileComponent` interacts with the `FarmerProfileService` via HttpClient. It uses local Angular signals for loading, saving, view/edit modes, and error state tracking. Form validations match backend DB constraints (e.g., non-negative farm size).
+- **Unit/Integration Tests**: Covered by 10 xUnit integration tests in `FarmerProfileTests.cs` (checking endpoints under different authentication and error states) and 12 Vitest specs in `farmer-profile.component.spec.ts` (mocking the profile service to assert UI bindings and state transitions).
+

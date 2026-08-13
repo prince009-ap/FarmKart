@@ -6,6 +6,7 @@
 - [x] Phase 2: Database design and initial domain modeling
 - [x] Phase 3: Authentication and role-based authorization foundation
 - [ ] Phase 4: Farmer module implementation
+  - [x] Phase 4.1: Farmer Profile Management
 - [ ] Phase 5: Worker module implementation
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -195,8 +196,15 @@
 - [x] Add migration `AddFarmerFarmSizeUnit`
 - [x] Update backend and frontend tests for Vigha registration, validation, and legacy null-unit handling
 
+## Phase 4.1 Deliverables — Farmer Profile Management
 
-
-
-
-
+- [x] Create `FarmerProfileResponse` and `FarmerProfileUpdateRequest` DTOs
+- [x] Implement backend `IFarmerProfileService` and `FarmerProfileService` executing profile fetches and edits safely
+- [x] Create `FarmerController` with authenticated GET & PUT `/api/farmer/profile` endpoints enforcing `Roles.Farmer`
+- [x] Extract ownership exclusively from claims (`ClaimTypes.NameIdentifier`) to prevent identity spoofing
+- [x] Create TS interfaces/models, `FarmerProfileService` (Angular), and standalone `FarmerProfileComponent`
+- [x] Create visually-polished, responsive profile UI with loading, saving, error states, and edit/view mode toggles
+- [x] Protect Angular `/farmer/profile` route using functional `authGuard` and `roleGuard`
+- [x] Implement comprehensive backend integration tests (10 new tests) verifying role checks, 401/403/404 handling, validation, and profile field isolation (never returning PasswordHash or auth tokens)
+- [x] Implement frontend unit tests (12 new tests) verifying routing, form controls, component states, loading/error flags, saving, and API behaviors
+- [x] Confirm all 50 backend and 70 frontend tests pass successfully

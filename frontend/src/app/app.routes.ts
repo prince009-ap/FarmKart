@@ -65,6 +65,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'farmer/profile',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Farmer'] },
+    loadComponent: () =>
+      import('./features/farmer/farmer-profile.component').then(
+        (module) => module.FarmerProfileComponent,
+      ),
+  },
+  {
     path: 'worker',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Worker'] },

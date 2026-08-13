@@ -34,21 +34,28 @@ internal static class ConfigurationExtensions
                 .IsRequired();
 
             address.Property(property => property.City)
+                // These columns predate the simplified one-field address contract.
+                // Keep their physical names so existing databases remain compatible.
+                .HasColumnName("AddressInfo_City")
                 .HasMaxLength(100)
                 .IsRequired();
 
             address.Property(property => property.State)
+                .HasColumnName("AddressInfo_State")
                 .HasMaxLength(100)
                 .IsRequired();
 
             address.Property(property => property.Pincode)
+                .HasColumnName("AddressInfo_Pincode")
                 .HasMaxLength(12)
                 .IsRequired();
 
             address.Property(property => property.Latitude)
+                .HasColumnName("AddressInfo_Latitude")
                 .HasPrecision(9, 6);
 
             address.Property(property => property.Longitude)
+                .HasColumnName("AddressInfo_Longitude")
                 .HasPrecision(9, 6);
 
             configure?.Invoke(address);

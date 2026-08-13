@@ -87,4 +87,28 @@ describe('App Routes', () => {
     
     expect(location.path()).toBe('/unauthorized');
   });
+
+  it('should redirect unauthenticated users from /farmer/profile to /auth/login', async () => {
+    authServiceMock.checkAuthSession.mockReturnValue(of(null));
+    
+    await router.navigate(['/farmer/profile']);
+    
+    expect(location.path()).toBe('/auth/login?returnUrl=%2Ffarmer%2Fprofile');
+  });
+
+  it('should allow Farmer to access /farmer/profile', async () => {
+    authServiceMock.checkAuthSession.mockReturnValue(of({ role: 'Farmer' }));
+    
+    await router.navigate(['/farmer/profile']);
+    
+    expect(location.path()).toBe('/farmer/profile');
+  });
+
+  it('should redirect Worker attempting /farmer/profile to /unauthorized', async () => {
+    authServiceMock.checkAuthSession.mockReturnValue(of({ role: 'Worker' }));
+    
+    await router.navigate(['/farmer/profile']);
+    
+    expect(location.path()).toBe('/unauthorized');
+  });
 });
