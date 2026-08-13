@@ -104,7 +104,7 @@ describe('WorkerJobsComponent', () => {
     expect(component.jobs()).toEqual([]);
 
     const compiled: HTMLElement = fixture.nativeElement;
-    expect(compiled.textContent).toContain('No jobs available right now.');
+    expect(compiled.textContent).toContain('No jobs available right now');
   });
 
   it('should filter jobs by title/crop search term', () => {

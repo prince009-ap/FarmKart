@@ -10,6 +10,7 @@
   - [x] Phase 4.2: Farmer Dashboard and Navigation Shell
   - [x] Phase 4.3: Farmer Job Posting
   - [x] Phase 4.4: Worker Job Browsing and Job Application
+  - [x] Phase 4.5: Farmer Application Management and Hiring Decision
 - [ ] Phase 5: Worker module implementation
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -239,3 +240,14 @@
 - [x] Protected Worker child routes (`/worker/jobs`, `/worker/jobs/:id`, `/worker/applications`) with `authGuard` and `roleGuard`.
 - [x] Added 14 backend integration tests in `WorkerJobTests.cs` and 10 Vitest specs for worker components.
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (71/71 passing), frontend build (`npm run build`), and frontend tests (93/93 passing).
+
+## Phase 4.5 Deliverables — Farmer Application Management and Hiring Decision
+
+- [x] Implemented `IFarmerApplicationService` & `FarmerApplicationService` for application listing by job, application details viewing, accept decision, and reject decision.
+- [x] Added endpoints in `FarmerController.cs` under `[Authorize(Roles = Roles.Farmer)]`: `GET /api/farmer/jobs/{jobId}/applications`, `GET /api/farmer/applications/{applicationId}`, `POST /api/farmer/applications/{applicationId}/accept`, and `POST /api/farmer/applications/{applicationId}/reject`.
+- [x] Enforced job ownership via authenticated JWT `FarmerProfile`; unowned job application requests return `404 Not Found`.
+- [x] Enforced application lifecycle (`Pending` -> `Accepted` / `Rejected`) and job capacity limits (`Accepted` count < `WorkersRequired`, returning `409 Conflict` on overflow).
+- [x] Created Angular `FarmerJobApplicationsComponent` (`/farmer/jobs/:jobId/applications`) with applicant experience, skills, note, status badges, and confirmable `Accept`/`Reject` actions.
+- [x] Updated `FarmerJobsComponent` cards with an "Applications" action button and added `/farmer/jobs/:jobId/applications` route under `authGuard` & `roleGuard`.
+- [x] Added 16 backend integration tests in `FarmerApplicationTests.cs` and 5 Vitest specs in `farmer-job-applications.component.spec.ts`.
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (87/87 passing), frontend build (`npm run build`), and frontend tests (98/98 passing).

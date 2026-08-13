@@ -73,7 +73,7 @@ describe('WorkerApplicationsComponent', () => {
     expect(component.applications()).toEqual([]);
 
     const compiled: HTMLElement = fixture.nativeElement;
-    expect(compiled.textContent).toContain('No applications submitted yet.');
+    expect(compiled.textContent).toContain('No applications submitted yet');
   });
 
   it('should handle API errors safely', () => {

@@ -1,54 +1,60 @@
-<div class="app-role-page">
-  <div class="app-page animate-fk-rise">
-    <section class="app-hero-banner app-hero-banner--worker">
-      <p class="app-hero-banner__eyebrow">Worker workspace</p>
-      <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
-      <p class="app-hero-banner__summary">
-        Browse farm jobs, manage your profile, and prepare for upcoming worker tools as FarmKart grows.
-      </p>
-      <div class="app-hero-banner__actions">
-        <a mat-flat-button class="app-primary-btn !bg-amber-500 !shadow-amber-500/30" routerLink="/auth/login">
-          <mat-icon>refresh</mat-icon>
-          Refresh session
+<div class="app-page animate-fk-rise">
+  <section class="app-hero-banner app-hero-banner--worker">
+    <p class="app-hero-banner__eyebrow">Worker workspace</p>
+    <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
+    <p class="app-hero-banner__summary">
+      Browse farm jobs, track your applications, and connect with local farmers looking for skilled labor.
+    </p>
+    <div class="app-hero-banner__actions">
+      <a mat-flat-button class="app-primary-btn app-primary-btn--worker" routerLink="/worker/jobs">
+        <mat-icon>search</mat-icon>
+        Browse Jobs
+      </a>
+      <a mat-stroked-button class="!border-white/30 !text-white" routerLink="/worker/applications">
+        <mat-icon>assignment</mat-icon>
+        My Applications
+      </a>
+    </div>
+  </section>
+
+  <section class="app-grid app-grid--modules">
+    <article class="app-card app-card--interactive">
+      <div class="app-card__icon app-card__icon--worker">
+        <mat-icon>work</mat-icon>
+      </div>
+      <h2 class="app-card__title">Browse Jobs</h2>
+      <span class="app-badge app-badge--worker mt-2">Active</span>
+      <p class="app-card__text">Find and apply to farm labor opportunities posted by local farmers.</p>
+      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
+        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/jobs">
+          Open module
+          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
         </a>
       </div>
-    </section>
+    </article>
 
-    <section class="app-grid app-grid--modules">
-      <article class="app-card">
-        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
-          <mat-icon>work</mat-icon>
-        </div>
-        <h2 class="app-card__title">Browse Jobs</h2>
-        <p class="app-card__text">Find and apply to farm labor opportunities posted by local farmers.</p>
-        <div class="mt-4">
-          <a mat-flat-button class="!bg-emerald-800 !text-white" routerLink="/worker/jobs">
-            <mat-icon>search</mat-icon> Browse Jobs
-          </a>
-        </div>
-      </article>
+    <article class="app-card app-card--interactive">
+      <div class="app-card__icon app-card__icon--worker">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <h2 class="app-card__title">My Applications</h2>
+      <span class="app-badge app-badge--worker mt-2">Active</span>
+      <p class="app-card__text">Track pending, accepted, and rejected applications in one place.</p>
+      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
+        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/applications">
+          Open module
+          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
+        </a>
+      </div>
+    </article>
 
-      <article class="app-card">
-        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
-          <mat-icon>person</mat-icon>
-        </div>
-        <h2 class="app-card__title">My Profile</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
-        <p class="app-card__text">Update skills, experience, and availability for better job matches.</p>
-      </article>
-
-      <article class="app-card">
-        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
-          <mat-icon>assignment</mat-icon>
-        </div>
-        <h2 class="app-card__title">My Applications</h2>
-        <p class="app-card__text">Track applications, assignments, and work history in one place.</p>
-        <div class="mt-4">
-          <a mat-stroked-button class="!border-emerald-300 !text-emerald-800" routerLink="/worker/applications">
-            <mat-icon>assignment</mat-icon> View Applications
-          </a>
-        </div>
-      </article>
-    </section>
-  </div>
+    <article class="app-card">
+      <div class="app-card__icon app-card__icon--worker">
+        <mat-icon>person</mat-icon>
+      </div>
+      <h2 class="app-card__title">My Profile</h2>
+      <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+      <p class="app-card__text">Update skills, experience, and availability for better job matches.</p>
+    </article>
+  </section>
 </div>

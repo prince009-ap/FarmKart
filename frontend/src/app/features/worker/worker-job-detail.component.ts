@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { WorkerAvailableJob } from '../../core/models/worker.models';
 import { WorkerJobService } from './worker-job.service';
 
@@ -17,7 +19,9 @@ import { WorkerJobService } from './worker-job.service';
     FormsModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './worker-job-detail.component.html'
 })

@@ -18,13 +18,16 @@ public class FarmerController : ControllerBase
 {
     private readonly IFarmerProfileService _farmerProfileService;
     private readonly IFarmerJobService _farmerJobService;
+    private readonly IFarmerApplicationService _farmerApplicationService;
 
     public FarmerController(
         IFarmerProfileService farmerProfileService,
-        IFarmerJobService farmerJobService)
+        IFarmerJobService farmerJobService,
+        IFarmerApplicationService farmerApplicationService)
     {
         _farmerProfileService = farmerProfileService;
         _farmerJobService = farmerJobService;
+        _farmerApplicationService = farmerApplicationService;
     }
 
     [HttpGet("profile")]
@@ -135,6 +138,78 @@ public class FarmerController : ControllerBase
         if (userId is null) return Unauthorized();
         try { await _farmerJobService.CancelJobAsync(userId.Value, id); return NoContent(); }
         catch (JobNotFoundException) { return NotFound(new { message = "Job not found." }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    [HttpGet("jobs/{jobId:guid}/applications")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<FarmerJobApplicationResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetApplicationsForJob(Guid jobId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerApplicationService.GetApplicationsForJobAsync(userId.Value, jobId));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("applications/{applicationId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerJobApplicationResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetApplicationDetails(Guid applicationId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerApplicationService.GetApplicationDetailsAsync(userId.Value, applicationId));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpPost("applications/{applicationId:guid}/accept")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerJobApplicationResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AcceptApplication(Guid applicationId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerApplicationService.AcceptApplicationAsync(userId.Value, applicationId));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    [HttpPost("applications/{applicationId:guid}/reject")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerJobApplicationResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RejectApplication(Guid applicationId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerApplicationService.RejectApplicationAsync(userId.Value, applicationId));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
 

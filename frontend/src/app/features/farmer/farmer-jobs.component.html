@@ -44,17 +44,30 @@
           </div>
 
           <div class="app-job-card__stats">
-            <div><strong>Daily wage</strong>{{ job.wagePerDay | number }} INR</div>
+            <div><strong>Daily wage</strong>₹{{ job.wagePerDay | number }}</div>
             <div><strong>Workers</strong>{{ job.workersRequired }}</div>
-            <div><strong>Starts</strong>{{ job.startDate }}</div>
-            <div><strong>Ends</strong>{{ job.endDate }}</div>
+            <div><strong>Starts</strong>{{ job.startDate | date:'mediumDate' }}</div>
+            <div><strong>Ends</strong>{{ job.endDate | date:'mediumDate' }}</div>
           </div>
 
-          <div class="app-job-card__actions">
-            <a mat-button [routerLink]="['/farmer/jobs', job.id]">View</a>
+          <div class="app-job-card__actions app-job-card__actions--toolbar">
+            <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id]">
+              <mat-icon>visibility</mat-icon>
+              View
+            </a>
+            <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job.id, 'applications']">
+              <mat-icon>group</mat-icon>
+              Applications
+            </a>
             @if (canEdit(job)) {
-              <a mat-button [routerLink]="['/farmer/jobs', job.id, 'edit']">Edit</a>
-              <button mat-button color="warn" [disabled]="cancellingId() === job.id" (click)="cancelJob(job)">Cancel</button>
+              <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'edit']">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </a>
+              <button mat-stroked-button class="app-btn-danger-outline" [disabled]="cancellingId() === job.id" (click)="cancelJob(job)">
+                <mat-icon>delete_outline</mat-icon>
+                Cancel
+              </button>
             }
           </div>
         </article>

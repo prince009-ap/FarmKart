@@ -64,3 +64,17 @@ export interface FarmerJobRequest {
   accommodationProvided: boolean;
   isUrgent: boolean;
 }
+
+export interface FarmerJobApplication {
+  applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  applicantWorkerId: string;
+  applicantName: string;
+  applicantPhone: string;
+  applicantExperienceYears: number;
+  applicantSkills: string[];
+  status: 'Pending' | 'Accepted' | 'Rejected' | 'Withdrawn';
+  appliedAtUtc: string;
+  message?: string;
+}

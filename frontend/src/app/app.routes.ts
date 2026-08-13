@@ -89,6 +89,7 @@ export const routes: Routes = [
       { path: 'jobs/create', loadComponent: () => import('./features/farmer/farmer-job-form.component').then((module) => module.FarmerJobFormComponent) },
       { path: 'jobs/:id', loadComponent: () => import('./features/farmer/farmer-job-detail.component').then((module) => module.FarmerJobDetailComponent) },
       { path: 'jobs/:id/edit', loadComponent: () => import('./features/farmer/farmer-job-form.component').then((module) => module.FarmerJobFormComponent) },
+      { path: 'jobs/:jobId/applications', loadComponent: () => import('./features/farmer/farmer-job-applications.component').then((module) => module.FarmerJobApplicationsComponent) },
       {
         path: 'crops',
         data: { title: 'My Crops' },
@@ -127,6 +128,10 @@ export const routes: Routes = [
     path: 'worker',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Worker'] },
+    loadComponent: () =>
+      import('./features/worker/worker-shell.component').then(
+        (module) => module.WorkerShellComponent,
+      ),
     children: [
       {
         path: '',

@@ -237,3 +237,14 @@ The Angular app follows a feature-based structure:
   - `WorkerJobDetailComponent` (`/worker/jobs/:id`) displays work terms, amenities, location, an optional application note field, and disables the Apply button when already applied.
   - `WorkerApplicationsComponent` (`/worker/applications`) lists submitted applications with color-coded status badges.
 - **Route Security**: Worker child routes are protected by `authGuard` and `roleGuard` with `roles: ['Worker']`. Non-worker roles and unauthenticated users are denied access.
+
+## Farmer Application Management and Hiring Decision
+
+- **Farmer Application APIs**: Farmer application endpoints are exposed under `/api/farmer` (`GET /api/farmer/jobs/{jobId}/applications`, `GET /api/farmer/applications/{applicationId}`, `POST /api/farmer/applications/{applicationId}/accept`, `POST /api/farmer/applications/{applicationId}/reject`) and guarded by `[Authorize(Roles = Roles.Farmer)]`.
+- **Ownership Verification**: Requests verify that the targeted job or application belongs to a job owned by the authenticated `FarmerProfile`. Unowned resource requests return `404 Not Found` to prevent resource probing.
+- **Status Lifecycle & Rules**: Only `Pending` applications can be accepted or rejected. Finalized states (`Accepted` / `Rejected`) cannot be altered or re-accepted/re-rejected (returns `409 Conflict`).
+- **Worker Capacity Enforcement**: Accepting an application calculates `Accepted` count vs `Job.WorkersRequired`. If capacity is reached, backend rejects additional accepts with `409 Conflict`.
+- **Frontend Architecture**:
+  - `FarmerJobApplicationsComponent` (`/farmer/jobs/:jobId/applications`) displays applicant profile details (Name, Phone, Experience, Skills, Note, Status Badge, Applied Date) and confirmable `Accept`/`Reject` actions.
+  - Job cards in `FarmerJobsComponent` include an "Applications" action button.
+- **Security & Privacy**: Applicant passwords, hashes, and identity internal fields are never exposed. Access is strictly guarded on both backend controllers and frontend Angular route guards.

@@ -1,0 +1,162 @@
+<section class="app-page animate-fk-rise">
+  <header class="app-page-header">
+    <div class="app-page-header__content">
+      <a routerLink="/farmer/jobs" class="app-back-link">← Back to My Jobs</a>
+      <h1 class="app-page-title mt-3">Job Applications</h1>
+      <p class="app-page-summary">Review worker applications and manage hiring for this posting.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="app-alert app-alert--loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="mt-4 text-slate-600 font-medium">Loading job applications...</p>
+    </div>
+  } @else if (error()) {
+    <div class="app-alert app-alert--error">
+      <mat-icon>error_outline</mat-icon>
+      <div>
+        <strong>{{ error() }}</strong>
+        <a mat-flat-button class="app-primary-btn mt-3" routerLink="/farmer/jobs">Back to Jobs List</a>
+      </div>
+    </div>
+  } @else {
+    @if (job(); as currentJob) {
+      <article class="app-form-panel app-job-summary">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <span class="app-badge app-badge--active">{{ currentJob.workCategory }}</span>
+              <span class="app-badge app-badge--status">{{ currentJob.status }}</span>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 font-[family-name:var(--fk-font-display)]">{{ currentJob.title }}</h2>
+            <p class="app-job-card__meta mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="inline-flex items-center gap-1"><mat-icon class="!text-sm !w-4 !h-4">location_on</mat-icon>{{ currentJob.farmLocation }}</span>
+              <span class="inline-flex items-center gap-1"><mat-icon class="!text-sm !w-4 !h-4">payments</mat-icon>₹{{ currentJob.wagePerDay }}/day</span>
+              <span class="inline-flex items-center gap-1"><mat-icon class="!text-sm !w-4 !h-4">calendar_month</mat-icon>{{ currentJob.startDate | date:'mediumDate' }} – {{ currentJob.endDate | date:'mediumDate' }}</span>
+            </p>
+          </div>
+
+          <div class="app-capacity-card" [class.app-capacity-card--full]="capacityReached()">
+            <span class="app-capacity-card__label">Hiring progress</span>
+            <p class="app-capacity-card__value">{{ acceptedCount() }} / {{ currentJob.workersRequired }}</p>
+            <span class="app-capacity-card__hint">
+              @if (capacityReached()) {
+                Capacity reached
+              } @else {
+                {{ pendingCount() }} pending review
+              }
+            </span>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (actionMessage()) {
+      <div class="app-alert app-alert--success">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ actionMessage() }}</span>
+      </div>
+    }
+
+    @if (actionErrorMessage()) {
+      <div class="app-alert app-alert--error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ actionErrorMessage() }}</span>
+      </div>
+    }
+
+    @if (applications().length === 0) {
+      <div class="app-empty-state">
+        <mat-icon>group_outline</mat-icon>
+        <h2 class="app-empty-state__title">No applications yet</h2>
+        <p class="app-empty-state__text">Workers searching for farm labor will appear here once they apply to this job.</p>
+      </div>
+    } @else {
+      <div>
+        <div class="app-page-header mb-4">
+          <div class="app-page-header__content">
+            <p class="app-page-eyebrow">Applicants</p>
+            <h2 class="app-page-title !text-xl">{{ applications().length }} application(s)</h2>
+          </div>
+        </div>
+
+        <div class="app-grid lg:grid-cols-1 gap-4">
+          @for (app of applications(); track app.applicationId) {
+            <article class="app-card app-applicant-card">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex gap-4 min-w-0">
+                  <div class="app-applicant-card__avatar">
+                    {{ app.applicantName.substring(0, 1).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="text-lg font-bold text-slate-900">{{ app.applicantName }}</h3>
+                      <span class="app-badge" [ngClass]="statusClass(app.status)">{{ app.status }}</span>
+                    </div>
+
+                    <div class="app-applicant-card__meta mt-2">
+                      <span><mat-icon>work_history</mat-icon>{{ app.applicantExperienceYears }} year(s) experience</span>
+                      @if (app.applicantPhone) {
+                        <span><mat-icon>phone</mat-icon>{{ app.applicantPhone }}</span>
+                      }
+                      <span><mat-icon>event</mat-icon>Applied {{ app.appliedAtUtc | date:'mediumDate' }}</span>
+                    </div>
+
+                    @if (app.applicantSkills.length) {
+                      <div class="app-skill-tags mt-3">
+                        @for (skill of app.applicantSkills; track skill) {
+                          <span class="app-skill-tags__item">{{ skill }}</span>
+                        }
+                      </div>
+                    }
+
+                    @if (app.message) {
+                      <div class="app-applicant-note mt-3">
+                        <span class="app-applicant-note__label">Note from worker</span>
+                        <p>{{ app.message }}</p>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="app-applicant-card__actions">
+                  @if (app.status === 'Pending') {
+                    <button
+                      mat-flat-button
+                      class="app-primary-btn"
+                      (click)="acceptApplication(app)"
+                      [disabled]="processingId() === app.applicationId || capacityReached()"
+                    >
+                      <mat-icon>check</mat-icon>
+                      Accept
+                    </button>
+                    <button
+                      mat-stroked-button
+                      class="app-btn-danger-outline"
+                      (click)="rejectApplication(app)"
+                      [disabled]="processingId() === app.applicationId"
+                    >
+                      <mat-icon>close</mat-icon>
+                      Reject
+                    </button>
+                  } @else if (app.status === 'Accepted') {
+                    <div class="app-applicant-card__final app-applicant-card__final--accepted">
+                      <mat-icon>check_circle</mat-icon>
+                      Accepted for this job
+                    </div>
+                  } @else {
+                    <div class="app-applicant-card__final app-applicant-card__final--rejected">
+                      <mat-icon>cancel</mat-icon>
+                      Application rejected
+                    </div>
+                  }
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

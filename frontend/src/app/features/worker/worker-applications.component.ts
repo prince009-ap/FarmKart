@@ -48,14 +48,14 @@ export class WorkerApplicationsComponent implements OnInit {
   getStatusClass(status: string): string {
     switch (status) {
       case 'Accepted':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        return 'app-badge--active';
       case 'Rejected':
-        return 'bg-rose-50 text-rose-800 border-rose-200';
+        return 'app-badge--danger';
       case 'Withdrawn':
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'app-badge--soon';
       case 'Pending':
       default:
-        return 'bg-amber-50 text-amber-800 border-amber-200';
+        return 'app-badge--pending';
     }
   }
 }
