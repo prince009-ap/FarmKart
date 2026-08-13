@@ -208,3 +208,12 @@
 - [x] Implement comprehensive backend integration tests (10 new tests) verifying role checks, 401/403/404 handling, validation, and profile field isolation (never returning PasswordHash or auth tokens)
 - [x] Implement frontend unit tests (12 new tests) verifying routing, form controls, component states, loading/error flags, saving, and API behaviors
 - [x] Confirm all 50 backend and 70 frontend tests pass successfully
+
+## Phase 4.2 Deliverables - Farmer Dashboard and Navigation Shell
+
+- [x] Create the protected `/farmer` dashboard route under a shared Farmer navigation shell
+- [x] Preserve `/farmer/profile` as the existing Farmer Profile page inside the same shell
+- [x] Add responsive desktop sidebar and mobile drawer navigation for Farmer modules
+- [x] Add safe Coming Soon placeholder routes for Jobs, My Crops, Machinery, Marketplace, and Notifications
+- [x] Display the authenticated Farmer name through the existing `AuthService` state with a safe fallback
+- [x] Add focused Angular tests for dashboard rendering, profile navigation, placeholders, responsive navigation state, and route protection

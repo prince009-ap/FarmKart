@@ -111,4 +111,20 @@ describe('App Routes', () => {
     
     expect(location.path()).toBe('/unauthorized');
   });
+
+  it('should keep future farmer module routes inside the protected farmer area', async () => {
+    authServiceMock.checkAuthSession.mockReturnValue(of({ role: 'Farmer' }));
+
+    await router.navigate(['/farmer/jobs']);
+
+    expect(location.path()).toBe('/farmer/jobs');
+  });
+
+  it('should prevent a Worker from opening a future farmer module route', async () => {
+    authServiceMock.checkAuthSession.mockReturnValue(of({ role: 'Worker' }));
+
+    await router.navigate(['/farmer/notifications']);
+
+    expect(location.path()).toBe('/unauthorized');
+  });
 });

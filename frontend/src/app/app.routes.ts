@@ -60,18 +60,66 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Farmer'] },
     loadComponent: () =>
-      import('./features/farmer/farmer-dashboard.component').then(
-        (module) => module.FarmerDashboardComponent,
+      import('./features/farmer/farmer-shell.component').then(
+        (module) => module.FarmerShellComponent,
       ),
-  },
-  {
-    path: 'farmer/profile',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['Farmer'] },
-    loadComponent: () =>
-      import('./features/farmer/farmer-profile.component').then(
-        (module) => module.FarmerProfileComponent,
-      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/farmer/farmer-dashboard.component').then(
+            (module) => module.FarmerDashboardComponent,
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/farmer/farmer-profile.component').then(
+            (module) => module.FarmerProfileComponent,
+          ),
+      },
+      {
+        path: 'jobs',
+        data: { title: 'Jobs' },
+        loadComponent: () =>
+          import('./features/farmer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'crops',
+        data: { title: 'My Crops' },
+        loadComponent: () =>
+          import('./features/farmer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'machinery',
+        data: { title: 'Machinery' },
+        loadComponent: () =>
+          import('./features/farmer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'marketplace',
+        data: { title: 'Marketplace' },
+        loadComponent: () =>
+          import('./features/farmer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        data: { title: 'Notifications' },
+        loadComponent: () =>
+          import('./features/farmer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'worker',

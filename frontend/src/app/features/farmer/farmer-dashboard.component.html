@@ -1,0 +1,102 @@
+<div class="space-y-8 animate-fk-rise">
+  <!-- Welcome Banner -->
+  <div class="bg-gradient-to-r from-emerald-800 to-emerald-950 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-emerald-900/50 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.15),transparent_40%)] pointer-events-none"></div>
+    <div class="relative z-10 max-w-2xl">
+      <span class="text-emerald-300 font-bold uppercase tracking-wider text-xs">Workspace Dashboard</span>
+      <h1 class="text-3xl md:text-4xl font-bold font-serif mt-2">Welcome back, {{ userName() }}!</h1>
+      <p class="text-emerald-100/90 text-sm md:text-base mt-2 max-w-xl">
+        Manage your crops, machinery rentals, and labor requests from one single workspace. 
+        FarmKart connects you directly with buyers and local farm workers.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a mat-flat-button class="!bg-emerald-500 hover:!bg-emerald-600 !text-white font-semibold transition-colors" routerLink="/farmer/profile">
+          <mat-icon class="mr-1">person</mat-icon>
+          Update Profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platform Overview and Status -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <mat-card class="p-6 border border-slate-100 shadow-md rounded-2xl bg-white">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100">
+          <mat-icon>eco</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 font-serif">Crops Market</h2>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Coming Soon</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 mt-4">Direct crop sales and auction bidding flows will be unlocked in later phases.</p>
+    </mat-card>
+
+    <mat-card class="p-6 border border-slate-100 shadow-md rounded-2xl bg-white">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100">
+          <mat-icon>engineering</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 font-serif">Labor Hiring</h2>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Coming Soon</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 mt-4">Post job listings, manage applications, and hire local help to support your harvest.</p>
+    </mat-card>
+
+    <mat-card class="p-6 border border-slate-100 shadow-md rounded-2xl bg-white">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100">
+          <mat-icon>construction</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 font-serif">Rentals Hub</h2>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Coming Soon</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 mt-4">Rent heavy machinery from verified owner farmers nearby, or list your own assets.</p>
+    </mat-card>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Module Access Grid -->
+  <div class="space-y-4">
+    <h3 class="text-lg font-bold text-slate-900 font-serif">Farmer Utilities</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      @for (card of moduleCards; track card.title) {
+        <mat-card class="p-6 border border-slate-100 hover:border-emerald-200 shadow-sm hover:shadow-md transition-all rounded-2xl bg-white flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 bg-slate-50 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors rounded-xl flex items-center justify-center border border-slate-100 group-hover:border-emerald-100">
+                <mat-icon>{{ card.icon }}</mat-icon>
+              </div>
+              @if (card.isPlaceholder) {
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">Coming Soon</span>
+              } @else {
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Active</span>
+              }
+            </div>
+            
+            <h4 class="text-base font-bold text-slate-900 mt-4 group-hover:text-emerald-950 transition-colors">{{ card.title }}</h4>
+            <p class="text-sm text-slate-600 mt-2 line-clamp-2">{{ card.description }}</p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-end">
+            <a mat-button color="primary" [routerLink]="card.route" class="font-semibold !text-xs group-hover:translate-x-1 transition-transform">
+              @if (card.isPlaceholder) {
+                Preview Module
+              } @else {
+                Configure details
+              }
+              <mat-icon class="!w-4 !h-4 text-sm align-middle ml-1">arrow_forward</mat-icon>
+            </a>
+          </div>
+        </mat-card>
+      }
+    </div>
+  </div>
+</div>

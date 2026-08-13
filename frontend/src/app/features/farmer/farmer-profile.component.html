@@ -1,20 +1,4 @@
-<div class="min-h-screen pb-12 flex flex-col justify-start">
-  <!-- Top Navigation Header -->
-  <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <mat-icon class="text-emerald-700">agriculture</mat-icon>
-      <span class="text-xl font-bold tracking-tight text-emerald-950 font-serif">Farm<span class="text-emerald-600">Kart</span></span>
-      <span class="text-sm font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Farmer Portal</span>
-    </div>
-    <div class="flex items-center gap-4">
-      <a href="/" class="text-slate-600 hover:text-slate-900 font-medium text-sm flex items-center gap-1 transition-colors">
-        <mat-icon class="text-lg">home</mat-icon>
-        Home
-      </a>
-    </div>
-  </header>
-
-  <main class="max-w-4xl mx-auto w-full px-4 mt-8 flex-grow">
+<div class="max-w-4xl mx-auto w-full px-4">
     <!-- Loading State -->
     @if (loading()) {
       <div class="flex flex-col items-center justify-center py-24 gap-4">
@@ -244,5 +228,4 @@
         </div>
       </div>
     }
-  </main>
 </div>

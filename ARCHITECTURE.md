@@ -211,3 +211,9 @@ The Angular app follows a feature-based structure:
 - **Frontend Flow**: The standalone `FarmerProfileComponent` interacts with the `FarmerProfileService` via HttpClient. It uses local Angular signals for loading, saving, view/edit modes, and error state tracking. Form validations match backend DB constraints (e.g., non-negative farm size).
 - **Unit/Integration Tests**: Covered by 10 xUnit integration tests in `FarmerProfileTests.cs` (checking endpoints under different authentication and error states) and 12 Vitest specs in `farmer-profile.component.spec.ts` (mocking the profile service to assert UI bindings and state transitions).
 
+## Farmer Dashboard and Navigation
+
+- The protected `/farmer` route now hosts `FarmerShellComponent`, a responsive Farmer-only workspace shell with a desktop sidebar and mobile navigation drawer.
+- Its child routes render the dashboard at `/farmer` and the existing profile page at `/farmer/profile`; the parent route applies the existing `authGuard` and `roleGuard` with the `Farmer` role.
+- The shell reads only the existing `AuthService.currentUser$` state to show the farmer's name, and uses `Farmer` as a safe fallback when the name is unavailable. It does not inspect cookies, tokens, or browser storage.
+- Jobs, My Crops, Machinery, Marketplace, and Notifications use protected `ComingSoonComponent` routes. They provide stable navigation targets without adding APIs, domain workflows, or placeholder data for future modules.
