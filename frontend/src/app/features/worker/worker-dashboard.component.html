@@ -20,8 +20,12 @@
           <mat-icon>work</mat-icon>
         </div>
         <h2 class="app-card__title">Browse Jobs</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
         <p class="app-card__text">Find and apply to farm labor opportunities posted by local farmers.</p>
+        <div class="mt-4">
+          <a mat-flat-button class="!bg-emerald-800 !text-white" routerLink="/worker/jobs">
+            <mat-icon>search</mat-icon> Browse Jobs
+          </a>
+        </div>
       </article>
 
       <article class="app-card">
@@ -38,8 +42,12 @@
           <mat-icon>assignment</mat-icon>
         </div>
         <h2 class="app-card__title">My Applications</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
         <p class="app-card__text">Track applications, assignments, and work history in one place.</p>
+        <div class="mt-4">
+          <a mat-stroked-button class="!border-emerald-300 !text-emerald-800" routerLink="/worker/applications">
+            <mat-icon>assignment</mat-icon> View Applications
+          </a>
+        </div>
       </article>
     </section>
   </div>

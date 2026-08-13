@@ -1,0 +1,185 @@
+<div class="app-role-page">
+  <div class="app-page animate-fk-rise max-w-4xl mx-auto">
+    <!-- Navigation Back -->
+    <div class="mb-6">
+      <a mat-button routerLink="/worker/jobs" class="!text-emerald-800">
+        <mat-icon>arrow_back</mat-icon> Back to Available Jobs
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="flex flex-col items-center justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="mt-4 text-sm font-medium text-emerald-800">Loading job details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error() && !loading()" class="rounded-2xl border border-rose-200 bg-rose-50/70 p-6 text-center text-rose-900">
+      <mat-icon class="!h-10 !w-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
+      <p class="font-semibold">{{ error() }}</p>
+      <a mat-flat-button class="mt-4 !bg-emerald-800 !text-white" routerLink="/worker/jobs">
+        Browse Available Jobs
+      </a>
+    </div>
+
+    <!-- Job Content -->
+    <div *ngIf="!loading() && !error() && job() as currentJob" class="space-y-6">
+      <!-- Main Header Card -->
+      <div class="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div class="mb-2 flex items-center gap-2">
+              <span class="inline-flex items-center rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
+                {{ currentJob.workCategory }}
+              </span>
+              <span *ngIf="currentJob.isUrgent" class="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800 border border-amber-200">
+                <mat-icon class="!h-3.5 !w-3.5 !text-xs text-amber-600">bolt</mat-icon> Urgent Hiring
+              </span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-emerald-950 sm:text-3xl">{{ currentJob.title }}</h1>
+            <p *ngIf="currentJob.cropType" class="mt-1 text-sm font-semibold text-emerald-700">Crop: {{ currentJob.cropType }}</p>
+            <p class="mt-2 text-xs text-emerald-600">Posted by {{ currentJob.farmerName }} on {{ currentJob.createdAtUtc | date:'mediumDate' }}</p>
+          </div>
+
+          <!-- Wage Banner -->
+          <div class="rounded-2xl bg-emerald-900 p-4 text-white text-center sm:text-right shadow-sm">
+            <span class="text-xs uppercase tracking-wider text-emerald-200 font-semibold">Daily Wage</span>
+            <p class="text-2xl font-black text-white">₹{{ currentJob.wagePerDay }}<span class="text-xs font-normal text-emerald-200"> / day</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overview Grid -->
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <!-- Details Column -->
+        <div class="md:col-span-2 space-y-6">
+          <!-- Job Description -->
+          <div class="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-bold text-emerald-950 mb-3">Job Description</h2>
+            <p class="text-sm text-emerald-900 leading-relaxed whitespace-pre-line">{{ currentJob.description }}</p>
+          </div>
+
+          <!-- Work Requirements & Terms -->
+          <div class="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-bold text-emerald-950 mb-4">Work Requirements & Terms</h2>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
+              <div class="rounded-xl bg-emerald-50/50 p-3">
+                <span class="text-xs font-semibold text-emerald-700 uppercase">Workers Required</span>
+                <p class="text-base font-bold text-emerald-950">{{ currentJob.workersRequired }} workers</p>
+              </div>
+
+              <div class="rounded-xl bg-emerald-50/50 p-3">
+                <span class="text-xs font-semibold text-emerald-700 uppercase">Required Experience</span>
+                <p class="text-base font-bold text-emerald-950">{{ currentJob.requiredExperience }} year(s)</p>
+              </div>
+
+              <div class="rounded-xl bg-emerald-50/50 p-3">
+                <span class="text-xs font-semibold text-emerald-700 uppercase">Working Hours</span>
+                <p class="text-base font-bold text-emerald-950">{{ currentJob.workingHours }}</p>
+              </div>
+
+              <div *ngIf="currentJob.farmSize" class="rounded-xl bg-emerald-50/50 p-3">
+                <span class="text-xs font-semibold text-emerald-700 uppercase">Farm Size</span>
+                <p class="text-base font-bold text-emerald-950">{{ currentJob.farmSize }} Vigha / Acre</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar / Application Box -->
+        <div class="space-y-6">
+          <!-- Location & Dates Card -->
+          <div class="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm space-y-4 text-sm">
+            <h3 class="font-bold text-emerald-950 border-b border-emerald-50 pb-2">Location & Schedule</h3>
+
+            <div>
+              <span class="text-xs text-emerald-600 font-semibold uppercase">Farm Location</span>
+              <p class="font-semibold text-emerald-900 flex items-start gap-1 mt-0.5">
+                <mat-icon class="!h-4 !w-4 !text-sm text-emerald-600 mt-0.5">location_on</mat-icon>
+                {{ currentJob.farmLocation }}
+              </p>
+            </div>
+
+            <div>
+              <span class="text-xs text-emerald-600 font-semibold uppercase">Duration</span>
+              <p class="font-semibold text-emerald-900 flex items-center gap-1 mt-0.5">
+                <mat-icon class="!h-4 !w-4 !text-sm text-emerald-600">date_range</mat-icon>
+                {{ currentJob.startDate | date:'mediumDate' }} - {{ currentJob.endDate | date:'mediumDate' }}
+              </p>
+            </div>
+
+            <div class="border-t border-emerald-50 pt-3">
+              <span class="text-xs text-emerald-600 font-semibold uppercase block mb-1">Provided Amenities</span>
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 text-xs font-medium text-emerald-800">
+                  <mat-icon class="!h-4 !w-4 !text-sm" [ngClass]="currentJob.foodProvided ? 'text-emerald-600' : 'text-gray-400'">
+                    {{ currentJob.foodProvided ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                  Food Provided
+                </div>
+                <div class="flex items-center gap-2 text-xs font-medium text-emerald-800">
+                  <mat-icon class="!h-4 !w-4 !text-sm" [ngClass]="currentJob.accommodationProvided ? 'text-emerald-600' : 'text-gray-400'">
+                    {{ currentJob.accommodationProvided ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                  Accommodation Provided
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Application Box -->
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
+            <h3 class="text-base font-bold text-emerald-950 mb-3">Apply to this Job</h3>
+
+            <!-- Already Applied State -->
+            <div *ngIf="currentJob.hasApplied" class="rounded-xl border border-emerald-300 bg-emerald-100/70 p-4 text-center text-emerald-900">
+              <mat-icon class="!h-8 !w-8 !text-2xl text-emerald-700 mb-1">check_circle</mat-icon>
+              <h4 class="font-bold">Already Applied</h4>
+              <p class="text-xs text-emerald-700 mt-1">You have submitted an application for this job. Track status in My Applications.</p>
+              <a mat-stroked-button class="mt-3 !border-emerald-400 !text-emerald-900" routerLink="/worker/applications">
+                View My Applications
+              </a>
+            </div>
+
+            <!-- Application Form -->
+            <div *ngIf="!currentJob.hasApplied">
+              <!-- Success Message -->
+              <div *ngIf="submitSuccess()" class="mb-4 rounded-xl border border-emerald-300 bg-emerald-100 p-3 text-xs text-emerald-900">
+                ✓ Your application has been submitted successfully!
+              </div>
+
+              <!-- Error Message -->
+              <div *ngIf="submitError()" class="mb-4 rounded-xl border border-rose-300 bg-rose-100 p-3 text-xs text-rose-900">
+                ⚠ {{ submitError() }}
+              </div>
+
+              <div class="mb-4">
+                <label class="block text-xs font-semibold text-emerald-900 uppercase tracking-wider mb-1">
+                  Optional Note / Experience Details
+                </label>
+                <textarea
+                  [ngModel]="applicationMessage()"
+                  (ngModelChange)="applicationMessage.set($event)"
+                  rows="3"
+                  placeholder="Introduce yourself or mention your experience..."
+                  class="w-full rounded-xl border border-emerald-200 p-3 text-xs text-emerald-950 placeholder-emerald-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                ></textarea>
+              </div>
+
+              <button
+                type="button"
+                (click)="applyNow()"
+                [disabled]="submitting()"
+                mat-flat-button
+                class="w-full !bg-emerald-800 !py-3 !text-white shadow-md disabled:opacity-50"
+              >
+                <mat-spinner *ngIf="submitting()" diameter="20" class="mr-2"></mat-spinner>
+                {{ submitting() ? 'Submitting Application...' : 'Submit Application' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

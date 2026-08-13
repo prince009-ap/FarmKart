@@ -1,0 +1,29 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { ApplyJobRequest, WorkerAvailableJob, WorkerJobApplication } from '../../core/models/worker.models';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class WorkerJobService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiUrl}/worker`;
+
+  getAvailableJobs(): Observable<WorkerAvailableJob[]> {
+    return this.http.get<WorkerAvailableJob[]>(`${this.baseUrl}/jobs`, { withCredentials: true });
+  }
+
+  getJobDetails(id: string): Observable<WorkerAvailableJob> {
+    return this.http.get<WorkerAvailableJob>(`${this.baseUrl}/jobs/${id}`, { withCredentials: true });
+  }
+
+  applyToJob(id: string, request?: ApplyJobRequest): Observable<WorkerJobApplication> {
+    return this.http.post<WorkerJobApplication>(`${this.baseUrl}/jobs/${id}/apply`, request || {}, { withCredentials: true });
+  }
+
+  getMyApplications(): Observable<WorkerJobApplication[]> {
+    return this.http.get<WorkerJobApplication[]>(`${this.baseUrl}/applications`, { withCredentials: true });
+  }
+}

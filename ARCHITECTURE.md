@@ -224,3 +224,16 @@ The Angular app follows a feature-based structure:
 - New jobs begin in `Open`. Updates are permitted only while a job is `Draft` or `Open`; cancellation is a soft transition to `Cancelled`, preserving job history rather than deleting records.
 - The existing `Job` schema supplies work category, workers required, wage, schedule, working hours, and farm location. It has no job-to-skill relationship, so this phase does not introduce an unsupported duplicate skill model or a migration.
 - Angular routes `/farmer/jobs`, `/farmer/jobs/create`, `/farmer/jobs/:id`, and `/farmer/jobs/:id/edit` remain inside the existing guarded Farmer shell.
+
+## Worker Job Browsing and Job Application
+
+- **Worker APIs**: Worker endpoints are exposed under `/api/worker` (`GET /api/worker/jobs`, `GET /api/worker/jobs/{id}`, `POST /api/worker/jobs/{id}/apply`, `GET /api/worker/applications`) and strictly protected with `[Authorize(Roles = Roles.Worker)]`.
+- **Identity Isolation & Ownership**: The backend resolves `WorkerProfile` exclusively from the authenticated JWT user claim (`ClaimTypes.NameIdentifier`). The client cannot pass or alter `WorkerId` or `UserId`.
+- **Job Visibility**: Workers view only jobs with `JobStatus.Open`. Each job response includes a `HasApplied` boolean flag computed specifically for the authenticated worker.
+- **Application Flow & Status**: Applications are created with `ApplicationStatus.Pending` and recorded in `JobApplication`. Workers cannot select or alter application status.
+- **Duplicate Prevention**: Re-applying to the same job returns `HTTP 409 Conflict`. Database uniqueness is enforced by the index `(JobId, WorkerProfileId)` on `JobApplication`.
+- **Frontend Architecture**:
+  - `WorkerJobsComponent` (`/worker/jobs`) provides search by title/crop/description, category and location filters, responsive job cards, and empty states.
+  - `WorkerJobDetailComponent` (`/worker/jobs/:id`) displays work terms, amenities, location, an optional application note field, and disables the Apply button when already applied.
+  - `WorkerApplicationsComponent` (`/worker/applications`) lists submitted applications with color-coded status badges.
+- **Route Security**: Worker child routes are protected by `authGuard` and `roleGuard` with `roles: ['Worker']`. Non-worker roles and unauthenticated users are denied access.

@@ -5,8 +5,11 @@
 - [x] Phase 1: Repository foundation and solution setup
 - [x] Phase 2: Database design and initial domain modeling
 - [x] Phase 3: Authentication and role-based authorization foundation
-- [ ] Phase 4: Farmer module implementation
+- [ ] Phase 4: Core Module Implementation
   - [x] Phase 4.1: Farmer Profile Management
+  - [x] Phase 4.2: Farmer Dashboard and Navigation Shell
+  - [x] Phase 4.3: Farmer Job Posting
+  - [x] Phase 4.4: Worker Job Browsing and Job Application
 - [ ] Phase 5: Worker module implementation
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -225,3 +228,14 @@
 - [x] Use `Open` for new jobs and `Cancelled` for soft cancellation; only Draft/Open jobs are editable
 - [x] Add Farmer Jobs list, detail, create, and edit Angular pages under protected Farmer routes
 - [x] Reuse the existing Job table and database constraints; no new migration required
+
+## Phase 4.4 Deliverables — Worker Job Browsing and Job Application
+
+- [x] Implemented `IWorkerJobService` & `WorkerJobService` for worker job catalog (`JobStatus.Open`), job details (`HasApplied`), application submission (`JobApplication`), and application history.
+- [x] Created `WorkerController.cs` with `[Authorize(Roles = Roles.Worker)]` exposing `/api/worker/jobs`, `/api/worker/jobs/{id}`, `/api/worker/jobs/{id}/apply`, and `/api/worker/applications`.
+- [x] Implemented server-side worker profile resolution from JWT claims; prevented `WorkerId` spoofing.
+- [x] Enforced duplicate application prevention returning `409 Conflict` backed by database unique constraint `(JobId, WorkerProfileId)`.
+- [x] Created Angular `WorkerJobService`, `WorkerJobsComponent`, `WorkerJobDetailComponent`, and `WorkerApplicationsComponent`.
+- [x] Protected Worker child routes (`/worker/jobs`, `/worker/jobs/:id`, `/worker/applications`) with `authGuard` and `roleGuard`.
+- [x] Added 14 backend integration tests in `WorkerJobTests.cs` and 10 Vitest specs for worker components.
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (71/71 passing), frontend build (`npm run build`), and frontend tests (93/93 passing).

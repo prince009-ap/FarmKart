@@ -1,0 +1,88 @@
+<div class="app-role-page">
+  <div class="app-page animate-fk-rise">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">My Applications</h1>
+        <p class="mt-1 text-sm text-emerald-700">Track the status of job applications you have submitted to farmers.</p>
+      </div>
+      <div>
+        <a mat-flat-button class="!bg-emerald-800 !text-white" routerLink="/worker/jobs">
+          <mat-icon>work</mat-icon>
+          Browse Available Jobs
+        </a>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="flex flex-col items-center justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="mt-4 text-sm font-medium text-emerald-800">Loading your applications...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error() && !loading()" class="rounded-2xl border border-rose-200 bg-rose-50/70 p-6 text-center text-rose-900">
+      <mat-icon class="!h-10 !w-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
+      <p class="font-semibold">{{ error() }}</p>
+      <button mat-flat-button class="mt-4 !bg-rose-700 !text-white" (click)="loadApplications()">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !error() && applications().length === 0" class="rounded-2xl border border-emerald-100 bg-white p-12 text-center shadow-sm">
+      <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+        <mat-icon class="!h-8 !w-8 !text-2xl">assignment_outline</mat-icon>
+      </div>
+      <h3 class="text-lg font-bold text-emerald-950">No applications submitted yet.</h3>
+      <p class="mt-1 text-sm text-emerald-700">Explore available farm job listings and submit your application to start working.</p>
+      <a mat-flat-button class="mt-6 !bg-emerald-800 !text-white" routerLink="/worker/jobs">
+        Browse Available Jobs
+      </a>
+    </div>
+
+    <!-- Applications List -->
+    <div *ngIf="!loading() && !error() && applications().length > 0" class="space-y-4">
+      <article *ngFor="let app of applications()" class="rounded-2xl border border-emerald-100/90 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div class="mb-2 flex items-center gap-2">
+              <span class="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                {{ app.workCategory }}
+              </span>
+              <span class="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold" [ngClass]="getStatusClass(app.status)">
+                <mat-icon class="!h-3.5 !w-3.5 !text-xs">
+                  {{ app.status === 'Accepted' ? 'check_circle' : app.status === 'Rejected' ? 'cancel' : 'schedule' }}
+                </mat-icon>
+                {{ app.status }}
+              </span>
+            </div>
+
+            <h2 class="text-lg font-bold text-emerald-950">{{ app.jobTitle }}</h2>
+            <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+              <mat-icon class="!h-3.5 !w-3.5 !text-xs text-emerald-500">location_on</mat-icon>
+              {{ app.farmLocation }}
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:items-end">
+            <span class="text-xs text-emerald-600 uppercase font-semibold">Daily Wage</span>
+            <p class="text-lg font-extrabold text-emerald-900">₹{{ app.wagePerDay }}<span class="text-xs font-normal text-emerald-700"> / day</span></p>
+            <p class="text-xs text-emerald-600 mt-1">Applied on {{ app.appliedAtUtc | date:'mediumDate' }}</p>
+          </div>
+        </div>
+
+        <!-- Schedule & Note -->
+        <div class="mt-4 border-t border-emerald-50 pt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-emerald-800">
+          <div class="flex items-center gap-2 font-medium">
+            <mat-icon class="!h-4 !w-4 !text-sm text-emerald-500">calendar_today</mat-icon>
+            <span>Job Dates: {{ app.startDate | date:'mediumDate' }} - {{ app.endDate | date:'mediumDate' }}</span>
+          </div>
+
+          <div *ngIf="app.message" class="text-xs text-emerald-700 italic bg-emerald-50/50 rounded-lg px-3 py-1.5 max-w-md">
+            "{{ app.message }}"
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>

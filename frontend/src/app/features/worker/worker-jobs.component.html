@@ -1,0 +1,165 @@
+<div class="app-role-page">
+  <div class="app-page animate-fk-rise">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">Available Farm Jobs</h1>
+        <p class="mt-1 text-sm text-emerald-700">Browse and apply to verified agricultural labor requests posted by local farmers.</p>
+      </div>
+      <div>
+        <a mat-stroked-button class="!border-emerald-300 !text-emerald-800" routerLink="/worker/applications">
+          <mat-icon>assignment</mat-icon>
+          My Applications
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="mb-6 rounded-2xl bg-white p-4 shadow-sm border border-emerald-100/80">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <label class="block text-xs font-semibold text-emerald-900 uppercase tracking-wider mb-1">Search Job Title / Crop</label>
+          <div class="relative">
+            <input
+              type="text"
+              [ngModel]="searchTerm()"
+              (ngModelChange)="searchTerm.set($event)"
+              placeholder="e.g. Wheat, Harvesting..."
+              class="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm text-emerald-950 placeholder-emerald-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-emerald-900 uppercase tracking-wider mb-1">Work Category</label>
+          <select
+            [ngModel]="selectedCategory()"
+            (ngModelChange)="selectedCategory.set($event)"
+            class="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm text-emerald-950 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option value="">All Categories</option>
+            <option *ngFor="let cat of categories()" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-emerald-900 uppercase tracking-wider mb-1">Location</label>
+          <input
+            type="text"
+            [ngModel]="selectedLocation()"
+            (ngModelChange)="selectedLocation.set($event)"
+            placeholder="e.g. Nadiad, Anand..."
+            class="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm text-emerald-950 placeholder-emerald-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="searchTerm() || selectedCategory() || selectedLocation()" class="mt-3 flex items-center justify-between border-t border-emerald-50 pt-2 text-xs text-emerald-600">
+        <span>Showing {{ filteredJobs().length }} of {{ jobs().length }} jobs</span>
+        <button type="button" (click)="clearFilters()" class="font-medium text-emerald-700 hover:text-emerald-900 underline">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="flex flex-col items-center justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="mt-4 text-sm font-medium text-emerald-800">Loading available jobs...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error() && !loading()" class="rounded-2xl border border-rose-200 bg-rose-50/70 p-6 text-center text-rose-900">
+      <mat-icon class="!h-10 !w-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
+      <p class="font-semibold">{{ error() }}</p>
+      <button mat-flat-button class="mt-4 !bg-rose-700 !text-white" (click)="loadJobs()">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !error() && filteredJobs().length === 0" class="rounded-2xl border border-emerald-100 bg-white p-12 text-center shadow-sm">
+      <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+        <mat-icon class="!h-8 !w-8 !text-2xl">work_outline</mat-icon>
+      </div>
+      <h3 class="text-lg font-bold text-emerald-950">No jobs available right now.</h3>
+      <p class="mt-1 text-sm text-emerald-700">Check back later or adjust your search filters to view more listings.</p>
+      <button *ngIf="searchTerm() || selectedCategory() || selectedLocation()" (click)="clearFilters()" mat-stroked-button class="mt-4 !border-emerald-300 !text-emerald-800">
+        Clear Search Filters
+      </button>
+    </div>
+
+    <!-- Job Grid -->
+    <div *ngIf="!loading() && !error() && filteredJobs().length > 0" class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <article *ngFor="let job of filteredJobs()" class="flex flex-col justify-between rounded-2xl border border-emerald-100/90 bg-white p-5 shadow-sm transition hover:shadow-md">
+        <div>
+          <!-- Badges Header -->
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <span class="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+              {{ job.workCategory }}
+            </span>
+            <span *ngIf="job.isUrgent" class="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 border border-amber-200">
+              <mat-icon class="!h-3.5 !w-3.5 !text-xs text-amber-600">bolt</mat-icon> Urgent
+            </span>
+          </div>
+
+          <!-- Job Title & Crop -->
+          <h2 class="text-lg font-bold text-emerald-950 line-clamp-1">{{ job.title }}</h2>
+          <p *ngIf="job.cropType" class="text-xs text-emerald-600 font-medium">Crop: {{ job.cropType }}</p>
+
+          <!-- Wage & Workers Required -->
+          <div class="mt-3 flex items-baseline justify-between rounded-xl bg-emerald-50/60 p-3">
+            <div>
+              <span class="text-xs text-emerald-600 uppercase font-semibold">Daily Wage</span>
+              <p class="text-lg font-extrabold text-emerald-900">₹{{ job.wagePerDay }}<span class="text-xs font-normal text-emerald-700"> / day</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-emerald-600 uppercase font-semibold">Openings</span>
+              <p class="text-sm font-bold text-emerald-900">{{ job.workersRequired }} workers needed</p>
+            </div>
+          </div>
+
+          <!-- Key Details -->
+          <div class="mt-4 space-y-2 text-xs text-emerald-800">
+            <div class="flex items-center gap-2">
+              <mat-icon class="!h-4 !w-4 !text-sm text-emerald-500">location_on</mat-icon>
+              <span class="truncate">{{ job.farmLocation }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <mat-icon class="!h-4 !w-4 !text-sm text-emerald-500">calendar_today</mat-icon>
+              <span>{{ job.startDate | date:'mediumDate' }} - {{ job.endDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <mat-icon class="!h-4 !w-4 !text-sm text-emerald-500">person</mat-icon>
+              <span>Posted by {{ job.farmerName }}</span>
+            </div>
+          </div>
+
+          <!-- Amenities Badges -->
+          <div *ngIf="job.foodProvided || job.accommodationProvided" class="mt-3 flex flex-wrap gap-1.5">
+            <span *ngIf="job.foodProvided" class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+              ✓ Food Provided
+            </span>
+            <span *ngIf="job.accommodationProvided" class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+              ✓ Stay Provided
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions Footer -->
+        <div class="mt-5 border-t border-emerald-50 pt-4 flex items-center justify-between gap-2">
+          <a mat-button [routerLink]="['/worker/jobs', job.id]" class="!text-emerald-800">
+            View Details
+          </a>
+
+          <a *ngIf="!job.hasApplied" mat-flat-button [routerLink]="['/worker/jobs', job.id]" class="!bg-emerald-700 !text-white shadow-sm">
+            Apply Now
+          </a>
+
+          <button *ngIf="job.hasApplied" disabled mat-flat-button class="!bg-emerald-100 !text-emerald-700 opacity-80 cursor-not-allowed">
+            <mat-icon class="!h-4 !w-4 !text-sm">check_circle</mat-icon> Applied
+          </button>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>

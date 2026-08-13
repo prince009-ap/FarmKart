@@ -127,10 +127,37 @@ export const routes: Routes = [
     path: 'worker',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Worker'] },
-    loadComponent: () =>
-      import('./features/worker/worker-dashboard.component').then(
-        (module) => module.WorkerDashboardComponent,
-      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/worker/worker-dashboard.component').then(
+            (module) => module.WorkerDashboardComponent,
+          ),
+      },
+      {
+        path: 'jobs',
+        loadComponent: () =>
+          import('./features/worker/worker-jobs.component').then(
+            (module) => module.WorkerJobsComponent,
+          ),
+      },
+      {
+        path: 'jobs/:id',
+        loadComponent: () =>
+          import('./features/worker/worker-job-detail.component').then(
+            (module) => module.WorkerJobDetailComponent,
+          ),
+      },
+      {
+        path: 'applications',
+        loadComponent: () =>
+          import('./features/worker/worker-applications.component').then(
+            (module) => module.WorkerApplicationsComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'customer',
