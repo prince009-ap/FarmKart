@@ -63,6 +63,10 @@
               <mat-icon>badge</mat-icon>
               Assigned Workers
             </a>
+            <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job.id, 'attendance']">
+              <mat-icon>event_available</mat-icon>
+              Attendance
+            </a>
             @if (canEdit(job)) {
               <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'edit']">
                 <mat-icon>edit</mat-icon>

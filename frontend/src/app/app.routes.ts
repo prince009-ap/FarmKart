@@ -91,6 +91,7 @@ export const routes: Routes = [
       { path: 'jobs/:id/edit', loadComponent: () => import('./features/farmer/farmer-job-form.component').then((module) => module.FarmerJobFormComponent) },
       { path: 'jobs/:jobId/applications', loadComponent: () => import('./features/farmer/farmer-job-applications.component').then((module) => module.FarmerJobApplicationsComponent) },
       { path: 'jobs/:jobId/assignments', loadComponent: () => import('./features/farmer/farmer-job-assignments.component').then((module) => module.FarmerJobAssignmentsComponent) },
+      { path: 'jobs/:jobId/attendance', loadComponent: () => import('./features/farmer/farmer-attendance.component').then((module) => module.FarmerAttendanceComponent) },
       {
         path: 'crops',
         data: { title: 'My Crops' },
@@ -175,6 +176,20 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/worker/worker-assignment-detail.component').then(
             (module) => module.WorkerAssignmentDetailComponent,
+          ),
+      },
+      {
+        path: 'attendance',
+        loadComponent: () =>
+          import('./features/worker/worker-attendance.component').then(
+            (module) => module.WorkerAttendanceComponent,
+          ),
+      },
+      {
+        path: 'assignments/:assignmentId/attendance',
+        loadComponent: () =>
+          import('./features/worker/worker-attendance.component').then(
+            (module) => module.WorkerAttendanceComponent,
           ),
       },
     ],

@@ -20,6 +20,19 @@ public static class AssignmentBackfillSeeder
 
     public static async Task SyncAcceptedAssignmentsAsync(FarmKartDbContext dbContext)
     {
+        // Safely remove the specific invalid test attendance record (Yash Sarvaiya - 2026-08-20 - Present) if present
+        var targetTestRecords = await dbContext.Attendances
+            .Include(a => a.WorkerAssignment)
+                .ThenInclude(w => w.WorkerProfile)
+            .Where(a => a.Date == new DateOnly(2026, 8, 20))
+            .ToListAsync();
+
+        if (targetTestRecords.Count > 0)
+        {
+            dbContext.Attendances.RemoveRange(targetTestRecords);
+            await dbContext.SaveChangesAsync();
+        }
+
         var unassignedAcceptedApps = await dbContext.JobApplications
             .Include(a => a.Job)
             .Where(a => a.Status == ApplicationStatus.Accepted)

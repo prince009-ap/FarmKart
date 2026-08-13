@@ -1,0 +1,119 @@
+<div class="space-y-6">
+  <!-- Header Banner -->
+  <div class="bg-emerald-800 text-white rounded-xl p-6 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-emerald-200 text-sm mb-1">
+          <a routerLink="/worker/dashboard" class="hover:underline">Dashboard</a>
+          <span>/</span>
+          <a routerLink="/worker/assignments" class="hover:underline">My Assignments</a>
+          <span>/</span>
+          <span>Attendance</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white">My Attendance</h1>
+        <p class="text-emerald-100 text-sm mt-1">View your work record, attendance rate, and daily history.</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a routerLink="/worker/assignments" mat-stroked-button class="!border-emerald-500 !text-white hover:!bg-emerald-700">
+          <mat-icon class="mr-1">assignment</mat-icon>
+          My Assignments
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="error()" class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-center gap-2">
+    <mat-icon class="text-red-500">error</mat-icon>
+    <span>{{ error() }}</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="flex justify-center py-12">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Main View -->
+  <div *ngIf="!loading() && summary()" class="space-y-6">
+
+    <!-- Metric Cards Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+
+      <div class="bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Total Days</p>
+        <p class="text-2xl font-extrabold text-stone-900 mt-1">{{ summary()?.totalDays }}</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Present</p>
+        <p class="text-2xl font-extrabold text-emerald-700 mt-1">{{ summary()?.presentDays }}</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider">Absent</p>
+        <p class="text-2xl font-extrabold text-rose-700 mt-1">{{ summary()?.absentDays }}</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-stone-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Half Day / Leave</p>
+        <p class="text-2xl font-extrabold text-amber-700 mt-1">{{ (summary()?.halfDays || 0) + (summary()?.leaveDays || 0) }}</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-sm col-span-2 md:col-span-1">
+        <p class="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Attendance Rate</p>
+        <p class="text-2xl font-extrabold text-emerald-800 mt-1">{{ summary()?.attendancePercentage }}%</p>
+      </div>
+
+    </div>
+
+    <!-- History Table -->
+    <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+      <h2 class="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
+        <mat-icon class="text-emerald-700">event_available</mat-icon>
+        Attendance History Log
+      </h2>
+
+      <div *ngIf="summary()?.history?.length === 0" class="text-center py-8 text-stone-500">
+        <mat-icon class="text-4xl text-stone-300 mb-2">event_busy</mat-icon>
+        <p>No attendance records recorded yet.</p>
+      </div>
+
+      <div *ngIf="(summary()?.history?.length || 0) > 0" class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-stone-200 text-xs font-bold text-stone-500 uppercase tracking-wider bg-stone-50">
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Job Title</th>
+              <th class="py-3 px-4">Farmer</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 text-sm">
+            <tr *ngFor="let rec of summary()?.history" class="hover:bg-stone-50 transition">
+              <td class="py-3 px-4 font-semibold text-stone-800">{{ rec.date }}</td>
+              <td class="py-3 px-4 font-medium text-stone-900">{{ rec.jobTitle }}</td>
+              <td class="py-3 px-4 text-stone-600">{{ rec.farmerName }}</td>
+              <td class="py-3 px-4">
+                <span
+                  [ngClass]="{
+                    'bg-emerald-100 text-emerald-800 border-emerald-300': rec.status === 'Present',
+                    'bg-rose-100 text-rose-800 border-rose-300': rec.status === 'Absent',
+                    'bg-amber-100 text-amber-800 border-amber-300': rec.status === 'HalfDay',
+                    'bg-blue-100 text-blue-800 border-blue-300': rec.status === 'Leave'
+                  }"
+                  class="px-2.5 py-1 font-bold rounded-full border text-xs"
+                >
+                  {{ rec.status }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-stone-500 italic">{{ rec.notes || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

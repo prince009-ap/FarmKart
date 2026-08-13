@@ -93,3 +93,33 @@ export interface FarmerWorkerAssignment {
   assignedAtUtc: string;
   status: 'Pending' | 'Active' | 'Completed' | 'Cancelled';
 }
+
+export type AttendanceStatus = 'Present' | 'Absent' | 'HalfDay' | 'Leave';
+
+export interface MarkAttendanceItemRequest {
+  workerAssignmentId: string;
+  status: AttendanceStatus;
+  notes?: string | null;
+  checkIn?: string | null;
+  checkOut?: string | null;
+  totalHours?: number | null;
+}
+
+export interface SaveJobAttendanceRequest {
+  date: string;
+  items: MarkAttendanceItemRequest[];
+}
+
+export interface FarmerAttendanceRecord {
+  attendanceId: string;
+  workerAssignmentId: string;
+  workerProfileId: string;
+  workerName: string;
+  workerPhone: string;
+  date: string;
+  status: AttendanceStatus;
+  notes?: string | null;
+  checkIn?: string | null;
+  checkOut?: string | null;
+  totalHours: number;
+}

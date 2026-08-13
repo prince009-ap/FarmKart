@@ -40,11 +40,16 @@
             </p>
           </div>
 
-          <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-center sm:text-right">
-            <span class="text-xs uppercase tracking-wider font-semibold text-emerald-800 block">Assigned Workers</span>
-            <p class="text-2xl font-extrabold text-emerald-950 mt-0.5">
-              {{ assignments().length }} / {{ currentJob.workersRequired }}
-            </p>
+          <div class="flex items-center gap-3">
+            <a [routerLink]="['/farmer/jobs', currentJob.id, 'attendance']" mat-flat-button class="!bg-emerald-800 !text-white">
+              <mat-icon class="mr-1">event_available</mat-icon> Manage Attendance
+            </a>
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-center sm:text-right">
+              <span class="text-xs uppercase tracking-wider font-semibold text-emerald-800 block">Assigned Workers</span>
+              <p class="text-2xl font-extrabold text-emerald-950 mt-0.5">
+                {{ assignments().length }} / {{ currentJob.workersRequired }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -103,6 +108,12 @@
                   {{ skill }}
                 </span>
               </div>
+            </div>
+
+            <div class="flex items-center">
+              <a [routerLink]="['/farmer/jobs', job()?.id, 'attendance']" mat-stroked-button class="!border-emerald-300 !text-emerald-800">
+                <mat-icon class="mr-1">event_available</mat-icon> Attendance
+              </a>
             </div>
           </div>
         </article>

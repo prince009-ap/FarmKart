@@ -20,17 +20,20 @@ public class FarmerController : ControllerBase
     private readonly IFarmerJobService _farmerJobService;
     private readonly IFarmerApplicationService _farmerApplicationService;
     private readonly IFarmerAssignmentService _farmerAssignmentService;
+    private readonly IFarmerAttendanceService _farmerAttendanceService;
 
     public FarmerController(
         IFarmerProfileService farmerProfileService,
         IFarmerJobService farmerJobService,
         IFarmerApplicationService farmerApplicationService,
-        IFarmerAssignmentService farmerAssignmentService)
+        IFarmerAssignmentService farmerAssignmentService,
+        IFarmerAttendanceService farmerAttendanceService)
     {
         _farmerProfileService = farmerProfileService;
         _farmerJobService = farmerJobService;
         _farmerApplicationService = farmerApplicationService;
         _farmerAssignmentService = farmerAssignmentService;
+        _farmerAttendanceService = farmerAttendanceService;
     }
 
     [HttpGet("profile")]
@@ -231,6 +234,78 @@ public class FarmerController : ControllerBase
         }
         catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("jobs/{jobId:guid}/attendance")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<FarmerAttendanceResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetJobAttendance(Guid jobId, [FromQuery] DateOnly? date)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerAttendanceService.GetJobAttendanceAsync(userId.Value, jobId, date));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("jobs/{jobId:guid}/attendance/{date}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<FarmerAttendanceResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetJobAttendanceByDate(Guid jobId, DateOnly date)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerAttendanceService.GetJobAttendanceAsync(userId.Value, jobId, date));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpPost("jobs/{jobId:guid}/attendance")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<FarmerAttendanceResponse>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SaveJobAttendance(Guid jobId, [FromBody] SaveJobAttendanceRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerAttendanceService.SaveJobAttendanceAsync(userId.Value, jobId, request));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPut("attendance/{attendanceId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerAttendanceResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAttendanceRecord(Guid attendanceId, [FromBody] UpdateAttendanceRecordRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerAttendanceService.UpdateAttendanceRecordAsync(userId.Value, attendanceId, request));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     /// <summary>

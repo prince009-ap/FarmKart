@@ -53,3 +53,25 @@ export interface WorkerAssignment {
   assignedAtUtc: string;
   status: 'Pending' | 'Active' | 'Completed' | 'Cancelled';
 }
+
+export interface WorkerAttendanceRecord {
+  attendanceId: string;
+  workerAssignmentId: string;
+  jobId: string;
+  jobTitle: string;
+  farmerName: string;
+  date: string;
+  status: 'Present' | 'Absent' | 'HalfDay' | 'Leave';
+  notes?: string | null;
+  totalHours: number;
+}
+
+export interface WorkerAttendanceSummary {
+  totalDays: number;
+  presentDays: number;
+  absentDays: number;
+  halfDays: number;
+  leaveDays: number;
+  attendancePercentage: number;
+  history: WorkerAttendanceRecord[];
+}

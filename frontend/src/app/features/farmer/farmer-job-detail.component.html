@@ -51,6 +51,14 @@
           <mat-icon>group</mat-icon>
           Applications
         </a>
+        <a mat-stroked-button [routerLink]="['/farmer/jobs', job()!.id, 'assignments']">
+          <mat-icon>badge</mat-icon>
+          Assigned Workers
+        </a>
+        <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job()!.id, 'attendance']">
+          <mat-icon>event_available</mat-icon>
+          Attendance
+        </a>
         <a mat-flat-button color="primary" class="app-primary-btn" [routerLink]="['/farmer/jobs', job()!.id, 'edit']">
           <mat-icon>edit</mat-icon>
           Edit Job

@@ -258,3 +258,17 @@ The Angular app follows a feature-based structure:
 - **Frontend Architecture**:
   - `FarmerJobAssignmentsComponent` (`/farmer/jobs/:jobId/assignments`) displays assigned workers, experience, phone, skills, schedule, and status badge.
   - `WorkerAssignmentsComponent` (`/worker/assignments`) & `WorkerAssignmentDetailComponent` (`/worker/assignments/:id`) display job assignment terms for workers.
+
+## Attendance Management
+
+- **Attendance APIs**:
+  - Farmer: `GET /api/farmer/jobs/{jobId}/attendance`, `GET /api/farmer/jobs/{jobId}/attendance/{date}`, `POST /api/farmer/jobs/{jobId}/attendance`, `PUT /api/farmer/attendance/{attendanceId}` under `[Authorize(Roles = Roles.Farmer)]`.
+  - Worker: `GET /api/worker/attendance` and `GET /api/worker/assignments/{assignmentId}/attendance` under `[Authorize(Roles = Roles.Worker)]`.
+- **Assignment Relationship & Validation**: Attendance can only be recorded for a valid `WorkerAssignment`. Attempts to mark attendance for unassigned workers or unowned jobs return `400 Bad Request` or `404 Not Found`.
+- **Date-Based Upserts & Idempotency**: Batch marking accepts a `DateOnly` date. The backend atomically updates existing records or inserts new records for each `(WorkerAssignmentId, Date)`, respecting the Entity Framework Core unique index `(WorkerAssignmentId, Date)`.
+- **Derived Summary Statistics**: Worker attendance views calculate summary statistics (Total Days, Present Days, Absent Days, Half Days, Leave Days, Attendance Rate %) on the fly from attendance records without mutating schema.
+- **Ownership & Security**: Server derives identities strictly from authenticated JWT user claims (`ClaimTypes.NameIdentifier`). Farmers cannot mark attendance for other farmers' jobs; Workers cannot view or modify other workers' attendance records.
+- **Frontend Architecture**:
+  - `FarmerAttendanceComponent` (`/farmer/jobs/:jobId/attendance`): Date selection, quick "Mark All Present/Absent" actions, worker attendance status selection (`Present`, `Absent`, `HalfDay`, `Leave`), optional notes, and attendance history log.
+  - `WorkerAttendanceComponent` (`/worker/attendance` & `/worker/assignments/:assignmentId/attendance`): Metric summary cards (Total Days, Present, Absent, Half Day/Leave, Attendance Rate %) and detailed attendance history log table.
+

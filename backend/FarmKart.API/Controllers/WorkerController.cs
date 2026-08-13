@@ -19,13 +19,16 @@ public class WorkerController : ControllerBase
 {
     private readonly IWorkerJobService _workerJobService;
     private readonly IWorkerAssignmentService _workerAssignmentService;
+    private readonly IWorkerAttendanceService _workerAttendanceService;
 
     public WorkerController(
         IWorkerJobService workerJobService,
-        IWorkerAssignmentService workerAssignmentService)
+        IWorkerAssignmentService workerAssignmentService,
+        IWorkerAttendanceService workerAttendanceService)
     {
         _workerJobService = workerJobService;
         _workerAssignmentService = workerAssignmentService;
+        _workerAttendanceService = workerAttendanceService;
     }
 
     [HttpGet("jobs")]
@@ -126,6 +129,39 @@ public class WorkerController : ControllerBase
         try
         {
             return Ok(await _workerAssignmentService.GetAssignmentDetailsAsync(userId.Value, id));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("attendance")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerAttendanceSummaryResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyAttendance()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerAttendanceService.GetMyAttendanceHistoryAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("assignments/{assignmentId:guid}/attendance")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerAttendanceSummaryResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignmentAttendance(Guid assignmentId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerAttendanceService.GetAssignmentAttendanceAsync(userId.Value, assignmentId));
         }
         catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }

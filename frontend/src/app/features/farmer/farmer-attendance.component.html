@@ -1,0 +1,209 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-emerald-800 text-white rounded-xl p-6 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-emerald-200 text-sm mb-1">
+          <a routerLink="/farmer/jobs" class="hover:underline">My Jobs</a>
+          <span>/</span>
+          <span>{{ job()?.title || 'Job' }}</span>
+          <span>/</span>
+          <span>Attendance</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white">Attendance Management</h1>
+        <p class="text-emerald-100 text-sm mt-1">Mark and track attendance for assigned workers.</p>
+      </div>
+
+      <div class="flex items-center gap-2" *ngIf="job()">
+        <a [routerLink]="['/farmer/jobs', job()?.id, 'assignments']" mat-stroked-button class="!border-emerald-500 !text-white hover:!bg-emerald-700">
+          <mat-icon class="mr-1">group</mat-icon>
+          Assigned Workers
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="error()" class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-center gap-2">
+    <mat-icon class="text-red-500">error</mat-icon>
+    <span>{{ error() }}</span>
+  </div>
+
+  <div *ngIf="actionMessage()" class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm flex items-center gap-2">
+    <mat-icon class="text-emerald-600">check_circle</mat-icon>
+    <span>{{ actionMessage() }}</span>
+  </div>
+
+  <!-- Pre-Start Date Alert Banner -->
+  <div *ngIf="isBeforeStartDate()" class="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-sm flex items-center gap-3 shadow-sm">
+    <mat-icon class="text-amber-600 !h-6 !w-6">info</mat-icon>
+    <div>
+      <p class="font-bold text-amber-950">Job Start Date Has Not Arrived</p>
+      <p class="text-amber-800 mt-0.5">Attendance will be available from {{ minDate() | date:'mediumDate' }}.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="flex justify-center py-12">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading() && job()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column: Attendance Marking Panel -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+
+        <!-- Date Selector & Quick Actions -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 mb-6">
+          <div>
+            <label for="attendance-date" class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">Select Attendance Date</label>
+            <input
+              id="attendance-date"
+              type="date"
+              [ngModel]="selectedDate()"
+              [min]="minDate()"
+              [max]="maxDate()"
+              [disabled]="isBeforeStartDate()"
+              (ngModelChange)="onDateChange($event)"
+              class="px-3 py-2 border border-stone-300 rounded-lg text-stone-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium disabled:bg-stone-100 disabled:text-stone-400 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div class="flex items-center gap-2" *ngIf="!isBeforeStartDate()">
+            <button type="button" (click)="setAllStatus('Present')" class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
+              Mark All Present
+            </button>
+            <button type="button" (click)="setAllStatus('Absent')" class="px-3 py-1.5 text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 transition">
+              Mark All Absent
+            </button>
+          </div>
+        </div>
+
+        <!-- Worker Attendance Table -->
+        <div *ngIf="attendanceRows().length === 0" class="text-center py-8 text-stone-500">
+          <mat-icon class="text-4xl text-stone-300 mb-2">person_off</mat-icon>
+          <p>No active workers assigned to this job.</p>
+        </div>
+
+        <div *ngIf="attendanceRows().length > 0" class="space-y-4">
+          <div *ngFor="let row of attendanceRows()" class="p-4 border rounded-lg transition flex flex-col sm:flex-row sm:items-center justify-between gap-4" [ngClass]="row.status ? 'border-stone-200' : 'border-amber-200 bg-amber-50/30'">
+
+            <div>
+              <p class="font-semibold text-stone-900">{{ row.assignment.workerName }}</p>
+              <p class="text-xs text-stone-500">Phone: {{ row.assignment.workerPhone }}</p>
+              <span *ngIf="!row.status" class="inline-block mt-1 text-[11px] font-semibold text-amber-700">
+                * Please select attendance status
+              </span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Status Buttons with default unselected state -->
+              <div class="inline-flex rounded-lg p-1 bg-stone-100 border border-stone-200">
+                <button
+                  type="button"
+                  (click)="row.status = 'Present'"
+                  [disabled]="isBeforeStartDate()"
+                  [class]="row.status === 'Present' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'text-stone-600 hover:text-stone-900'"
+                  class="px-3 py-1 text-xs rounded-md transition disabled:opacity-50"
+                >
+                  Present
+                </button>
+                <button
+                  type="button"
+                  (click)="row.status = 'Absent'"
+                  [disabled]="isBeforeStartDate()"
+                  [class]="row.status === 'Absent' ? 'bg-rose-600 text-white font-bold shadow-sm' : 'text-stone-600 hover:text-stone-900'"
+                  class="px-3 py-1 text-xs rounded-md transition disabled:opacity-50"
+                >
+                  Absent
+                </button>
+                <button
+                  type="button"
+                  (click)="row.status = 'HalfDay'"
+                  [disabled]="isBeforeStartDate()"
+                  [class]="row.status === 'HalfDay' ? 'bg-amber-600 text-white font-bold shadow-sm' : 'text-stone-600 hover:text-stone-900'"
+                  class="px-3 py-1 text-xs rounded-md transition disabled:opacity-50"
+                >
+                  Half Day
+                </button>
+                <button
+                  type="button"
+                  (click)="row.status = 'Leave'"
+                  [disabled]="isBeforeStartDate()"
+                  [class]="row.status === 'Leave' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-stone-600 hover:text-stone-900'"
+                  class="px-3 py-1 text-xs rounded-md transition disabled:opacity-50"
+                >
+                  Leave
+                </button>
+              </div>
+
+              <!-- Notes Input -->
+              <input
+                type="text"
+                [(ngModel)]="row.notes"
+                [disabled]="isBeforeStartDate()"
+                placeholder="Optional notes..."
+                class="px-3 py-1.5 text-xs border border-stone-200 rounded-md focus:ring-1 focus:ring-emerald-500 focus:outline-none w-36 sm:w-44 disabled:bg-stone-100 disabled:text-stone-400"
+              />
+            </div>
+
+          </div>
+
+          <!-- Save Button -->
+          <div class="pt-4 border-t border-stone-200 flex justify-end">
+            <button
+              type="button"
+              (click)="saveAttendance()"
+              [disabled]="!canSave"
+              mat-raised-button
+              class="!bg-emerald-700 !text-white hover:!bg-emerald-800 disabled:!bg-stone-300 disabled:!text-stone-500"
+            >
+              <mat-spinner diameter="18" *ngIf="saving()" class="mr-2"></mat-spinner>
+              <mat-icon class="mr-1" *ngIf="!saving()">save</mat-icon>
+              Save Attendance
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Attendance History Summary -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+        <h2 class="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
+          <mat-icon class="text-emerald-700">history</mat-icon>
+          Recent Attendance Records
+        </h2>
+
+        <div *ngIf="historyRecords().length === 0" class="text-center py-6 text-stone-500 text-sm">
+          No attendance records saved yet.
+        </div>
+
+        <div *ngIf="historyRecords().length > 0" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+          <div *ngFor="let rec of historyRecords()" class="p-3 border border-stone-100 bg-stone-50/50 rounded-lg flex items-center justify-between text-xs">
+            <div>
+              <p class="font-semibold text-stone-800">{{ rec.workerName }}</p>
+              <p class="text-stone-500">{{ rec.date }}</p>
+              <p *ngIf="rec.notes" class="text-stone-400 italic text-[11px] mt-0.5">{{ rec.notes }}</p>
+            </div>
+            <span
+              [ngClass]="{
+                'bg-emerald-100 text-emerald-800 border-emerald-300': rec.status === 'Present',
+                'bg-rose-100 text-rose-800 border-rose-300': rec.status === 'Absent',
+                'bg-amber-100 text-amber-800 border-amber-300': rec.status === 'HalfDay',
+                'bg-blue-100 text-blue-800 border-blue-300': rec.status === 'Leave'
+              }"
+              class="px-2.5 py-0.5 font-bold rounded-full border text-[11px]"
+            >
+              {{ rec.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

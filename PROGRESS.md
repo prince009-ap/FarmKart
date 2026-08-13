@@ -5,13 +5,14 @@
 - [x] Phase 1: Repository foundation and solution setup
 - [x] Phase 2: Database design and initial domain modeling
 - [x] Phase 3: Authentication and role-based authorization foundation
-- [ ] Phase 4: Core Module Implementation
+- [x] Phase 4: Core Module Implementation
   - [x] Phase 4.1: Farmer Profile Management
   - [x] Phase 4.2: Farmer Dashboard and Navigation Shell
   - [x] Phase 4.3: Farmer Job Posting
   - [x] Phase 4.4: Worker Job Browsing and Job Application
   - [x] Phase 4.5: Farmer Application Management and Accept/Reject
   - [x] Phase 4.6: Worker Assignment
+  - [x] Phase 4.7: Attendance Management
 - [ ] Phase 5: Worker module implementation
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -265,3 +266,18 @@
 - [x] Updated `FarmerJobsComponent` cards with an "Assigned Workers" button and `WorkerDashboardComponent` with a "My Assignments" card.
 - [x] Added 16 backend integration tests in `WorkerAssignmentTests.cs` and 8 Vitest specs across new Angular assignment components.
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (103/103 passing), frontend build (`npm run build`), and frontend tests (106/106 passing).
+
+## Phase 4.7 Deliverables — Attendance Management
+
+- [x] Implemented `IFarmerAttendanceService` / `FarmerAttendanceService` for farmer attendance listing, date filtering, batch marking (atomic upserting), and record updating.
+- [x] Implemented `IWorkerAttendanceService` / `WorkerAttendanceService` for worker attendance history retrieval and derived summary statistics (Total Days, Present, Absent, Half Days, Leave, Attendance Rate %).
+- [x] Added farmer endpoints under `[Authorize(Roles = Roles.Farmer)]`: `GET /api/farmer/jobs/{jobId}/attendance`, `GET /api/farmer/jobs/{jobId}/attendance/{date}`, `POST /api/farmer/jobs/{jobId}/attendance`, and `PUT /api/farmer/attendance/{attendanceId}`.
+- [x] Added worker endpoints under `[Authorize(Roles = Roles.Worker)]`: `GET /api/worker/attendance` and `GET /api/worker/assignments/{assignmentId}/attendance`.
+- [x] Enforced strict server-side ownership verification (`FarmerProfile` and `WorkerProfile` resolved exclusively from authenticated JWT claims). Unowned requests return `404 Not Found`.
+- [x] Respected the existing Entity Framework Core unique index `(WorkerAssignmentId, Date)` for atomic upserts; prevented duplicate attendance records.
+- [x] Created Angular `FarmerAttendanceComponent` (`/farmer/jobs/:jobId/attendance`) for date selection, marking workers Present/Absent, and saving attendance.
+- [x] Created Angular `WorkerAttendanceComponent` (`/worker/attendance` & `/worker/assignments/:assignmentId/attendance`) for viewing work history log and summary metrics.
+- [x] Updated navigation headers and drawer links for Farmers and Workers.
+- [x] Added 16 backend integration tests in `AttendanceTests.cs` and 6 Vitest specs across new Angular attendance components.
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (125/125 passing), frontend build (`npm run build`), and frontend tests (112/112 passing).
+

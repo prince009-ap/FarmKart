@@ -37,6 +37,8 @@ export class WorkerShellComponent implements OnInit {
     { label: 'Dashboard', route: '/worker', icon: 'dashboard' },
     { label: 'Browse Jobs', route: '/worker/jobs', icon: 'work' },
     { label: 'My Applications', route: '/worker/applications', icon: 'assignment' },
+    { label: 'My Assignments', route: '/worker/assignments', icon: 'assignment_turned_in' },
+    { label: 'My Attendance', route: '/worker/attendance', icon: 'event_available' },
     { label: 'My Profile', route: '/worker/profile', icon: 'person', isPlaceholder: true }
   ];
 
