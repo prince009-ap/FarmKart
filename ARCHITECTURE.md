@@ -217,3 +217,10 @@ The Angular app follows a feature-based structure:
 - Its child routes render the dashboard at `/farmer` and the existing profile page at `/farmer/profile`; the parent route applies the existing `authGuard` and `roleGuard` with the `Farmer` role.
 - The shell reads only the existing `AuthService.currentUser$` state to show the farmer's name, and uses `Farmer` as a safe fallback when the name is unavailable. It does not inspect cookies, tokens, or browser storage.
 - Jobs, My Crops, Machinery, Marketplace, and Notifications use protected `ComingSoonComponent` routes. They provide stable navigation targets without adding APIs, domain workflows, or placeholder data for future modules.
+
+## Farmer Job Posting
+
+- Farmer job APIs are scoped to `/api/farmer/jobs` and use the authenticated claim to resolve the owning `FarmerProfile`; request DTOs never accept a Farmer or user identifier.
+- New jobs begin in `Open`. Updates are permitted only while a job is `Draft` or `Open`; cancellation is a soft transition to `Cancelled`, preserving job history rather than deleting records.
+- The existing `Job` schema supplies work category, workers required, wage, schedule, working hours, and farm location. It has no job-to-skill relationship, so this phase does not introduce an unsupported duplicate skill model or a migration.
+- Angular routes `/farmer/jobs`, `/farmer/jobs/create`, `/farmer/jobs/:id`, and `/farmer/jobs/:id/edit` remain inside the existing guarded Farmer shell.

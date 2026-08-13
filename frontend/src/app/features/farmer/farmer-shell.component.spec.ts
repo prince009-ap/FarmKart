@@ -42,7 +42,6 @@ describe('FarmerShellComponent', () => {
     );
 
     expect(futureItems.map((item) => item.label)).toEqual([
-      'Jobs',
       'My Crops',
       'Machinery',
       'Marketplace',

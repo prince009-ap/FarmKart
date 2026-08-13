@@ -23,3 +23,44 @@ export interface FarmerProfileUpdateRequest {
   farmSizeUnit: FarmSizeUnit | null;
   farmLocation: string | null;
 }
+
+export type JobStatus = 'Draft' | 'Open' | 'InProgress' | 'Completed' | 'Cancelled';
+
+export interface FarmerJob {
+  id: string;
+  title: string;
+  description: string;
+  workCategory: string;
+  cropType: string | null;
+  workersRequired: number;
+  requiredExperience: number;
+  wagePerDay: number;
+  startDate: string;
+  endDate: string;
+  workingHours: string;
+  farmLocation: string;
+  farmSize: number | null;
+  foodProvided: boolean;
+  accommodationProvided: boolean;
+  isUrgent: boolean;
+  status: JobStatus;
+  createdAtUtc: string;
+}
+
+export interface FarmerJobRequest {
+  title: string;
+  description: string;
+  workCategory: string;
+  cropType: string | null;
+  workersRequired: number;
+  requiredExperience: number;
+  wagePerDay: number;
+  startDate: string;
+  endDate: string;
+  workingHours: string;
+  farmLocation: string;
+  farmSize: number | null;
+  foodProvided: boolean;
+  accommodationProvided: boolean;
+  isUrgent: boolean;
+}

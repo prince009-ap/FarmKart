@@ -1,0 +1,46 @@
+<div class="app-role-page">
+  <div class="app-page animate-fk-rise">
+    <section class="app-hero-banner app-hero-banner--worker">
+      <p class="app-hero-banner__eyebrow">Worker workspace</p>
+      <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
+      <p class="app-hero-banner__summary">
+        Browse farm jobs, manage your profile, and prepare for upcoming worker tools as FarmKart grows.
+      </p>
+      <div class="app-hero-banner__actions">
+        <a mat-flat-button class="app-primary-btn !bg-amber-500 !shadow-amber-500/30" routerLink="/auth/login">
+          <mat-icon>refresh</mat-icon>
+          Refresh session
+        </a>
+      </div>
+    </section>
+
+    <section class="app-grid app-grid--modules">
+      <article class="app-card">
+        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
+          <mat-icon>work</mat-icon>
+        </div>
+        <h2 class="app-card__title">Browse Jobs</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">Find and apply to farm labor opportunities posted by local farmers.</p>
+      </article>
+
+      <article class="app-card">
+        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
+          <mat-icon>person</mat-icon>
+        </div>
+        <h2 class="app-card__title">My Profile</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">Update skills, experience, and availability for better job matches.</p>
+      </article>
+
+      <article class="app-card">
+        <div class="app-card__icon !bg-amber-50 !border-amber-200/60 !text-amber-600">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <h2 class="app-card__title">My Applications</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">Track applications, assignments, and work history in one place.</p>
+      </article>
+    </section>
+  </div>
+</div>

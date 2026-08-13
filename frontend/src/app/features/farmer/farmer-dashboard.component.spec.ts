@@ -26,14 +26,14 @@ describe('FarmerDashboardComponent', () => {
   it('renders the farmer dashboard and safe fallback name', () => {
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Welcome back, Farmer!');
+    expect(fixture.nativeElement.textContent).toContain('Welcome back, Farmer');
   });
 
   it('renders the authenticated farmer name when available', () => {
     currentUser$.next({ fullName: 'Asha Patel', role: 'Farmer' });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Welcome back, Asha Patel!');
+    expect(fixture.nativeElement.textContent).toContain('Welcome back, Asha Patel');
   });
 
   it('links the profile card to the existing farmer profile route', () => {

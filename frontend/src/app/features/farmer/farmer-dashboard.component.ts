@@ -44,8 +44,7 @@ export class FarmerDashboardComponent implements OnInit {
       title: 'Jobs & Labor',
       description: 'Create job postings, review worker applications, manage assignments, and hire local farm help.',
       icon: 'work',
-      route: '/farmer/jobs',
-      isPlaceholder: true
+      route: '/farmer/jobs'
     },
     {
       title: 'My Crops',

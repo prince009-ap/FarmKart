@@ -81,12 +81,14 @@ export const routes: Routes = [
       },
       {
         path: 'jobs',
-        data: { title: 'Jobs' },
         loadComponent: () =>
-          import('./features/farmer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/farmer/farmer-jobs.component').then(
+            (module) => module.FarmerJobsComponent,
           ),
       },
+      { path: 'jobs/create', loadComponent: () => import('./features/farmer/farmer-job-form.component').then((module) => module.FarmerJobFormComponent) },
+      { path: 'jobs/:id', loadComponent: () => import('./features/farmer/farmer-job-detail.component').then((module) => module.FarmerJobDetailComponent) },
+      { path: 'jobs/:id/edit', loadComponent: () => import('./features/farmer/farmer-job-form.component').then((module) => module.FarmerJobFormComponent) },
       {
         path: 'crops',
         data: { title: 'My Crops' },

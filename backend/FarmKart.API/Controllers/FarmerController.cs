@@ -17,10 +17,14 @@ namespace FarmKart.API.Controllers;
 public class FarmerController : ControllerBase
 {
     private readonly IFarmerProfileService _farmerProfileService;
+    private readonly IFarmerJobService _farmerJobService;
 
-    public FarmerController(IFarmerProfileService farmerProfileService)
+    public FarmerController(
+        IFarmerProfileService farmerProfileService,
+        IFarmerJobService farmerJobService)
     {
         _farmerProfileService = farmerProfileService;
+        _farmerJobService = farmerJobService;
     }
 
     [HttpGet("profile")]
@@ -81,6 +85,57 @@ public class FarmerController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpGet("jobs")]
+    public async Task<IActionResult> GetJobs()
+    {
+        var userId = GetCurrentUserId();
+        return userId is null ? Unauthorized() : Ok(await _farmerJobService.GetJobsAsync(userId.Value));
+    }
+
+    [HttpGet("jobs/{id:guid}")]
+    public async Task<IActionResult> GetJob(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try { return Ok(await _farmerJobService.GetJobAsync(userId.Value, id)); }
+        catch (JobNotFoundException) { return NotFound(new { message = "Job not found." }); }
+    }
+
+    [HttpPost("jobs")]
+    public async Task<IActionResult> CreateJob([FromBody] CreateFarmerJobRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var job = await _farmerJobService.CreateJobAsync(userId.Value, request);
+            return CreatedAtAction(nameof(GetJob), new { id = job.Id }, job);
+        }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPut("jobs/{id:guid}")]
+    public async Task<IActionResult> UpdateJob(Guid id, [FromBody] UpdateFarmerJobRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try { return Ok(await _farmerJobService.UpdateJobAsync(userId.Value, id, request)); }
+        catch (JobNotFoundException) { return NotFound(new { message = "Job not found." }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    [HttpDelete("jobs/{id:guid}")]
+    public async Task<IActionResult> CancelJob(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try { await _farmerJobService.CancelJobAsync(userId.Value, id); return NoContent(); }
+        catch (JobNotFoundException) { return NotFound(new { message = "Job not found." }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
 
     /// <summary>

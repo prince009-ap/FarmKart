@@ -1,8 +1,12 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-unauthorized',
-  template: '<h2>Unauthorized Access</h2>',
-  standalone: true
+  standalone: true,
+  imports: [RouterLink, MatButtonModule, MatIconModule],
+  templateUrl: './unauthorized.component.html'
 })
 export class UnauthorizedComponent {}

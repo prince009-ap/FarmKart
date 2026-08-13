@@ -1,0 +1,121 @@
+<section class="app-page app-page--narrow animate-fk-rise">
+  <header class="app-page-header">
+    <div class="app-page-header__content">
+      <a routerLink="/farmer/jobs" class="app-back-link">← Back to jobs</a>
+      <h1 class="app-page-title mt-3">{{ jobId ? 'Edit Job' : 'Create Job' }}</h1>
+      <p class="app-page-summary">Share the practical details workers need before applying.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="app-alert app-alert--loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="app-form-panel space-y-5">
+      @if (error()) {
+        <div class="app-alert app-alert--error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <div>
+        <h2 class="app-form-section__title">
+          <mat-icon class="!text-lg !text-slate-400">work</mat-icon>
+          Job basics
+        </h2>
+        <div class="app-form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Job title</mat-label>
+            <input matInput formControlName="title">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Work category</mat-label>
+            <input matInput formControlName="workCategory" placeholder="Harvesting, irrigation...">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="app-form-grid__full">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="4" formControlName="description"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="app-form-section__title">
+          <mat-icon class="!text-lg !text-slate-400">groups</mat-icon>
+          Requirements & pay
+        </h2>
+        <div class="app-form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Workers required</mat-label>
+            <input matInput type="number" formControlName="workersRequired">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Experience (years)</mat-label>
+            <input matInput type="number" formControlName="requiredExperience">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Daily wage (INR)</mat-label>
+            <input matInput type="number" formControlName="wagePerDay">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="app-form-section__title">
+          <mat-icon class="!text-lg !text-slate-400">calendar_month</mat-icon>
+          Schedule & location
+        </h2>
+        <div class="app-form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Start date</mat-label>
+            <input matInput type="date" formControlName="startDate">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>End date</mat-label>
+            <input matInput type="date" formControlName="endDate">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Working hours</mat-label>
+            <input matInput formControlName="workingHours" placeholder="8 AM - 5 PM">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Farm location</mat-label>
+            <input matInput formControlName="farmLocation">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="app-form-section__title">
+          <mat-icon class="!text-lg !text-slate-400">landscape</mat-icon>
+          Optional farm details
+        </h2>
+        <div class="app-form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Crop type (optional)</mat-label>
+            <input matInput formControlName="cropType">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Farm size (optional)</mat-label>
+            <input matInput type="number" formControlName="farmSize">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 pt-1">
+        <mat-checkbox formControlName="foodProvided">Food provided</mat-checkbox>
+        <mat-checkbox formControlName="accommodationProvided">Accommodation provided</mat-checkbox>
+        <mat-checkbox formControlName="isUrgent">Urgent</mat-checkbox>
+      </div>
+
+      <div class="app-form-actions">
+        <a mat-button routerLink="/farmer/jobs">Cancel</a>
+        <button mat-flat-button color="primary" class="app-primary-btn" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Saving...' : (jobId ? 'Save changes' : 'Post job') }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

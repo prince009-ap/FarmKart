@@ -217,3 +217,11 @@
 - [x] Add safe Coming Soon placeholder routes for Jobs, My Crops, Machinery, Marketplace, and Notifications
 - [x] Display the authenticated Farmer name through the existing `AuthService` state with a safe fallback
 - [x] Add focused Angular tests for dashboard rendering, profile navigation, placeholders, responsive navigation state, and route protection
+
+## Phase 4.3 Deliverables - Farmer Job Posting
+
+- [x] Add Farmer-owned job list, detail, create, update, and cancellation APIs
+- [x] Enforce ownership from authenticated claims and return 404 for other farmers' jobs
+- [x] Use `Open` for new jobs and `Cancelled` for soft cancellation; only Draft/Open jobs are editable
+- [x] Add Farmer Jobs list, detail, create, and edit Angular pages under protected Farmer routes
+- [x] Reuse the existing Job table and database constraints; no new migration required

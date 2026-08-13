@@ -1,0 +1,46 @@
+<div class="app-role-page">
+  <div class="app-page animate-fk-rise">
+    <section class="app-hero-banner app-hero-banner--customer">
+      <p class="app-hero-banner__eyebrow">Customer workspace</p>
+      <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
+      <p class="app-hero-banner__summary">
+        Shop fresh produce, track orders, and explore marketplace features as FarmKart expands.
+      </p>
+      <div class="app-hero-banner__actions">
+        <a mat-flat-button class="app-primary-btn !bg-sky-500 !shadow-sky-500/30" routerLink="/">
+          <mat-icon>storefront</mat-icon>
+          Explore marketplace
+        </a>
+      </div>
+    </section>
+
+    <section class="app-grid app-grid--modules">
+      <article class="app-card">
+        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
+          <mat-icon>shopping_basket</mat-icon>
+        </div>
+        <h2 class="app-card__title">Browse Produce</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">Discover fresh crops from local farmers and place direct orders.</p>
+      </article>
+
+      <article class="app-card">
+        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+        <h2 class="app-card__title">My Orders</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">View order history, delivery status, and payment receipts.</p>
+      </article>
+
+      <article class="app-card">
+        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
+          <mat-icon>person</mat-icon>
+        </div>
+        <h2 class="app-card__title">My Profile</h2>
+        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
+        <p class="app-card__text">Manage delivery addresses and account preferences.</p>
+      </article>
+    </section>
+  </div>
+</div>

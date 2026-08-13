@@ -31,6 +31,8 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFarmerProfileService, FarmerProfileService>();
+        services.AddScoped<IFarmerJobService, FarmerJobService>();
+        services.AddScoped<IFarmerProfileService, FarmerProfileService>();
 
         // Register JWT options and services
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

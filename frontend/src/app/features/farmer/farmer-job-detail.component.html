@@ -1,0 +1,62 @@
+<section class="app-page app-page--narrow animate-fk-rise">
+  <a routerLink="/farmer/jobs" class="app-back-link">← My jobs</a>
+
+  @if (loading()) {
+    <div class="app-alert app-alert--loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (job()) {
+    <article class="app-form-panel">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <span class="app-badge app-badge--status">{{ job()!.status }}</span>
+          <h1 class="app-page-title mt-2">{{ job()!.title }}</h1>
+          <p class="app-page-summary">{{ job()!.description }}</p>
+        </div>
+        <div class="app-card__icon flex-shrink-0">
+          <mat-icon>work</mat-icon>
+        </div>
+      </div>
+
+      <dl class="app-job-card__stats mt-6">
+        <div>
+          <strong>Location</strong>
+          {{ job()!.farmLocation }}
+        </div>
+        <div>
+          <strong>Daily wage</strong>
+          {{ job()!.wagePerDay | number }} INR
+        </div>
+        <div>
+          <strong>Workers required</strong>
+          {{ job()!.workersRequired }}
+        </div>
+        <div>
+          <strong>Schedule</strong>
+          {{ job()!.startDate }} – {{ job()!.endDate }}
+        </div>
+        <div>
+          <strong>Category</strong>
+          {{ job()!.workCategory }}
+        </div>
+        <div>
+          <strong>Working hours</strong>
+          {{ job()!.workingHours }}
+        </div>
+      </dl>
+
+      <div class="app-form-actions mt-8 pt-4 border-t border-slate-100">
+        <a mat-button routerLink="/farmer/jobs">Back to list</a>
+        <a mat-flat-button color="primary" class="app-primary-btn" [routerLink]="['/farmer/jobs', job()!.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Edit Job
+        </a>
+      </div>
+    </article>
+  } @else {
+    <div class="app-alert app-alert--error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+</section>

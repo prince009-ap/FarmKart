@@ -1,0 +1,64 @@
+<section class="app-page animate-fk-rise">
+  <header class="app-page-header">
+    <div class="app-page-header__content">
+      <p class="app-page-eyebrow">Labor workspace</p>
+      <h1 class="app-page-title">My Jobs</h1>
+      <p class="app-page-summary">Create and manage your farm job postings for local workers.</p>
+    </div>
+    <a mat-flat-button color="primary" class="app-primary-btn" routerLink="/farmer/jobs/create">
+      <mat-icon>add</mat-icon>
+      Create Job
+    </a>
+  </header>
+
+  @if (loading()) {
+    <div class="app-alert app-alert--loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (error()) {
+    <div class="app-alert app-alert--error">
+      <mat-icon>error_outline</mat-icon>
+      <div>
+        <strong>Unable to load jobs</strong>
+        <p class="mt-1">{{ error() }}</p>
+        <button mat-button class="mt-2" (click)="loadJobs()">Retry</button>
+      </div>
+    </div>
+  } @else if (!jobs().length) {
+    <div class="app-empty-state">
+      <mat-icon>work_outline</mat-icon>
+      <h2 class="app-empty-state__title">No jobs posted yet</h2>
+      <p class="app-empty-state__text">Create your first job to connect with skilled farm workers in your area.</p>
+      <a mat-flat-button color="primary" class="app-primary-btn mt-5" routerLink="/farmer/jobs/create">Create your first job</a>
+    </div>
+  } @else {
+    <div class="app-grid lg:grid-cols-2">
+      @for (job of jobs(); track job.id) {
+        <article class="app-card app-job-card">
+          <div class="app-job-card__header">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">{{ job.title }}</h2>
+              <p class="app-job-card__meta">{{ job.workCategory }} · {{ job.farmLocation }}</p>
+            </div>
+            <span class="app-badge app-badge--status">{{ job.status }}</span>
+          </div>
+
+          <div class="app-job-card__stats">
+            <div><strong>Daily wage</strong>{{ job.wagePerDay | number }} INR</div>
+            <div><strong>Workers</strong>{{ job.workersRequired }}</div>
+            <div><strong>Starts</strong>{{ job.startDate }}</div>
+            <div><strong>Ends</strong>{{ job.endDate }}</div>
+          </div>
+
+          <div class="app-job-card__actions">
+            <a mat-button [routerLink]="['/farmer/jobs', job.id]">View</a>
+            @if (canEdit(job)) {
+              <a mat-button [routerLink]="['/farmer/jobs', job.id, 'edit']">Edit</a>
+              <button mat-button color="warn" [disabled]="cancellingId() === job.id" (click)="cancelJob(job)">Cancel</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
