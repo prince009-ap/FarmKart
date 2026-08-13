@@ -1496,6 +1496,16 @@ mat-icon,
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
+.app-page .mat-datepicker-toggle,
+.app-form-panel .mat-datepicker-toggle {
+  color: var(--fk-emerald-600);
+}
+
+.app-page .mat-datepicker-toggle:hover,
+.app-form-panel .mat-datepicker-toggle:hover {
+  color: var(--fk-emerald-800);
+}
+
 .app-primary-btn {
   background: linear-gradient(135deg, var(--fk-emerald-600), var(--fk-emerald-700)) !important;
   color: #fff !important;
