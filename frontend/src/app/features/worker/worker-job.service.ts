@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApplyJobRequest, WorkerAvailableJob, WorkerJobApplication } from '../../core/models/worker.models';
+import { ApplyJobRequest, WorkerAssignment, WorkerAvailableJob, WorkerJobApplication } from '../../core/models/worker.models';
 
 @Injectable({
   providedIn: 'root'
@@ -25,5 +25,13 @@ export class WorkerJobService {
 
   getMyApplications(): Observable<WorkerJobApplication[]> {
     return this.http.get<WorkerJobApplication[]>(`${this.baseUrl}/applications`, { withCredentials: true });
+  }
+
+  getMyAssignments(): Observable<WorkerAssignment[]> {
+    return this.http.get<WorkerAssignment[]>(`${this.baseUrl}/assignments`, { withCredentials: true });
+  }
+
+  getAssignmentDetails(id: string): Observable<WorkerAssignment> {
+    return this.http.get<WorkerAssignment>(`${this.baseUrl}/assignments/${id}`, { withCredentials: true });
   }
 }

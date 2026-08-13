@@ -10,7 +10,8 @@
   - [x] Phase 4.2: Farmer Dashboard and Navigation Shell
   - [x] Phase 4.3: Farmer Job Posting
   - [x] Phase 4.4: Worker Job Browsing and Job Application
-  - [x] Phase 4.5: Farmer Application Management and Hiring Decision
+  - [x] Phase 4.5: Farmer Application Management and Accept/Reject
+  - [x] Phase 4.6: Worker Assignment
 - [ ] Phase 5: Worker module implementation
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -251,3 +252,16 @@
 - [x] Updated `FarmerJobsComponent` cards with an "Applications" action button and added `/farmer/jobs/:jobId/applications` route under `authGuard` & `roleGuard`.
 - [x] Added 16 backend integration tests in `FarmerApplicationTests.cs` and 5 Vitest specs in `farmer-job-applications.component.spec.ts`.
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (87/87 passing), frontend build (`npm run build`), and frontend tests (98/98 passing).
+
+## Phase 4.6 Deliverables — Worker Assignment
+
+- [x] Implemented atomic application acceptance and assignment creation in `FarmerApplicationService.cs` (`ApplicationStatus.Accepted` + `WorkerAssignment` with `AssignmentStatus.Active`).
+- [x] Implemented `IFarmerAssignmentService` / `FarmerAssignmentService` and `IWorkerAssignmentService` / `WorkerAssignmentService`.
+- [x] Added `GET /api/farmer/jobs/{jobId}/assignments` in `FarmerController.cs` under `[Authorize(Roles = Roles.Farmer)]`.
+- [x] Added `GET /api/worker/assignments` and `GET /api/worker/assignments/{id}` in `WorkerController.cs` under `[Authorize(Roles = Roles.Worker)]`.
+- [x] Enforced server-side ownership verification (`FarmerProfile` and `WorkerProfile` derived strictly from JWT claims).
+- [x] Enforced worker capacity and duplicate assignment guardrails returning `409 Conflict`.
+- [x] Created Angular `FarmerJobAssignmentsComponent` (`/farmer/jobs/:jobId/assignments`), `WorkerAssignmentsComponent` (`/worker/assignments`), and `WorkerAssignmentDetailComponent` (`/worker/assignments/:id`).
+- [x] Updated `FarmerJobsComponent` cards with an "Assigned Workers" button and `WorkerDashboardComponent` with a "My Assignments" card.
+- [x] Added 16 backend integration tests in `WorkerAssignmentTests.cs` and 8 Vitest specs across new Angular assignment components.
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (103/103 passing), frontend build (`npm run build`), and frontend tests (106/106 passing).

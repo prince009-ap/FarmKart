@@ -19,15 +19,18 @@ public class FarmerController : ControllerBase
     private readonly IFarmerProfileService _farmerProfileService;
     private readonly IFarmerJobService _farmerJobService;
     private readonly IFarmerApplicationService _farmerApplicationService;
+    private readonly IFarmerAssignmentService _farmerAssignmentService;
 
     public FarmerController(
         IFarmerProfileService farmerProfileService,
         IFarmerJobService farmerJobService,
-        IFarmerApplicationService farmerApplicationService)
+        IFarmerApplicationService farmerApplicationService,
+        IFarmerAssignmentService farmerAssignmentService)
     {
         _farmerProfileService = farmerProfileService;
         _farmerJobService = farmerJobService;
         _farmerApplicationService = farmerApplicationService;
+        _farmerAssignmentService = farmerAssignmentService;
     }
 
     [HttpGet("profile")]
@@ -211,6 +214,23 @@ public class FarmerController : ControllerBase
         catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    [HttpGet("jobs/{jobId:guid}/assignments")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<FarmerWorkerAssignmentResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignmentsForJob(Guid jobId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _farmerAssignmentService.GetAssignmentsForJobAsync(userId.Value, jobId));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
     /// <summary>

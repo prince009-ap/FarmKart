@@ -78,3 +78,18 @@ export interface FarmerJobApplication {
   appliedAtUtc: string;
   message?: string;
 }
+
+export interface FarmerWorkerAssignment {
+  assignmentId: string;
+  jobId: string;
+  jobTitle: string;
+  workerProfileId: string;
+  workerName: string;
+  workerPhone: string;
+  workerExperienceYears: number;
+  workerSkills: string[];
+  startDate: string;
+  endDate: string | null;
+  assignedAtUtc: string;
+  status: 'Pending' | 'Active' | 'Completed' | 'Cancelled';
+}

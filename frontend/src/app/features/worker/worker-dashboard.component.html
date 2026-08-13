@@ -33,15 +33,30 @@
       </div>
     </article>
 
-    <article class="app-card app-card--interactive">
+    <article class="app-card">
       <div class="app-card__icon app-card__icon--worker">
-        <mat-icon>assignment</mat-icon>
+        <mat-icon>assignment_turned_in</mat-icon>
       </div>
       <h2 class="app-card__title">My Applications</h2>
       <span class="app-badge app-badge--worker mt-2">Active</span>
       <p class="app-card__text">Track pending, accepted, and rejected applications in one place.</p>
       <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
         <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/applications">
+          Open module
+          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
+        </a>
+      </div>
+    </article>
+
+    <article class="app-card">
+      <div class="app-card__icon app-card__icon--worker">
+        <mat-icon>work_history</mat-icon>
+      </div>
+      <h2 class="app-card__title">My Assignments</h2>
+      <span class="app-badge app-badge--worker mt-2">Active</span>
+      <p class="app-card__text">View active and upcoming job assignments and work terms.</p>
+      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
+        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/assignments">
           Open module
           <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
         </a>

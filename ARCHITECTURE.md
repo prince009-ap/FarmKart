@@ -248,3 +248,13 @@ The Angular app follows a feature-based structure:
   - `FarmerJobApplicationsComponent` (`/farmer/jobs/:jobId/applications`) displays applicant profile details (Name, Phone, Experience, Skills, Note, Status Badge, Applied Date) and confirmable `Accept`/`Reject` actions.
   - Job cards in `FarmerJobsComponent` include an "Applications" action button.
 - **Security & Privacy**: Applicant passwords, hashes, and identity internal fields are never exposed. Access is strictly guarded on both backend controllers and frontend Angular route guards.
+
+## Worker Assignment
+
+- **Atomic Acceptance & Assignment**: Accepting an application (`POST /api/farmer/applications/{applicationId}/accept`) automatically creates a `WorkerAssignment` (`Status = AssignmentStatus.Active`, `JobApplicationId = applicationId`) within the same database transaction.
+- **Assignment APIs**: Exposed under `/api/farmer` (`GET /api/farmer/jobs/{jobId}/assignments`) and `/api/worker` (`GET /api/worker/assignments`, `GET /api/worker/assignments/{id}`).
+- **Ownership & Security**: Server derives farmer/worker identities strictly from authenticated JWT user claims (`ClaimTypes.NameIdentifier`). Unowned job or assignment queries return `404 Not Found`.
+- **Capacity & Duplicate Guardrails**: Creating an assignment verifies active assignments count < `Job.WorkersRequired` and checks that the worker is not already assigned (`409 Conflict`).
+- **Frontend Architecture**:
+  - `FarmerJobAssignmentsComponent` (`/farmer/jobs/:jobId/assignments`) displays assigned workers, experience, phone, skills, schedule, and status badge.
+  - `WorkerAssignmentsComponent` (`/worker/assignments`) & `WorkerAssignmentDetailComponent` (`/worker/assignments/:id`) display job assignment terms for workers.

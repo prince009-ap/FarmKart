@@ -59,6 +59,10 @@
               <mat-icon>group</mat-icon>
               Applications
             </a>
+            <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'assignments']">
+              <mat-icon>badge</mat-icon>
+              Assigned Workers
+            </a>
             @if (canEdit(job)) {
               <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'edit']">
                 <mat-icon>edit</mat-icon>

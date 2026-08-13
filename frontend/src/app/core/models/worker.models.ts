@@ -38,3 +38,18 @@ export interface WorkerJobApplication {
   appliedAtUtc: string;
   message?: string;
 }
+
+export interface WorkerAssignment {
+  assignmentId: string;
+  jobId: string;
+  jobTitle: string;
+  workCategory: string;
+  wagePerDay: number;
+  farmerName: string;
+  farmLocation: string;
+  workingHours: string;
+  startDate: string;
+  endDate: string | null;
+  assignedAtUtc: string;
+  status: 'Pending' | 'Active' | 'Completed' | 'Cancelled';
+}

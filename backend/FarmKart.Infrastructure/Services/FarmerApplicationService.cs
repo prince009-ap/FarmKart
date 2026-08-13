@@ -88,12 +88,36 @@ public sealed class FarmerApplicationService : IFarmerApplicationService
         var currentAcceptedCount = await _dbContext.JobApplications
             .CountAsync(a => a.JobId == application.JobId && a.Status == ApplicationStatus.Accepted);
 
-        if (currentAcceptedCount >= application.Job.WorkersRequired)
+        var currentAssignmentsCount = await _dbContext.WorkerAssignments
+            .CountAsync(a => a.JobId == application.JobId && a.Status != AssignmentStatus.Cancelled);
+
+        if (currentAcceptedCount >= application.Job.WorkersRequired || currentAssignmentsCount >= application.Job.WorkersRequired)
         {
             throw new InvalidOperationException("Job worker capacity has been reached.");
         }
 
+        var existingAssignment = await _dbContext.WorkerAssignments
+            .AnyAsync(a => a.JobId == application.JobId && a.WorkerProfileId == application.WorkerProfileId && a.Status != AssignmentStatus.Cancelled);
+
+        if (existingAssignment)
+        {
+            throw new InvalidOperationException("Worker is already assigned to this job.");
+        }
+
         application.Status = ApplicationStatus.Accepted;
+
+        var assignment = new WorkerAssignment
+        {
+            JobId = application.JobId,
+            WorkerProfileId = application.WorkerProfileId,
+            JobApplicationId = application.Id,
+            AssignedAtUtc = DateTime.UtcNow,
+            StartDate = application.Job.StartDate,
+            EndDate = application.Job.EndDate,
+            Status = AssignmentStatus.Active
+        };
+
+        _dbContext.WorkerAssignments.Add(assignment);
         await _dbContext.SaveChangesAsync();
 
         return ToResponse(application);

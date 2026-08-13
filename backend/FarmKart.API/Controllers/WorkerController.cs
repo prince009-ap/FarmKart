@@ -18,10 +18,14 @@ namespace FarmKart.API.Controllers;
 public class WorkerController : ControllerBase
 {
     private readonly IWorkerJobService _workerJobService;
+    private readonly IWorkerAssignmentService _workerAssignmentService;
 
-    public WorkerController(IWorkerJobService workerJobService)
+    public WorkerController(
+        IWorkerJobService workerJobService,
+        IWorkerAssignmentService workerAssignmentService)
     {
         _workerJobService = workerJobService;
+        _workerAssignmentService = workerAssignmentService;
     }
 
     [HttpGet("jobs")]
@@ -93,6 +97,38 @@ public class WorkerController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId is null) return Unauthorized();
         return Ok(await _workerJobService.GetMyApplicationsAsync(userId.Value));
+    }
+
+    [HttpGet("assignments")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<WorkerAssignmentResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetMyAssignments()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerAssignmentService.GetMyAssignmentsAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("assignments/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerAssignmentResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignmentDetails(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerAssignmentService.GetAssignmentDetailsAsync(userId.Value, id));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
     private Guid? GetCurrentUserId()

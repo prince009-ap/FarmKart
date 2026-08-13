@@ -13,6 +13,7 @@ builder.Services
 var app = builder.Build();
 
 await IdentityRoleSeeder.SeedRolesAsync(app.Services);
+await AssignmentBackfillSeeder.SyncAcceptedAssignmentsAsync(app.Services);
 
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");

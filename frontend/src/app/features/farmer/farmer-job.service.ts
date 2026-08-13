@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { FarmerJob, FarmerJobApplication, FarmerJobRequest } from '../../core/models/farmer.models';
+import { FarmerJob, FarmerJobApplication, FarmerJobRequest, FarmerWorkerAssignment } from '../../core/models/farmer.models';
 
 @Injectable({ providedIn: 'root' })
 export class FarmerJobService {
@@ -30,5 +30,9 @@ export class FarmerJobService {
 
   rejectApplication(applicationId: string): Observable<FarmerJobApplication> {
     return this.http.post<FarmerJobApplication>(`${this.appApiUrl}/${applicationId}/reject`, {});
+  }
+
+  getJobAssignments(jobId: string): Observable<FarmerWorkerAssignment[]> {
+    return this.http.get<FarmerWorkerAssignment[]>(`${this.apiUrl}/${jobId}/assignments`);
   }
 }
