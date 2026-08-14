@@ -68,3 +68,23 @@ public sealed record CustomerMyBidResponse(
     DateTime EndTimeUtc,
     DateTime ServerTimeUtc
 );
+
+public sealed record AuctionResultResponse(
+    Guid AuctionId,
+    Guid CropId,
+    string CropName,
+    string CropType,
+    decimal Quantity,
+    string Unit,
+    string AuctionStatus,
+    bool HasWinner,
+    decimal? WinningBidAmount,
+    string? WinnerCustomerName,
+    Guid? WinnerCustomerProfileId,
+    int TotalBids,
+    DateTime StartTimeUtc,
+    DateTime EndTimeUtc,
+    DateTime? FinalizedAtUtc,
+    string? CustomerResultStatus,
+    DateTime ServerTimeUtc
+);

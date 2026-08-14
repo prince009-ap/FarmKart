@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FarmKart.Application.Abstractions.Auctions;
 using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
@@ -10,7 +11,9 @@ namespace FarmKart.API.Controllers;
 [ApiController]
 [Route("api/customer/auctions")]
 [Authorize(Roles = Roles.Customer)]
-public sealed class CustomerAuctionsController(ICustomerAuctionService customerAuctionService) : ControllerBase
+public sealed class CustomerAuctionsController(
+    ICustomerAuctionService customerAuctionService,
+    IAuctionFinalizationService finalizationService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAuctions(
@@ -72,6 +75,21 @@ public sealed class CustomerAuctionsController(ICustomerAuctionService customerA
     {
         var bids = await customerAuctionService.GetAuctionBidsAsync(id, cancellationToken);
         return Ok(bids);
+    }
+
+    [HttpGet("{id:guid}/result")]
+    public async Task<IActionResult> GetAuctionResult(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        try
+        {
+            var result = await finalizationService.GetAuctionResultAsync(id, userId, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpGet("~/api/customer/bids")]

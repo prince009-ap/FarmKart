@@ -50,6 +50,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkerWorkHistoryService, WorkerWorkHistoryService>();
         services.AddScoped<IWorkerProfileCompletionService, WorkerProfileCompletionService>();
         services.AddScoped<FarmKart.Application.Abstractions.Customer.ICustomerAuctionService, CustomerAuctionService>();
+        services.AddScoped<FarmKart.Application.Abstractions.Auctions.IAuctionFinalizationService, AuctionFinalizationService>();
+        services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

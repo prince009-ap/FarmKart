@@ -1,3 +1,4 @@
+using FarmKart.Application.Abstractions.Auctions;
 using FarmKart.Application.Abstractions.Farmer;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
@@ -10,7 +11,9 @@ namespace FarmKart.API.Controllers;
 [ApiController]
 [Route("api/farmer/auctions")]
 [Authorize(Roles = Roles.Farmer)]
-public sealed class FarmerAuctionsController(IFarmerAuctionService auctionService) : ControllerBase
+public sealed class FarmerAuctionsController(
+    IFarmerAuctionService auctionService,
+    IAuctionFinalizationService finalizationService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll() => CurrentUserId() is { } userId ? Ok(await auctionService.GetAuctionsAsync(userId)) : Unauthorized();
@@ -20,6 +23,14 @@ public sealed class FarmerAuctionsController(IFarmerAuctionService auctionServic
     {
         if (CurrentUserId() is not { } userId) return Unauthorized();
         try { return Ok(await auctionService.GetAuctionAsync(userId, id)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("{id:guid}/result")]
+    public async Task<IActionResult> GetResult(Guid id, CancellationToken cancellationToken)
+    {
+        if (CurrentUserId() is not { } userId) return Unauthorized();
+        try { return Ok(await finalizationService.GetAuctionResultAsync(id, userId, cancellationToken)); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
