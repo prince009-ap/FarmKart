@@ -7,7 +7,7 @@
         My Worker Profile
       </h1>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-        Manage your personal information, skills, and farming experience
+        Manage your personal information, skills, availability, and farm experience
       </p>
     </div>
 
@@ -63,67 +63,145 @@
   @if (!loading() && profile()) {
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
       <!-- Profile Header / Banner -->
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white flex flex-col md:flex-row items-center gap-6">
-        <div class="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-white shrink-0 overflow-hidden">
-          @if (profile()?.profileImageUrl) {
-            <img [src]="profile()?.profileImageUrl" [alt]="profile()?.fullName" class="w-full h-full object-cover" />
-          } @else {
-            <mat-icon class="!w-10 !h-10 !text-[40px] flex items-center justify-center">person</mat-icon>
-          }
-        </div>
-        <div class="text-center md:text-left">
-          <h2 class="text-xl font-bold">{{ profile()?.fullName }}</h2>
-          <p class="text-emerald-100 text-sm flex items-center justify-center md:justify-start gap-1.5 mt-0.5">
-            <mat-icon class="!w-4 !h-4 !text-[16px]">email</mat-icon>
-            {{ profile()?.email }}
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-800/60 text-emerald-100 border border-emerald-400/30 ml-2">
-              Read-Only
-            </span>
-          </p>
-          <div class="mt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-emerald-100">
-            <span class="flex items-center gap-1">
-              <mat-icon class="!w-4 !h-4 !text-[16px]">phone</mat-icon>
-              {{ profile()?.phone }}
-            </span>
-            <span>•</span>
-            <span class="flex items-center gap-1">
-              <mat-icon class="!w-4 !h-4 !text-[16px]">location_on</mat-icon>
-              {{ profile()?.address }}
-            </span>
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex flex-col md:flex-row items-center gap-6">
+          <div class="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-white shrink-0 overflow-hidden">
+            @if (profile()?.profileImageUrl) {
+              <img [src]="profile()?.profileImageUrl" [alt]="profile()?.fullName" class="w-full h-full object-cover" />
+            } @else {
+              <mat-icon class="!w-10 !h-10 !text-[40px] flex items-center justify-center">person</mat-icon>
+            }
           </div>
+          <div class="text-center md:text-left">
+            <h2 class="text-xl font-bold flex items-center justify-center md:justify-start gap-2">
+              {{ profile()?.fullName }}
+            </h2>
+            <p class="text-emerald-100 text-sm flex items-center justify-center md:justify-start gap-1.5 mt-0.5">
+              <mat-icon class="!w-4 !h-4 !text-[16px]">email</mat-icon>
+              {{ profile()?.email }}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-800/60 text-emerald-100 border border-emerald-400/30 ml-2">
+                Read-Only
+              </span>
+            </p>
+            <div class="mt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-emerald-100">
+              <span class="flex items-center gap-1">
+                <mat-icon class="!w-4 !h-4 !text-[16px]">phone</mat-icon>
+                {{ profile()?.phone }}
+              </span>
+              <span>•</span>
+              <span class="flex items-center gap-1">
+                <mat-icon class="!w-4 !h-4 !text-[16px]">location_on</mat-icon>
+                {{ profile()?.address }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Availability Badge Header Indicator -->
+        <div class="shrink-0">
+          @if (profile()?.isAvailable) {
+            <div class="px-3.5 py-1.5 rounded-full bg-emerald-500/30 border border-emerald-300/40 text-emerald-50 text-xs font-semibold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              Available for Work
+            </div>
+          } @else {
+            <div class="px-3.5 py-1.5 rounded-full bg-rose-500/30 border border-rose-300/40 text-rose-100 text-xs font-semibold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-300"></span>
+              Currently Unavailable
+            </div>
+          }
         </div>
       </div>
 
       <!-- VIEW MODE -->
       @if (!editMode()) {
         <div class="p-6 space-y-8">
+          <!-- AVAILABILITY SECTION -->
+          <div>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
+              <mat-icon class="text-emerald-600">event_available</mat-icon>
+              Availability Status
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Availability Status Card -->
+              <div class="p-5 rounded-lg border" [ngClass]="profile()?.isAvailable ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50/60 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800'">
+                <span class="text-xs font-semibold uppercase tracking-wider block mb-2" [ngClass]="profile()?.isAvailable ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'">
+                  Status
+                </span>
+                <div class="flex items-center gap-2">
+                  <mat-icon [class]="profile()?.isAvailable ? 'text-emerald-600' : 'text-rose-500'">
+                    {{ profile()?.isAvailable ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                  <span class="text-base font-bold" [ngClass]="profile()?.isAvailable ? 'text-emerald-900 dark:text-emerald-100' : 'text-rose-900 dark:text-rose-100'">
+                    {{ profile()?.isAvailable ? 'Available' : 'Not Available' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Available From Date -->
+              <div class="p-5 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Available From</span>
+                @if (profile()?.isAvailable && profile()?.availableFrom) {
+                  <span class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                    <mat-icon class="!w-5 !h-5 !text-[20px] text-emerald-600">calendar_today</mat-icon>
+                    {{ profile()?.availableFrom }}
+                  </span>
+                } @else if (profile()?.isAvailable) {
+                  <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Available Immediately</span>
+                } @else {
+                  <span class="text-sm font-medium text-slate-400">N/A (Unavailable)</span>
+                }
+              </div>
+
+              <!-- Availability Notes -->
+              <div class="p-5 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Availability Notes</span>
+                @if (profile()?.availabilityNotes) {
+                  <p class="text-sm text-slate-700 dark:text-slate-300 leading-snug">
+                    {{ profile()?.availabilityNotes }}
+                  </p>
+                } @else {
+                  <p class="text-xs text-slate-400 italic">No availability notes added.</p>
+                }
+              </div>
+            </div>
+          </div>
+
           <!-- Personal & Wage Details -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Full Name</span>
-              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.fullName }}</span>
-            </div>
+          <div class="pt-6 border-t border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
+              <mat-icon class="text-emerald-600">person</mat-icon>
+              Personal & Work Details
+            </h3>
 
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Email (Identity)</span>
-              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.email }}</span>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Full Name</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.fullName }}</span>
+              </div>
 
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Phone</span>
-              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.phone }}</span>
-            </div>
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Email (Identity)</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.email }}</span>
+              </div>
 
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 md:col-span-2">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Address</span>
-              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.address }}</span>
-            </div>
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Phone</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.phone }}</span>
+              </div>
 
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Expected Daily Wage</span>
-              <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">
-                ₹{{ profile()?.expectedDailyWage }}/day
-              </span>
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 md:col-span-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Address</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.address }}</span>
+              </div>
+
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Expected Daily Wage</span>
+                <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">
+                  ₹{{ profile()?.expectedDailyWage }}/day
+                </span>
+              </div>
             </div>
           </div>
 
@@ -191,6 +269,60 @@
           <div class="p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
             <mat-icon class="text-amber-600 shrink-0 !w-5 !h-5 !text-[20px]">info</mat-icon>
             <span>Your email address <strong>{{ profile()?.email }}</strong> is your login identity and cannot be edited.</span>
+          </div>
+
+          <!-- AVAILABILITY EDIT SECTION -->
+          <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-4">
+            <h4 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <mat-icon class="text-emerald-600">event_available</mat-icon>
+              Availability Settings
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <!-- Availability Status Toggle -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Availability Status
+                </label>
+                <div class="flex items-center gap-3 py-1">
+                  <mat-slide-toggle
+                    formControlName="isAvailable"
+                    color="primary"
+                    (change)="toggleAvailability($event)">
+                    <span class="text-sm font-semibold" [ngClass]="profileForm.get('isAvailable')?.value ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'">
+                      {{ profileForm.get('isAvailable')?.value ? 'Available for Work' : 'Not Available' }}
+                    </span>
+                  </mat-slide-toggle>
+                </div>
+              </div>
+
+              <!-- Available From Date -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Available From Date
+                </label>
+                <input
+                  type="date"
+                  formControlName="availableFrom"
+                  [disabled]="!profileForm.get('isAvailable')?.value"
+                  class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800" />
+              </div>
+
+              <!-- Availability Notes -->
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Availability Notes
+                </label>
+                <textarea
+                  rows="2"
+                  formControlName="availabilityNotes"
+                  class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                  placeholder="e.g. Available for harvesting, sowing, and general farm work."></textarea>
+                @if (profileForm.get('availabilityNotes')?.hasError('maxlength')) {
+                  <p class="text-xs text-rose-500 mt-1">Availability Notes cannot exceed 500 characters.</p>
+                }
+              </div>
+            </div>
           </div>
 
           <!-- Form Fields Grid -->

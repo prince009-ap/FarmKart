@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { WorkerJobService } from './worker-job.service';
 import { WorkerProfile, WorkerProfileUpdateRequest } from '../../core/models/worker.models';
@@ -21,6 +22,7 @@ import { AuthService } from '../../core/services/auth.service';
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     MatSnackBarModule
   ],
   templateUrl: './worker-profile.component.html'
@@ -57,7 +59,10 @@ export class WorkerProfileComponent implements OnInit {
       experienceYears: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       experienceDescription: ['', [Validators.maxLength(2000)]],
       expectedDailyWage: [0, [Validators.min(0)]],
-      profileImageUrl: ['']
+      profileImageUrl: [''],
+      isAvailable: [true],
+      availableFrom: [''],
+      availabilityNotes: ['', [Validators.maxLength(500)]]
     });
   }
 
@@ -95,7 +100,10 @@ export class WorkerProfileComponent implements OnInit {
       experienceYears: data.experienceYears,
       experienceDescription: data.experienceDescription || '',
       expectedDailyWage: data.expectedDailyWage,
-      profileImageUrl: data.profileImageUrl || ''
+      profileImageUrl: data.profileImageUrl || '',
+      isAvailable: data.isAvailable ?? true,
+      availableFrom: data.availableFrom || '',
+      availabilityNotes: data.availabilityNotes || ''
     });
     this.skills.set(data.skills || []);
     this.newSkillInput.set('');
@@ -143,6 +151,14 @@ export class WorkerProfileComponent implements OnInit {
     this.skills.update(list => list.filter((_, i) => i !== index));
   }
 
+  toggleAvailability(event: any): void {
+    const available = Boolean(event.checked ?? event);
+    this.profileForm.patchValue({ isAvailable: available });
+    if (!available) {
+      this.profileForm.patchValue({ availableFrom: '' });
+    }
+  }
+
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
@@ -161,7 +177,10 @@ export class WorkerProfileComponent implements OnInit {
       experienceDescription: val.experienceDescription ? val.experienceDescription.trim() : null,
       expectedDailyWage: Number(val.expectedDailyWage || 0),
       profileImageUrl: val.profileImageUrl ? val.profileImageUrl.trim() : null,
-      skills: this.skills()
+      skills: this.skills(),
+      isAvailable: Boolean(val.isAvailable),
+      availableFrom: val.isAvailable && val.availableFrom ? val.availableFrom : null,
+      availabilityNotes: val.availabilityNotes ? val.availabilityNotes.trim() : null
     };
 
     this.workerService.updateProfile(request).subscribe({

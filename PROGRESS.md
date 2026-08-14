@@ -13,9 +13,10 @@
   - [x] Phase 4.5: Farmer Application Management and Accept/Reject
   - [x] Phase 4.6: Worker Assignment
   - [x] Phase 4.7: Attendance Management
-- [ ] Phase 5: Worker module implementation
+- [x] Phase 5: Worker module implementation
   - [x] Phase 5.1: Worker Profile Management
   - [x] Phase 5.2: Worker Skills & Experience Management
+  - [x] Phase 5.3: Worker Availability Management
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
@@ -282,4 +283,16 @@
 - [x] Updated navigation headers and drawer links for Farmers and Workers.
 - [x] Added 16 backend integration tests in `AttendanceTests.cs` and 6 Vitest specs across new Angular attendance components.
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (125/125 passing), frontend build (`npm run build`), and frontend tests (112/112 passing).
+
+## Phase 5.3 Deliverables — Worker Availability Management
+
+- [x] Reused existing `WorkerProfile` fields: `IsAvailable` (bool), `AvailableFrom` (DateOnly?), and `AvailabilityNotes` (string?, max 500 chars).
+- [x] Confirmed EF Core configurations (`ProfileConfigurations.cs`) and database schema already match model parameters; no new migrations required.
+- [x] Service layer (`WorkerProfileService`) and DTOs (`WorkerProfileResponse`, `WorkerProfileUpdateRequest`) support availability retrieval and updates.
+- [x] Server-side identity enforcement resolves `WorkerProfile` exclusively from JWT claims; prevented unauthorized profile/availability modifications.
+- [x] Created Angular Availability UI section on `/worker/profile` in both View Mode (Status badge, Available From date, Notes) and Edit Mode (Toggle switch, date input, notes textarea).
+- [x] Added 10 backend integration tests in `WorkerProfileTests.cs` verifying availability reading, updating, toggle, persistence, 401/403 security, and worker isolation (151 total backend tests passing).
+- [x] Added 8 frontend unit specs in `worker-profile.component.spec.ts` verifying availability loading, toggle, persistence, validation, and error states (120 total frontend tests passing).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), test suites (`dotnet test` & `npm test`), and production client bundle (`npm run build`).
+
 

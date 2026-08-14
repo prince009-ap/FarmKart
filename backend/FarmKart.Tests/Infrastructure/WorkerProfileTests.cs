@@ -376,4 +376,184 @@ public class WorkerProfileTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.DoesNotContain("password", rawJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("passwordHash", rawJson, StringComparison.OrdinalIgnoreCase);
     }
+
+    // PHASE 5.3 — WORKER AVAILABILITY TESTS
+
+    [Fact]
+    public async Task WorkerCanReadOwnAvailability()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.readavail@test.com", "Password123!", "Worker ReadAvail", Roles.Worker);
+
+        // Act
+        var response = await client.GetAsync("/api/worker/profile");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.True(profile.IsAvailable);
+    }
+
+    [Fact]
+    public async Task WorkerCanUpdateAvailability()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.upavail@test.com", "Password123!", "Worker UpAvail", Roles.Worker);
+        var availableFromDate = new DateOnly(2026, 8, 20);
+        var updateReq = new WorkerProfileUpdateRequest(
+            FullName: "Worker UpAvail",
+            Phone: "9876543210",
+            Address: "123 Road",
+            ExperienceYears: 3,
+            IsAvailable: true,
+            AvailableFrom: availableFromDate,
+            AvailabilityNotes: "Available for harvesting and sowing."
+        );
+
+        // Act
+        var response = await client.PutAsJsonAsync("/api/worker/profile", updateReq);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.True(profile.IsAvailable);
+        Assert.Equal(availableFromDate, profile.AvailableFrom);
+        Assert.Equal("Available for harvesting and sowing.", profile.AvailabilityNotes);
+    }
+
+    [Fact]
+    public async Task WorkerCanMarkThemselvesUnavailable()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.unavail@test.com", "Password123!", "Worker Unavail", Roles.Worker);
+        var updateReq = new WorkerProfileUpdateRequest(
+            FullName: "Worker Unavail",
+            Phone: "9876543210",
+            Address: "123 Road",
+            ExperienceYears: 3,
+            IsAvailable: false,
+            AvailableFrom: null,
+            AvailabilityNotes: "Currently on leave."
+        );
+
+        // Act
+        var response = await client.PutAsJsonAsync("/api/worker/profile", updateReq);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.False(profile.IsAvailable);
+        Assert.Null(profile.AvailableFrom);
+        Assert.Equal("Currently on leave.", profile.AvailabilityNotes);
+    }
+
+    [Fact]
+    public async Task WorkerCanMarkThemselvesAvailable()
+    {
+        // Arrange: Start unavailable, then switch to available
+        var client = await GetAuthenticatedClientAsync("worker.toggleavail@test.com", "Password123!", "Worker ToggleAvail", Roles.Worker);
+
+        // Step 1: Mark unavailable
+        await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker ToggleAvail", "9876543210", "123 Road", 3, IsAvailable: false));
+
+        // Step 2: Mark available
+        var availableFromDate = new DateOnly(2026, 9, 1);
+        var response = await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker ToggleAvail", "9876543210", "123 Road", 3, IsAvailable: true, AvailableFrom: availableFromDate, AvailabilityNotes: "Ready for work"));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.True(profile.IsAvailable);
+        Assert.Equal(availableFromDate, profile.AvailableFrom);
+        Assert.Equal("Ready for work", profile.AvailabilityNotes);
+    }
+
+    [Fact]
+    public async Task AvailableFromIsPersisted()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.frompersist@test.com", "Password123!", "Worker FromPersist", Roles.Worker);
+        var date = new DateOnly(2026, 8, 25);
+
+        // Act
+        await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker FromPersist", "9876543210", "123 Road", 2, IsAvailable: true, AvailableFrom: date));
+
+        var response = await client.GetAsync("/api/worker/profile");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.Equal(date, profile.AvailableFrom);
+    }
+
+    [Fact]
+    public async Task AvailabilityNotesIsPersisted()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.notespersist@test.com", "Password123!", "Worker NotesPersist", Roles.Worker);
+        var notes = "Specialized in tractor operation and general farm work.";
+
+        // Act
+        await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker NotesPersist", "9876543210", "123 Road", 2, IsAvailable: true, AvailabilityNotes: notes));
+
+        var response = await client.GetAsync("/api/worker/profile");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.Equal(notes, profile.AvailabilityNotes);
+    }
+
+    [Fact]
+    public async Task FarmerCannotModifyWorkerAvailability()
+    {
+        // Arrange
+        var farmerClient = await GetAuthenticatedClientAsync("farmer.noavail@test.com", "Password123!", "Farmer NoAvail", Roles.Farmer);
+
+        // Act
+        var response = await farmerClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Farmer Hack", "9876543210", "123 Road", 5, IsAvailable: false));
+
+        // Assert: 403 Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CustomerCannotModifyWorkerAvailability()
+    {
+        // Arrange
+        var customerClient = await GetAuthenticatedClientAsync("customer.noavail@test.com", "Password123!", "Customer NoAvail", Roles.Customer);
+
+        // Act
+        var response = await customerClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Customer Hack", "9876543210", "123 Road", 5, IsAvailable: false));
+
+        // Assert: 403 Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task WorkerCannotModifyAnotherWorkersAvailability()
+    {
+        // Arrange: Worker A
+        var workerAClient = await GetAuthenticatedClientAsync("worker.availA@test.com", "Password123!", "Worker A", Roles.Worker);
+
+        // Worker B
+        await SetupTestUserAsync("worker.availB@test.com", "Password123!", "Worker B", Roles.Worker);
+
+        // Worker A updates profile
+        await workerAClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker A Mod", "9876543210", "123 Road", 5, IsAvailable: false, AvailabilityNotes: "A is unavailable"));
+
+        // Verify Worker B profile availability was untouched
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+        var userB = await db.Users.SingleAsync(u => u.Email == "worker.availB@test.com");
+        var profileB = await db.WorkerProfiles.SingleAsync(p => p.UserId == userB.Id);
+        Assert.True(profileB.IsAvailable);
+        Assert.Null(profileB.AvailabilityNotes);
+    }
 }

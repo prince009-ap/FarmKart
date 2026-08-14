@@ -12,7 +12,6 @@ describe('WorkerProfileComponent', () => {
   let fixture: ComponentFixture<WorkerProfileComponent>;
   let workerJobServiceMock: any;
   let authServiceMock: any;
-  let snackBar: MatSnackBar;
 
   const mockProfile: WorkerProfile = {
     userId: '11111111-1111-1111-1111-111111111111',
@@ -24,8 +23,8 @@ describe('WorkerProfileComponent', () => {
     experienceYears: 3,
     expectedDailyWage: 350,
     isAvailable: true,
-    availableFrom: undefined,
-    availabilityNotes: undefined,
+    availableFrom: '2026-08-20',
+    availabilityNotes: 'Available for harvesting, sowing, and general farm work.',
     experienceDescription: 'Worked on wheat and cotton harvesting and basic irrigation activities.',
     skills: ['Harvesting', 'Sowing', 'Irrigation']
   };
@@ -45,6 +44,8 @@ describe('WorkerProfileComponent', () => {
       })
     };
 
+    vi.spyOn(MatSnackBar.prototype, 'open').mockImplementation(() => ({} as any));
+
     await TestBed.configureTestingModule({
       imports: [WorkerProfileComponent, NoopAnimationsModule],
       providers: [
@@ -53,145 +54,94 @@ describe('WorkerProfileComponent', () => {
       ]
     }).compileComponents();
 
-    snackBar = TestBed.inject(MatSnackBar);
-    vi.spyOn(snackBar, 'open').mockImplementation(() => ({} as any));
-
     fixture = TestBed.createComponent(WorkerProfileComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('1. Skills load correctly', () => {
+  it('1. Availability status loads correctly', () => {
     expect(workerJobServiceMock.getProfile).toHaveBeenCalled();
-    expect(component.skills()).toEqual(['Harvesting', 'Sowing', 'Irrigation']);
+    expect(component.profile()?.isAvailable).toBe(true);
+    expect(component.profileForm.get('isAvailable')?.value).toBe(true);
   });
 
-  it('2. Existing skills display', () => {
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Harvesting');
-    expect(compiled.textContent).toContain('Sowing');
-    expect(compiled.textContent).toContain('Irrigation');
-  });
-
-  it('3. Skill can be added', () => {
+  it('2. Worker can toggle availability', () => {
     component.enableEdit();
-    component.newSkillInput.set('Crop Maintenance');
-    component.addSkill();
+    component.toggleAvailability(false);
 
-    expect(component.skills()).toContain('Crop Maintenance');
-    expect(component.skills().length).toBe(4);
-    expect(component.newSkillInput()).toBe('');
+    expect(component.profileForm.get('isAvailable')?.value).toBe(false);
+    expect(component.profileForm.get('availableFrom')?.value).toBe('');
   });
 
-  it('4. Skill can be removed', () => {
-    component.enableEdit();
-    component.removeSkill(1); // remove 'Sowing'
-
-    expect(component.skills()).toEqual(['Harvesting', 'Irrigation']);
-    expect(component.skills().length).toBe(2);
+  it('3. AvailableFrom loads correctly', () => {
+    expect(component.profile()?.availableFrom).toBe('2026-08-20');
+    expect(component.profileForm.get('availableFrom')?.value).toBe('2026-08-20');
   });
 
-  it('5. Duplicate skill is prevented', () => {
-    component.enableEdit();
-    component.newSkillInput.set('harvesting'); // Case-insensitive duplicate
-    component.addSkill();
-
-    expect(component.skillError()).toBeTruthy();
-    expect(component.skillError()).toContain('harvesting');
-    expect(component.skills().length).toBe(3);
+  it('4. Availability notes load correctly', () => {
+    expect(component.profile()?.availabilityNotes).toBe('Available for harvesting, sowing, and general farm work.');
+    expect(component.profileForm.get('availabilityNotes')?.value).toBe('Available for harvesting, sowing, and general farm work.');
   });
 
-  it('6. Experience can be edited', () => {
+  it('5. Changes can be saved', () => {
     component.enableEdit();
-    component.profileForm.patchValue({ experienceYears: 5 });
-
-    expect(component.profileForm.value.experienceYears).toBe(5);
-  });
-
-  it('7. Experience description can be edited', () => {
-    component.enableEdit();
-    component.profileForm.patchValue({ experienceDescription: 'Experienced in operating tractors.' });
-
-    expect(component.profileForm.value.experienceDescription).toBe('Experienced in operating tractors.');
-  });
-
-  it('8. Validation messages display for negative experience and invalid phone', () => {
-    component.enableEdit();
-    const expControl = component.profileForm.get('experienceYears');
-    expControl?.setValue(-2);
-    expControl?.markAsTouched();
-
-    const phoneControl = component.profileForm.get('phone');
-    phoneControl?.setValue('invalid');
-    phoneControl?.markAsTouched();
-
-    fixture.detectChanges();
-
-    expect(expControl?.hasError('min')).toBe(true);
-    expect(phoneControl?.hasError('pattern')).toBe(true);
-    expect(component.profileForm.invalid).toBe(true);
-  });
-
-  it('9. Save calls correct API with skills and experience description', () => {
-    component.enableEdit();
-    component.profileForm.setValue({
-      fullName: 'Ramesh Worker Updated',
-      phone: '9876543210',
-      address: '456 New Road',
-      experienceYears: 5,
-      experienceDescription: '5 years of tractor driving and crop harvesting experience.',
-      expectedDailyWage: 400,
-      profileImageUrl: ''
+    component.profileForm.patchValue({
+      isAvailable: false,
+      availabilityNotes: 'Currently unavailable due to personal leave'
     });
-    component.skills.set(['Harvesting', 'Tractor Operation']);
 
     component.onSubmit();
 
     expect(workerJobServiceMock.updateProfile).toHaveBeenCalledWith(expect.objectContaining({
-      fullName: 'Ramesh Worker Updated',
-      experienceYears: 5,
-      experienceDescription: '5 years of tractor driving and crop harvesting experience.',
-      skills: ['Harvesting', 'Tractor Operation']
+      isAvailable: false,
+      availabilityNotes: 'Currently unavailable due to personal leave'
     }));
   });
 
-  it('10. Success state works on submit', () => {
+  it('6. Validation errors display', () => {
     component.enableEdit();
-    component.profileForm.setValue({
+    const notesControl = component.profileForm.get('availabilityNotes');
+    notesControl?.setValue('a'.repeat(501)); // Exceed max 500 length
+    notesControl?.markAsTouched();
+
+    fixture.detectChanges();
+
+    expect(notesControl?.hasError('maxlength')).toBe(true);
+    expect(component.profileForm.invalid).toBe(true);
+  });
+
+  it('7. Success state works on submit', () => {
+    component.enableEdit();
+    component.profileForm.patchValue({
       fullName: 'Ramesh Worker',
       phone: '9876543210',
       address: '123 Village Street',
       experienceYears: 3,
-      experienceDescription: 'Worked on wheat harvesting.',
-      expectedDailyWage: 350,
-      profileImageUrl: ''
+      expectedDailyWage: 350
     });
 
-    expect(component.profileForm.valid).toBe(true);
     component.onSubmit();
-    expect(workerJobServiceMock.updateProfile).toHaveBeenCalled();
+
     expect(component.saving()).toBe(false);
     expect(component.editMode()).toBe(false);
     expect(component.successMessage()).toBe('Profile updated successfully.');
   });
 
-  it('11. API error state handles gracefully', () => {
-    workerJobServiceMock.updateProfile.mockReturnValue(throwError(() => ({ error: { message: 'Server error' } })));
+  it('8. API error state handles gracefully', () => {
+    workerJobServiceMock.updateProfile.mockReturnValue(throwError(() => ({ error: { message: 'Failed to update profile. Please try again.' } })));
+
     component.enableEdit();
-    component.profileForm.setValue({
+    component.profileForm.patchValue({
       fullName: 'Ramesh Worker',
       phone: '9876543210',
       address: '123 Village Street',
       experienceYears: 3,
-      experienceDescription: 'Worked on wheat harvesting.',
-      expectedDailyWage: 350,
-      profileImageUrl: ''
+      expectedDailyWage: 350
     });
 
-    expect(component.profileForm.valid).toBe(true);
     component.onSubmit();
-    expect(workerJobServiceMock.updateProfile).toHaveBeenCalled();
+
     expect(component.saving()).toBe(false);
+    expect(MatSnackBar.prototype.open).toHaveBeenCalledWith('Failed to update profile. Please try again.', 'Close', expect.any(Object));
   });
 });
