@@ -1,0 +1,231 @@
+<section class="app-page app-page--narrow animate-fk-rise">
+  <!-- Header -->
+  <header class="app-page-header">
+    <div class="app-page-header__content">
+      <a routerLink="/farmer/crops" class="app-back-link">← Back to My Crops</a>
+      <h1 class="app-page-title mt-3">
+        {{ isEditMode() ? 'Edit Crop Details' : 'Add New Crop Record' }}
+      </h1>
+      <p class="app-page-summary">
+        {{ isEditMode() ? 'Update crop details, upload photos, set primary image, and manage harvest schedules.' : 'Register a new crop planted on your farm and upload crop photos.' }}
+      </p>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="app-alert app-alert--loading flex flex-col items-center justify-center py-12">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="mt-4 text-sm font-medium text-slate-600">Loading crop information...</p>
+  </div>
+
+  <!-- Form Container -->
+  <form *ngIf="!loading()" (submit)="$event.preventDefault(); saveCrop()" class="app-form-panel space-y-6">
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage()" class="app-alert app-alert--error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+
+    <!-- Section 1: Basic Information -->
+    <div>
+      <h2 class="app-form-section__title flex items-center gap-2">
+        <mat-icon class="!text-lg text-emerald-600">eco</mat-icon>
+        Basic Information
+      </h2>
+
+      <div class="app-form-grid">
+        <!-- Crop Name -->
+        <mat-form-field appearance="outline">
+          <mat-label>Crop Name *</mat-label>
+          <input matInput [ngModel]="cropName()" (ngModelChange)="cropName.set($event)" name="cropName" placeholder="e.g. Wheat, Basmati Rice, Mustard">
+        </mat-form-field>
+
+        <!-- Crop Type -->
+        <mat-form-field appearance="outline">
+          <mat-label>Crop Type / Category *</mat-label>
+          <mat-select [ngModel]="cropType()" (ngModelChange)="cropType.set($event)" name="cropType">
+            <mat-option *ngFor="let cat of cropCategories" [value]="cat">{{ cat }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Variety -->
+        <mat-form-field appearance="outline">
+          <mat-label>Variety (Optional)</mat-label>
+          <input matInput [ngModel]="variety()" (ngModelChange)="variety.set($event)" name="variety" placeholder="e.g. GW-322, Sharbati, Pusa Bold">
+        </mat-form-field>
+
+        <!-- Lifecycle Status -->
+        <mat-form-field appearance="outline">
+          <mat-label>Status *</mat-label>
+          <mat-select [ngModel]="status()" (ngModelChange)="status.set($event)" name="status">
+            <mat-option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Section 2: Cultivated Area -->
+    <div>
+      <h2 class="app-form-section__title flex items-center gap-2">
+        <mat-icon class="!text-lg text-emerald-600">square_foot</mat-icon>
+        Cultivated Area
+      </h2>
+
+      <div class="app-form-grid">
+        <!-- Area Value -->
+        <mat-form-field appearance="outline">
+          <mat-label>Cultivated Area *</mat-label>
+          <input matInput type="number" step="0.1" [ngModel]="area()" (ngModelChange)="area.set($event)" name="area" placeholder="e.g. 5.5">
+          <mat-hint>Must be greater than 0</mat-hint>
+        </mat-form-field>
+
+        <!-- Area Unit Dropdown -->
+        <mat-form-field appearance="outline">
+          <mat-label>Area Unit *</mat-label>
+          <mat-select [ngModel]="areaUnit()" (ngModelChange)="areaUnit.set($event)" name="areaUnit">
+            <mat-option *ngFor="let u of areaUnits" [value]="u.value">{{ u.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Section 3: Crop Photos / Images Upload Section -->
+    <div>
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+        <h2 class="app-form-section__title flex items-center gap-2 !mb-0">
+          <mat-icon class="!text-lg text-emerald-600">collections</mat-icon>
+          Crop Photos (Max 5)
+        </h2>
+        <span class="app-badge app-badge--active">
+          {{ existingImages().length + pendingImages().length }} / 5 uploaded
+        </span>
+      </div>
+
+      <!-- File Input Upload Area -->
+      <div *ngIf="(existingImages().length + pendingImages().length) < 5" class="p-6 rounded-2xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 text-center space-y-2">
+        <mat-icon class="!w-10 !h-10 text-4xl text-emerald-600">cloud_upload</mat-icon>
+        <p class="text-xs font-semibold text-slate-700">
+          Upload crop photos (JPG, PNG, WEBP, up to 5 MB per photo)
+        </p>
+        <div class="pt-1">
+          <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow cursor-pointer transition-colors">
+            <mat-icon class="!w-4 !h-4 text-base">add_a_photo</mat-icon> Choose Photos
+            <input type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/webp" multiple class="hidden" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Existing Images Preview Grid -->
+      <div *ngIf="existingImages().length > 0" class="mt-4 space-y-2">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Uploaded Photos</span>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div *ngFor="let img of existingImages()" class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group h-32 flex flex-col justify-between shadow-sm">
+            <img *ngIf="!failedExistingImages()[img.id]" [src]="img.imageUrl" [alt]="cropName()" (error)="handleExistingImageError(img.id)" class="w-full h-full object-cover" />
+            
+            <div *ngIf="failedExistingImages()[img.id]" class="w-full h-full flex flex-col items-center justify-center text-emerald-800/50 bg-emerald-50/50 p-2 text-center space-y-1">
+              <mat-icon class="!w-8 !h-8 text-3xl">image_not_supported</mat-icon>
+              <span class="text-[10px] font-semibold text-slate-500">Image file missing</span>
+            </div>
+
+            <!-- Primary Badge -->
+            <span *ngIf="img.isPrimary" class="absolute top-1.5 left-1.5 bg-amber-500 text-slate-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow z-10">
+              PRIMARY
+            </span>
+
+            <!-- Overlay Actions -->
+            <div class="absolute inset-0 bg-slate-900/70 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5 p-1.5 backdrop-blur-xs z-20">
+              <button *ngIf="!img.isPrimary" type="button" (click)="setExistingPrimary(img)" class="w-full py-1 rounded bg-amber-500 text-slate-950 text-[10px] font-bold shadow hover:bg-amber-400">
+                Set Primary
+              </button>
+              <button type="button" (click)="removeExistingImage(img)" class="w-full py-1 rounded bg-rose-600 text-white text-[10px] font-bold shadow hover:bg-rose-500">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Images Preview Grid (Create Mode) -->
+      <div *ngIf="pendingImages().length > 0" class="mt-4 space-y-2">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Photos to Upload</span>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div *ngFor="let pImg of pendingImages(); let i = index" class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group h-32 flex flex-col justify-between shadow-sm">
+            <img [src]="pImg.previewUrl" [alt]="pImg.file.name" class="w-full h-full object-cover" />
+            
+            <!-- Primary Badge -->
+            <span *ngIf="pImg.isPrimary" class="absolute top-1.5 left-1.5 bg-amber-500 text-slate-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow">
+              PRIMARY
+            </span>
+
+            <!-- Overlay Actions -->
+            <div class="absolute inset-0 bg-slate-900/70 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5 p-1.5 backdrop-blur-xs">
+              <button *ngIf="!pImg.isPrimary" type="button" (click)="setPendingPrimary(i)" class="w-full py-1 rounded bg-amber-500 text-slate-950 text-[10px] font-bold shadow hover:bg-amber-400">
+                Set Primary
+              </button>
+              <button type="button" (click)="removePendingImage(i)" class="w-full py-1 rounded bg-rose-600 text-white text-[10px] font-bold shadow hover:bg-rose-500">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Dates & Schedule (Interactive Calendar Pickers) -->
+    <div>
+      <h2 class="app-form-section__title flex items-center gap-2">
+        <mat-icon class="!text-lg text-emerald-600">calendar_month</mat-icon>
+        Dates & Schedule
+      </h2>
+
+      <div class="app-form-grid">
+        <!-- Planting / Sowing Date -->
+        <mat-form-field appearance="outline">
+          <mat-label>Planting / Sowing Date</mat-label>
+          <input matInput [matDatepicker]="sowPicker" [ngModel]="sowingDate()" (ngModelChange)="sowingDate.set($event)" name="sowingDate" placeholder="Choose date">
+          <mat-datepicker-toggle matIconSuffix [for]="sowPicker"></mat-datepicker-toggle>
+          <mat-datepicker #sowPicker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Expected Harvest Date -->
+        <mat-form-field appearance="outline">
+          <mat-label>Expected Harvest Date</mat-label>
+          <input matInput [matDatepicker]="expPicker" [ngModel]="expectedHarvestDate()" (ngModelChange)="expectedHarvestDate.set($event)" name="expectedHarvestDate" placeholder="Choose date">
+          <mat-datepicker-toggle matIconSuffix [for]="expPicker"></mat-datepicker-toggle>
+          <mat-datepicker #expPicker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Actual Harvest Date (Optional) -->
+        <mat-form-field appearance="outline">
+          <mat-label>Actual Harvest Date (Optional)</mat-label>
+          <input matInput [matDatepicker]="actPicker" [ngModel]="actualHarvestDate()" (ngModelChange)="actualHarvestDate.set($event)" name="actualHarvestDate" placeholder="Optional">
+          <mat-datepicker-toggle matIconSuffix [for]="actPicker"></mat-datepicker-toggle>
+          <mat-datepicker #actPicker></mat-datepicker>
+          <mat-hint>Optional while crop is Growing</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Section 5: Notes / Description -->
+    <div>
+      <h2 class="app-form-section__title flex items-center gap-2">
+        <mat-icon class="!text-lg text-emerald-600">notes</mat-icon>
+        Notes & Description
+      </h2>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Description / Farm Notes (Optional)</mat-label>
+        <textarea matInput rows="3" [ngModel]="description()" (ngModelChange)="description.set($event)" name="description" placeholder="Add any details about soil treatment, fertilizer schedule, seed quality, or farm location..."></textarea>
+      </mat-form-field>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="app-form-actions">
+      <a mat-button routerLink="/farmer/crops">Cancel</a>
+      <button type="submit" mat-flat-button class="app-primary-btn" [disabled]="saving()">
+        <span *ngIf="saving()">Saving...</span>
+        <span *ngIf="!saving()">{{ isEditMode() ? 'Save Changes' : 'Create Crop' }}</span>
+      </button>
+    </div>
+  </form>
+</section>

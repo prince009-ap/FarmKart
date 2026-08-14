@@ -1,0 +1,176 @@
+<div class="app-page animate-fk-rise">
+  <!-- Hero Banner -->
+  <section class="app-hero-banner app-hero-banner--farmer flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div>
+      <p class="app-hero-banner__eyebrow">Farmer Workspace</p>
+      <h1 class="app-hero-banner__title">My Crops</h1>
+      <p class="app-hero-banner__summary">
+        Track crop sowing dates, cultivated areas, expected harvest dates, crop photos, and lifecycle status.
+      </p>
+    </div>
+
+    <div class="app-hero-banner__actions shrink-0">
+      <a mat-flat-button class="app-primary-btn" routerLink="/farmer/crops/new">
+        <mat-icon>add</mat-icon> Add New Crop
+      </a>
+    </div>
+  </section>
+
+  <!-- Filter & Search Bar -->
+  <section class="app-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Search crop name or variety</mat-label>
+      <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Wheat, Basmati, GW-322...">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Filter by status</mat-label>
+      <mat-select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
+        <mat-option value="">All Statuses</mat-option>
+        <mat-option value="Planned">Planned</mat-option>
+        <mat-option value="Growing">Growing</mat-option>
+        <mat-option value="ReadyForHarvest">Ready For Harvest</mat-option>
+        <mat-option value="Harvested">Harvested</mat-option>
+        <mat-option value="Sold">Sold</mat-option>
+        <mat-option value="Archived">Archived</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="text-right text-xs font-semibold text-slate-500">
+      Showing <strong>{{ filteredCrops.length }}</strong> of <strong>{{ crops().length }}</strong> crops
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="app-alert app-alert--loading flex flex-col items-center justify-center py-12">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="mt-4 text-sm font-medium text-slate-600">Loading your crops...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="app-alert app-alert--error text-center flex flex-col items-center py-8">
+    <mat-icon class="!w-10 !h-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
+    <p class="font-semibold">{{ error() }}</p>
+    <button mat-flat-button (click)="loadCrops()" class="mt-4 app-primary-btn">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && !error() && crops().length === 0" class="app-empty-state space-y-4">
+    <mat-icon>eco</mat-icon>
+    <h2 class="app-empty-state__title">No crops added yet</h2>
+    <p class="app-empty-state__text">
+      Start recording your agricultural crops to monitor cultivated area, sowing dates, photos, and harvest timelines.
+    </p>
+    <div class="pt-2">
+      <a mat-flat-button class="app-primary-btn" routerLink="/farmer/crops/new">
+        <mat-icon>add</mat-icon> Add Crop Now
+      </a>
+    </div>
+  </div>
+
+  <!-- Crop Cards Grid -->
+  <div *ngIf="!loading() && !error() && filteredCrops.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <article *ngFor="let crop of filteredCrops" class="app-card app-card--interactive flex flex-col justify-between overflow-hidden !p-0">
+      
+      <!-- Primary Crop Image Thumbnail -->
+      <div class="relative h-48 bg-emerald-50/60 flex items-center justify-center overflow-hidden border-b border-emerald-900/10">
+        <img *ngIf="hasValidImage(crop)" 
+             [src]="crop.primaryImageUrl!" 
+             [alt]="crop.cropName" 
+             (error)="handleImageError(crop.id)"
+             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
+        
+        <div *ngIf="!hasValidImage(crop)" class="flex flex-col items-center justify-center text-emerald-800/50 space-y-1">
+          <mat-icon class="!w-12 !h-12 text-5xl">eco</mat-icon>
+          <span class="text-xs font-semibold">No Image Uploaded</span>
+        </div>
+
+        <!-- Status Pill Overlay -->
+        <span
+          class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow border"
+          [ngClass]="{
+            'bg-blue-600 text-white border-blue-500': crop.status === 'Planned',
+            'bg-emerald-600 text-white border-emerald-500': crop.status === 'Growing',
+            'bg-amber-500 text-slate-950 border-amber-400': crop.status === 'ReadyForHarvest',
+            'bg-purple-600 text-white border-purple-500': crop.status === 'Harvested',
+            'bg-slate-700 text-white border-slate-600': crop.status === 'Sold' || crop.status === 'Archived'
+          }"
+        >
+          {{ crop.status === 'ReadyForHarvest' ? 'Ready For Harvest' : crop.status }}
+        </span>
+
+        <!-- Category Badge Overlay -->
+        <span class="absolute bottom-3 left-3 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-900/80 backdrop-blur-xs text-white border border-white/20">
+          {{ crop.cropType }}
+        </span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+        <div class="space-y-3">
+          <div>
+            <h2 class="app-card__title !mt-0 text-xl">{{ crop.cropName }}</h2>
+            <p *ngIf="crop.variety" class="text-xs font-semibold text-slate-500 mt-0.5">Variety: {{ crop.variety }}</p>
+          </div>
+
+          <!-- Metric Details Banner -->
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Cultivated Area</span>
+              <span class="font-extrabold text-slate-900 text-sm">{{ crop.area }} {{ crop.areaUnit }}</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Planting Date</span>
+              <span class="font-semibold text-slate-700">{{ crop.sowingDate ? (crop.sowingDate | date:'mediumDate') : 'Not Set' }}</span>
+            </div>
+            <div class="col-span-2 pt-1 border-t border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Expected Harvest</span>
+              <span class="font-bold text-emerald-700">{{ crop.expectedHarvestDate ? (crop.expectedHarvestDate | date:'mediumDate') : 'Not Set' }}</span>
+            </div>
+          </div>
+
+          <p *ngIf="crop.description" class="text-xs text-slate-600 line-clamp-2 italic">
+            "{{ crop.description }}"
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+          <a [routerLink]="['/farmer/crops', crop.id]" mat-stroked-button class="!border-slate-300 text-xs flex-1">
+            <mat-icon class="!w-4 !h-4 text-base">visibility</mat-icon> View
+          </a>
+          <a [routerLink]="['/farmer/crops', crop.id, 'edit']" mat-stroked-button class="!border-emerald-300 !text-emerald-800 text-xs flex-1">
+            <mat-icon class="!w-4 !h-4 text-base">edit</mat-icon> Edit
+          </a>
+          <button (click)="openDeleteModal(crop)" mat-stroked-button class="!border-rose-300 !text-rose-700 text-xs shrink-0">
+            <mat-icon class="!w-4 !h-4 text-base">delete_outline</mat-icon> Delete
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL DIALOG -->
+<div *ngIf="cropToDelete()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-fk-rise">
+    <div class="p-6 space-y-4 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+        <mat-icon class="!w-7 !h-7 text-3xl">warning</mat-icon>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900">Delete Crop Record?</h3>
+      <p class="text-xs text-slate-600">
+        Are you sure you want to delete <strong>{{ cropToDelete()?.cropName }}</strong>? This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+      <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">Cancel</button>
+      <button mat-flat-button (click)="confirmDelete()" [disabled]="deleting()" class="!bg-rose-600 !text-white">
+        <span *ngIf="deleting()">Deleting...</span>
+        <span *ngIf="!deleting()">Confirm Delete</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -24,6 +24,7 @@
   - [x] Phase 5.8: Worker Work History
   - [x] Phase 5.9: Worker Profile Verification & Completion
 - [ ] Phase 6: Customer module implementation
+  - [x] Phase 6.1: Farmer Crop Management
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
@@ -350,6 +351,26 @@
 - [x] Added 12 backend integration tests in `WorkerWorkHistoryTests.cs` and 9 in `WorkerProfileCompletionTests.cs` (**224 / 224 total backend tests passing**).
 - [x] Added 10 frontend unit specs in `worker-work-history.component.spec.ts` and updated `worker-profile.component.spec.ts` (**159 / 159 total frontend tests passing**).
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
+
+## Phase 6.1 Deliverables — Farmer Crop Management
+
+- [x] Updated `Crop` domain entity (`Crops.cs`) with `CropType` (string, max length 120, required) and `AreaUnit` (`FarmSizeUnit` enum: `Vigha` / `Bigha` = 1, `Acre` = 2, `Hectare` = 3).
+- [x] Configured EF Core properties in `CropConfigurations.cs` and generated migration `AddCropTypeAndAreaUnit`.
+- [x] Created `FarmerCropDtos.cs` (`CropResponse`, `CreateCropRequest`, `UpdateCropRequest`).
+- [x] Implemented `IFarmerCropService` / `FarmerCropService` handling farmer profile resolution, input validation, date range checking (`ExpectedHarvestDate >= SowingDate`, `ActualHarvestDate >= SowingDate`), area > 0 enforcement, lifecycle status parsing (`Planned`, `Growing`, `ReadyForHarvest`, `Harvested`), and ownership security.
+- [x] Exposed REST endpoints in `FarmerCropController.cs` under `[Authorize(Roles = Roles.Farmer)]`:
+  - `GET /api/farmer/crops`
+  - `GET /api/farmer/crops/{id}`
+  - `POST /api/farmer/crops`
+  - `PUT /api/farmer/crops/{id}`
+  - `DELETE /api/farmer/crops/{id}`
+- [x] Enforced strict security: Server-side identity resolution from JWT claims prevents accessing, modifying, or deleting another farmer's crop. Workers, Customers, and unauthenticated users receive 401/403.
+- [x] Created Angular `FarmerCropService`, `FarmerCropsComponent` (`/farmer/crops`), `FarmerCropFormComponent` (`/farmer/crops/new` and `/farmer/crops/:id/edit`), and `FarmerCropDetailComponent` (`/farmer/crops/:id`).
+- [x] Activated "My Crops" navigation item in `farmer-shell.component.ts`, dashboard card in `farmer-dashboard.component.ts`, and protected routes in `app.routes.ts`.
+- [x] Added 29 backend integration tests in `FarmerCropTests.cs` covering crop creation, updates, deletes, ownership isolation, 401/403/404 security, image uploads, multiple image uploads, file format validation, file size limits, primary image selection, and image deletion (**248 / 248 total backend tests passing**).
+- [x] Added 20 frontend unit specs across crop components and service (**179 / 179 total frontend tests passing**).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend integration tests (`dotnet test`), frontend tests (`npm test`), production client bundle (`npm run build`), and backend API startup (`dotnet run --project backend/FarmKart.API`).
+
 
 
 

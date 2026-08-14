@@ -48,10 +48,9 @@ export class FarmerDashboardComponent implements OnInit {
     },
     {
       title: 'My Crops',
-      description: 'Manage crop inventory, list items for direct sale, or configure live market listings.',
+      description: 'Manage crop sowing dates, cultivated areas, harvest schedules, and crop status.',
       icon: 'eco',
-      route: '/farmer/crops',
-      isPlaceholder: true
+      route: '/farmer/crops'
     },
     {
       title: 'Machinery Rentals',

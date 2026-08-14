@@ -2313,3 +2313,160 @@ mat-icon,
     transform: none;
   }
 }
+
+/* ==========================================================================
+   ANGULAR MATERIAL FORM FIELD CONTRAST & DARK THEME OVERRIDES
+   Fixes dark-on-dark text illegibility and webkit-autofill boxes
+   ========================================================================== */
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+/* Chrome / WebKit Autofill Box Shadow & Text Color Fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-radius: 0.5rem;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Default Light Theme Form Fields */
+.mat-mdc-form-field .mat-mdc-input-element,
+.mat-mdc-form-field .mat-mdc-select-value-text,
+.mat-mdc-form-field .mat-mdc-select-value {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.mat-mdc-form-field .mdc-floating-label {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+.mat-mdc-form-field .mdc-floating-label--float-above {
+  color: #059669 !important;
+}
+
+/* Dark Mode & Dark Container Form Field Overrides */
+.dark .mat-mdc-form-field,
+.dark .mat-mdc-text-field-wrapper,
+.dark .mat-mdc-form-field-flex,
+[class*="bg-slate-900"] .mat-mdc-form-field,
+[class*="bg-slate-900"] .mat-mdc-text-field-wrapper,
+[class*="bg-slate-900"] .mat-mdc-form-field-flex,
+[class*="bg-slate-800"] .mat-mdc-form-field,
+[class*="bg-slate-800"] .mat-mdc-text-field-wrapper,
+[class*="bg-slate-800"] .mat-mdc-form-field-flex,
+[class*="bg-slate-950"] .mat-mdc-form-field,
+[class*="bg-emerald-950"] .mat-mdc-form-field {
+  color: #f8fafc;
+  background-color: transparent !important;
+}
+
+.dark .mat-mdc-form-field .mat-mdc-input-element,
+.dark .mat-mdc-form-field .mat-mdc-select-value,
+.dark .mat-mdc-form-field .mat-mdc-select-value-text,
+.dark .mat-mdc-form-field input,
+.dark .mat-mdc-form-field textarea,
+[class*="bg-slate-900"] .mat-mdc-input-element,
+[class*="bg-slate-900"] .mat-mdc-select-value,
+[class*="bg-slate-900"] .mat-mdc-select-value-text,
+[class*="bg-slate-900"] .mat-mdc-form-field input,
+[class*="bg-slate-900"] .mat-mdc-form-field textarea,
+[class*="bg-slate-800"] .mat-mdc-input-element,
+[class*="bg-slate-800"] .mat-mdc-select-value,
+[class*="bg-slate-800"] .mat-mdc-select-value-text,
+[class*="bg-slate-800"] .mat-mdc-form-field input,
+[class*="bg-slate-800"] .mat-mdc-form-field textarea {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.dark .mat-mdc-form-field .mdc-floating-label,
+[class*="bg-slate-900"] .mdc-floating-label,
+[class*="bg-slate-800"] .mdc-floating-label {
+  color: #cbd5e1 !important;
+  font-weight: 600 !important;
+}
+
+.dark .mat-mdc-form-field .mdc-floating-label--float-above,
+[class*="bg-slate-900"] .mdc-floating-label--float-above,
+[class*="bg-slate-800"] .mdc-floating-label--float-above {
+  color: #34d399 !important; /* Vivid emerald-400 for floating label */
+  font-weight: 700 !important;
+}
+
+.dark .mat-mdc-form-field .mat-mdc-form-field-hint,
+[class*="bg-slate-900"] .mat-mdc-form-field-hint,
+[class*="bg-slate-800"] .mat-mdc-form-field-hint {
+  color: #94a3b8 !important;
+}
+
+.dark .mat-mdc-form-field .mat-mdc-select-arrow,
+[class*="bg-slate-900"] .mat-mdc-select-arrow,
+[class*="bg-slate-800"] .mat-mdc-select-arrow {
+  color: #34d399 !important;
+}
+
+.dark .mdc-text-field--outlined .mdc-notched-outline__leading,
+.dark .mdc-text-field--outlined .mdc-notched-outline__notch,
+.dark .mdc-text-field--outlined .mdc-notched-outline__trailing,
+[class*="bg-slate-900"] .mdc-notched-outline__leading,
+[class*="bg-slate-900"] .mdc-notched-outline__notch,
+[class*="bg-slate-900"] .mdc-notched-outline__trailing,
+[class*="bg-slate-800"] .mdc-notched-outline__leading,
+[class*="bg-slate-800"] .mdc-notched-outline__notch,
+[class*="bg-slate-800"] .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.dark .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__leading,
+.dark .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__notch,
+.dark .mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mdc-notched-outline__trailing,
+[class*="bg-slate-900"] .mdc-text-field--focused .mdc-notched-outline__leading,
+[class*="bg-slate-900"] .mdc-text-field--focused .mdc-notched-outline__notch,
+[class*="bg-slate-900"] .mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-color: #10b981 !important;
+  border-width: 2px !important;
+}
+
+/* Material Select Overlay Panels */
+.cdk-overlay-pane .mat-mdc-select-panel {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-option {
+  color: #f8fafc !important;
+}
+
+.cdk-overlay-pane .mat-mdc-option.mdc-list-item--selected {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  color: #34d399 !important;
+  font-weight: 700 !important;
+}
+
+.cdk-overlay-pane .mat-mdc-option:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Date input calendar picker icon color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9) sepia(1) saturate(5) hue-rotate(100deg);
+  cursor: pointer;
+}
+
+

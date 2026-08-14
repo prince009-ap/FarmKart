@@ -8,8 +8,10 @@ public sealed class Crop : BaseEntity
     public Guid FarmerProfileId { get; set; }
     public FarmerProfile FarmerProfile { get; set; } = null!;
     public string CropName { get; set; } = string.Empty;
+    public string CropType { get; set; } = string.Empty;
     public string? Variety { get; set; }
     public decimal Area { get; set; }
+    public FarmSizeUnit AreaUnit { get; set; } = FarmSizeUnit.Acre;
     public DateOnly? SowingDate { get; set; }
     public DateOnly? ExpectedHarvestDate { get; set; }
     public DateOnly? ActualHarvestDate { get; set; }
@@ -45,5 +47,6 @@ public sealed class CropImage : BaseEntity
     public Guid CropId { get; set; }
     public Crop Crop { get; set; } = null!;
     public string ImageUrl { get; set; } = string.Empty;
+    public bool IsPrimary { get; set; }
     public int DisplayOrder { get; set; }
 }

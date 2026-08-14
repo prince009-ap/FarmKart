@@ -19,8 +19,10 @@ public sealed class CropConfiguration : IEntityTypeConfiguration<Crop>
         builder.ConfigureBaseEntity();
 
         builder.Property(crop => crop.CropName).HasMaxLength(120).IsRequired();
+        builder.Property(crop => crop.CropType).HasMaxLength(120).HasDefaultValue("Other").IsRequired();
         builder.Property(crop => crop.Variety).HasMaxLength(120);
         builder.Property(crop => crop.Area).HasPrecision(18, 2);
+        builder.Property(crop => crop.AreaUnit).HasDefaultValue(FarmKart.Domain.Enums.FarmSizeUnit.Acre);
         builder.Property(crop => crop.Quantity).HasPrecision(18, 2);
         builder.Property(crop => crop.QualityGrade).HasMaxLength(50);
         builder.Property(crop => crop.Description).HasMaxLength(1000);
@@ -73,6 +75,7 @@ public sealed class CropImageConfiguration : IEntityTypeConfiguration<CropImage>
         builder.ConfigureBaseEntity();
 
         builder.Property(image => image.ImageUrl).HasMaxLength(500).IsRequired();
+        builder.Property(image => image.IsPrimary).HasDefaultValue(false);
         builder.HasIndex(image => new { image.CropId, image.DisplayOrder }).IsUnique();
 
         builder.HasOne(image => image.Crop)

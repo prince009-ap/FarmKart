@@ -94,10 +94,30 @@ export const routes: Routes = [
       { path: 'jobs/:jobId/attendance', loadComponent: () => import('./features/farmer/farmer-attendance.component').then((module) => module.FarmerAttendanceComponent) },
       {
         path: 'crops',
-        data: { title: 'My Crops' },
         loadComponent: () =>
-          import('./features/farmer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/farmer/farmer-crops.component').then(
+            (module) => module.FarmerCropsComponent,
+          ),
+      },
+      {
+        path: 'crops/new',
+        loadComponent: () =>
+          import('./features/farmer/farmer-crop-form.component').then(
+            (module) => module.FarmerCropFormComponent,
+          ),
+      },
+      {
+        path: 'crops/:id',
+        loadComponent: () =>
+          import('./features/farmer/farmer-crop-detail.component').then(
+            (module) => module.FarmerCropDetailComponent,
+          ),
+      },
+      {
+        path: 'crops/:id/edit',
+        loadComponent: () =>
+          import('./features/farmer/farmer-crop-form.component').then(
+            (module) => module.FarmerCropFormComponent,
           ),
       },
       {
