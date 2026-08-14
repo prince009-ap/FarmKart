@@ -26,6 +26,7 @@
 - [ ] Phase 6: Customer module implementation
   - [x] Phase 6.1: Farmer Crop Management
   - [x] Phase 6.2: Crop Inventory / Stock Management
+  - [x] Phase 6.4: Customer Dashboard and Navigation Shell
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
@@ -392,4 +393,15 @@
 - [x] Added "Available Stock" row to the Crop Card metric banner in `FarmerCropsComponent` — displays formatted stock (e.g. "5 Quintals") for harvest-eligible crops, "No stock" for zero-stock crops, hidden for Planned/Growing.
 - [x] Added 23 backend integration tests in `FarmerCropStockTests.cs` (Test01–Test23) covering: stock add, associations, summary retrieval, cumulative totals, unit conversions (Kg/Quintal/Ton), history, quantity validation, invalid units, negative balance guard, crop lifecycle enforcement, role security (Worker/Customer/Unauthenticated → 401/403/404), farmer isolation, crop list stock display sync, and formatted display (**271 / 271 total backend tests passing**).
 - [x] Verified backend build (`dotnet build FarmKart.Infrastructure`), test suite (`dotnet test --filter FarmerCropStockTests`: 23/23 passing), and frontend build (`npx ng build`).
+
+## Phase 6.4 Deliverables — Customer Dashboard and Navigation Shell
+
+- [x] Created Angular `CustomerShellComponent` (`/customer`) with responsive desktop sidebar, mobile menu drawer, FarmKart branding, dynamic customer name/email, customer role badge, and logout action.
+- [x] Created Angular `CustomerDashboardComponent` displaying customer hero greeting ("Welcome, {Customer Name}"), workspace subtitle, and 6 customer service cards (Browse Auctions - ACTIVE, My Bids - COMING SOON, My Orders - COMING SOON, Payments - COMING SOON, Notifications - COMING SOON, My Profile - COMING SOON).
+- [x] Created Angular customer `ComingSoonComponent` displaying module title, "Coming Soon" badge, future phase explanation message, and "Back to Dashboard" navigation button.
+- [x] Protected `/customer` route structure in `app.routes.ts` using existing `authGuard` and `roleGuard` (`roles: ['Customer']`), preserving existing Farmer (`/farmer`) and Worker (`/worker`) route guards intact.
+- [x] Dynamically resolved customer name and email from `AuthService.currentUser$` observable without hardcoded values.
+- [x] Added Angular unit tests for `CustomerShellComponent`, `CustomerDashboardComponent`, and customer `ComingSoonComponent` (**190 / 190 total frontend unit tests passing**).
+- [x] Verified frontend build (`npx ng build`) and test suite (`npm test`).
+
 

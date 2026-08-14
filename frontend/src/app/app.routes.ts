@@ -254,9 +254,67 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Customer'] },
     loadComponent: () =>
-      import('./features/customer/customer-dashboard.component').then(
-        (module) => module.CustomerDashboardComponent,
+      import('./features/customer/customer-shell.component').then(
+        (module) => module.CustomerShellComponent,
       ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/customer/customer-dashboard.component').then(
+            (module) => module.CustomerDashboardComponent,
+          ),
+      },
+      {
+        path: 'auctions',
+        data: { title: 'Browse Auctions' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'bids',
+        data: { title: 'My Bids' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'orders',
+        data: { title: 'My Orders' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'payments',
+        data: { title: 'Payments' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        data: { title: 'Notifications' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'profile',
+        data: { title: 'My Profile' },
+        loadComponent: () =>
+          import('./features/customer/coming-soon.component').then(
+            (module) => module.ComingSoonComponent,
+          ),
+      },
+    ],
   },
   {
     path: '**',

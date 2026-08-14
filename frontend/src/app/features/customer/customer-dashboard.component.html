@@ -1,46 +1,49 @@
-<div class="app-role-page">
-  <div class="app-page animate-fk-rise">
-    <section class="app-hero-banner app-hero-banner--customer">
-      <p class="app-hero-banner__eyebrow">Customer workspace</p>
-      <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
-      <p class="app-hero-banner__summary">
-        Shop fresh produce, track orders, and explore marketplace features as FarmKart expands.
-      </p>
-      <div class="app-hero-banner__actions">
-        <a mat-flat-button class="app-primary-btn !bg-sky-500 !shadow-sky-500/30" routerLink="/">
-          <mat-icon>storefront</mat-icon>
-          Explore marketplace
-        </a>
+<div class="app-page animate-fk-rise">
+  <section class="app-hero-banner app-hero-banner--customer">
+    <p class="app-hero-banner__eyebrow">Customer workspace</p>
+    <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
+    <p class="app-hero-banner__summary">
+      Discover fresh farm produce, explore auctions, and manage your purchases.
+    </p>
+    <div class="app-hero-banner__actions">
+      <a mat-flat-button class="app-primary-btn !bg-sky-500 !shadow-sky-500/30" routerLink="/customer/auctions">
+        <mat-icon>gavel</mat-icon>
+        Browse Auctions
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="app-page-header mb-4">
+      <div class="app-page-header__content">
+        <p class="app-page-eyebrow">Customer Services</p>
+        <h2 class="app-page-title">Marketplace & Auctions</h2>
       </div>
-    </section>
+    </div>
 
-    <section class="app-grid app-grid--modules">
-      <article class="app-card">
-        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
-          <mat-icon>shopping_basket</mat-icon>
-        </div>
-        <h2 class="app-card__title">Browse Produce</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
-        <p class="app-card__text">Discover fresh crops from local farmers and place direct orders.</p>
-      </article>
-
-      <article class="app-card">
-        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
-          <mat-icon>receipt_long</mat-icon>
-        </div>
-        <h2 class="app-card__title">My Orders</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
-        <p class="app-card__text">View order history, delivery status, and payment receipts.</p>
-      </article>
-
-      <article class="app-card">
-        <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
-          <mat-icon>person</mat-icon>
-        </div>
-        <h2 class="app-card__title">My Profile</h2>
-        <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
-        <p class="app-card__text">Manage delivery addresses and account preferences.</p>
-      </article>
-    </section>
-  </div>
+    <div class="app-grid app-grid--modules">
+      @for (card of moduleCards; track card.title) {
+        <article class="app-card app-card--interactive">
+          <div class="flex items-center justify-between gap-3">
+            <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
+              <mat-icon>{{ card.icon }}</mat-icon>
+            </div>
+            @if (card.status === 'COMING SOON') {
+              <span class="app-badge app-badge--soon">Coming Soon</span>
+            } @else {
+              <span class="app-badge app-badge--active">Active</span>
+            }
+          </div>
+          <h3 class="app-card__title">{{ card.title }}</h3>
+          <p class="app-card__text">{{ card.description }}</p>
+          <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
+            <a mat-button color="primary" [routerLink]="card.route" class="font-semibold !text-sky-700">
+              {{ card.status === 'COMING SOON' ? 'Preview module' : 'Open module' }}
+              <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
+            </a>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
 </div>

@@ -72,7 +72,7 @@ describe('FarmerCropFormComponent', () => {
   });
 
   it('3. Oversized file shows error', () => {
-    const hugeFile = new File([new ArrayBuffer(6 * 1024 * 1024)], 'huge.jpg', { type: 'image/jpeg' });
+    const hugeFile = new File([new ArrayBuffer(21 * 1024 * 1024)], 'huge.jpg', { type: 'image/jpeg' });
     const event = { target: { files: [hugeFile], value: '' } } as any;
 
     component.onFileSelected(event);
