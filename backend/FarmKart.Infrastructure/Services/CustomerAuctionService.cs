@@ -1,3 +1,4 @@
+using System.Data;
 using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
@@ -71,7 +72,7 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             "ending_soon" => responseList.OrderBy(a => a.EndTimeUtc).ToList(),
             "price_asc" => responseList.OrderBy(a => a.StartingBidPrice).ToList(),
             "price_desc" => responseList.OrderByDescending(a => a.StartingBidPrice).ToList(),
-            _ => responseList.OrderByDescending(a => a.CreatedAtUtc).ToList() // "newest" or default
+            _ => responseList.OrderByDescending(a => a.CreatedAtUtc).ToList()
         };
 
         return responseList;
@@ -98,6 +99,203 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
         }
 
         return MapToResponse(auction, now);
+    }
+
+    public async Task<AuctionBidResponse> PlaceBidAsync(
+        Guid userId,
+        Guid auctionId,
+        PlaceBidRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var customerProfile = await dbContext.CustomerProfiles
+            .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+
+        if (customerProfile == null)
+        {
+            throw new UnauthorizedAccessException("Customer profile not found for authenticated user.");
+        }
+
+        var auction = await dbContext.Auctions
+            .Include(a => a.Bids)
+            .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken);
+
+        if (auction == null || auction.AuctionStatus == AuctionStatus.Cancelled || auction.AuctionStatus == AuctionStatus.Draft)
+        {
+            throw new KeyNotFoundException($"Live auction with ID '{auctionId}' was not found.");
+        }
+
+        var now = DateTime.UtcNow;
+        if (now < auction.StartTimeUtc)
+        {
+            throw new InvalidOperationException("Auction has not started yet. Bids are only accepted when the auction is LIVE.");
+        }
+
+        if (now > auction.EndTimeUtc)
+        {
+            throw new InvalidOperationException("Auction has ended. Bids are no longer accepted.");
+        }
+
+        // Concurrency-safe bid evaluation using database transaction
+        var executionStrategy = dbContext.Database.CreateExecutionStrategy();
+
+        return await executionStrategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+            var activeBids = await dbContext.Bids
+                .Where(b => b.AuctionId == auctionId && b.BidStatus == BidStatus.Active)
+                .ToListAsync(cancellationToken);
+
+            var currentHighest = activeBids.Count > 0 ? activeBids.Max(b => b.Amount) : 0m;
+
+            if (activeBids.Count == 0)
+            {
+                if (request.Amount < auction.StartingPrice)
+                {
+                    throw new InvalidOperationException($"First bid must be at least the starting price of ₹{auction.StartingPrice:0.##}.");
+                }
+            }
+            else
+            {
+                var minRequired = currentHighest + auction.MinimumBidIncrement;
+                if (request.Amount < minRequired)
+                {
+                    throw new InvalidOperationException($"Bid amount must be at least ₹{minRequired:0.##} (current highest ₹{currentHighest:0.##} + increment ₹{auction.MinimumBidIncrement:0.##}).");
+                }
+            }
+
+            // Verify minimum increment step requirement relative to starting price
+            var delta = request.Amount - auction.StartingPrice;
+            if (delta < 0 || (auction.MinimumBidIncrement > 0 && Math.Abs((delta % auction.MinimumBidIncrement)) > 0.0001m))
+            {
+                throw new InvalidOperationException($"Bid amount must be in valid increment steps of ₹{auction.MinimumBidIncrement:0.##} from starting price ₹{auction.StartingPrice:0.##}.");
+            }
+
+            var newBid = new Bid
+            {
+                AuctionId = auctionId,
+                CustomerProfileId = customerProfile.Id,
+                Amount = request.Amount,
+                BidTimeUtc = now,
+                BidStatus = BidStatus.Active
+            };
+
+            dbContext.Bids.Add(newBid);
+
+            // Update current highest bid on auction entity
+            auction.CurrentHighestBid = request.Amount;
+            if (auction.AuctionStatus == AuctionStatus.Scheduled && now >= auction.StartTimeUtc)
+            {
+                auction.AuctionStatus = AuctionStatus.Live;
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new AuctionBidResponse(
+                Id: newBid.Id,
+                AuctionId: auctionId,
+                CustomerProfileId: customerProfile.Id,
+                CustomerName: customerProfile.FullName,
+                Amount: newBid.Amount,
+                BidTimeUtc: newBid.BidTimeUtc,
+                BidStatus: "HIGHEST BID"
+            );
+        });
+    }
+
+    public async Task<IReadOnlyList<AuctionBidResponse>> GetAuctionBidsAsync(Guid auctionId, CancellationToken cancellationToken = default)
+    {
+        var bids = await dbContext.Bids
+            .AsNoTracking()
+            .Include(b => b.CustomerProfile)
+            .Where(b => b.AuctionId == auctionId && b.BidStatus == BidStatus.Active)
+            .OrderByDescending(b => b.BidTimeUtc)
+            .ToListAsync(cancellationToken);
+
+        var highestAmount = bids.Count > 0 ? bids.Max(b => b.Amount) : 0m;
+
+        return bids.Select(b => new AuctionBidResponse(
+            Id: b.Id,
+            AuctionId: b.AuctionId,
+            CustomerProfileId: b.CustomerProfileId,
+            CustomerName: b.CustomerProfile.FullName,
+            Amount: b.Amount,
+            BidTimeUtc: b.BidTimeUtc,
+            BidStatus: b.Amount == highestAmount ? "HIGHEST BID" : "OUTBID"
+        )).ToList();
+    }
+
+    public async Task<IReadOnlyList<CustomerMyBidResponse>> GetCustomerBidsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var customerProfile = await dbContext.CustomerProfiles
+            .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+
+        if (customerProfile == null)
+        {
+            throw new UnauthorizedAccessException("Customer profile not found for authenticated user.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        var bids = await dbContext.Bids
+            .AsNoTracking()
+            .Include(b => b.Auction)
+                .ThenInclude(a => a.CropListing)
+                    .ThenInclude(l => l.Crop)
+                        .ThenInclude(c => c.Images)
+            .Where(b => b.CustomerProfileId == customerProfile.Id && b.BidStatus == BidStatus.Active)
+            .OrderByDescending(b => b.BidTimeUtc)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<CustomerMyBidResponse>();
+
+        foreach (var bid in bids)
+        {
+            var auction = bid.Auction;
+            var crop = auction.CropListing.Crop;
+
+            string auctionComputedStatus;
+            if (now < auction.StartTimeUtc)
+            {
+                auctionComputedStatus = "UPCOMING";
+            }
+            else if (now <= auction.EndTimeUtc)
+            {
+                auctionComputedStatus = "LIVE";
+            }
+            else
+            {
+                auctionComputedStatus = "ENDED";
+            }
+
+            var images = crop.Images.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList();
+            var primaryImage = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? images.FirstOrDefault();
+
+            var customerBidStatus = bid.Amount == auction.CurrentHighestBid ? "HIGHEST BID" : "OUTBID";
+
+            result.Add(new CustomerMyBidResponse(
+                BidId: bid.Id,
+                AuctionId: auction.Id,
+                CropId: crop.Id,
+                CropName: crop.CropName,
+                PrimaryImageUrl: primaryImage,
+                CropType: crop.CropType,
+                Quantity: auction.CropListing.QuantityForSale,
+                Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
+                CustomerBidAmount: bid.Amount,
+                CurrentHighestBid: auction.CurrentHighestBid,
+                MinimumBidIncrement: auction.MinimumBidIncrement,
+                AuctionStatus: auctionComputedStatus,
+                CustomerBidStatus: customerBidStatus,
+                BidTimeUtc: bid.BidTimeUtc,
+                StartTimeUtc: auction.StartTimeUtc,
+                EndTimeUtc: auction.EndTimeUtc,
+                ServerTimeUtc: now
+            ));
+        }
+
+        return result;
     }
 
     private static CustomerAuctionResponse MapToResponse(Auction auction, DateTime now)

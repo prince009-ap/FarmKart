@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
@@ -37,5 +38,64 @@ public sealed class CustomerAuctionsController(ICustomerAuctionService customerA
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    [HttpPost("{id:guid}/bids")]
+    public async Task<IActionResult> PlaceBid(Guid id, [FromBody] PlaceBidRequest request, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var bid = await customerAuctionService.PlaceBidAsync(userId, id, request, cancellationToken);
+            return CreatedAtAction(nameof(GetAuctionBids), new { id }, bid);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:guid}/bids")]
+    public async Task<IActionResult> GetAuctionBids(Guid id, CancellationToken cancellationToken)
+    {
+        var bids = await customerAuctionService.GetAuctionBidsAsync(id, cancellationToken);
+        return Ok(bids);
+    }
+
+    [HttpGet("~/api/customer/bids")]
+    public async Task<IActionResult> GetMyBids(CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var bids = await customerAuctionService.GetCustomerBidsAsync(userId, cancellationToken);
+            return Ok(bids);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdStr, out var id) ? id : null;
     }
 }
