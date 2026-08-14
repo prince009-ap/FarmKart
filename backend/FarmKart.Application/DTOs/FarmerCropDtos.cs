@@ -31,6 +31,8 @@ public sealed record CropResponse(
     string Status,
     string? PrimaryImageUrl,
     IReadOnlyList<CropImageResponse> Images,
+    decimal AvailableQuantityKg,
+    string AvailableQuantityFormatted,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc
 );

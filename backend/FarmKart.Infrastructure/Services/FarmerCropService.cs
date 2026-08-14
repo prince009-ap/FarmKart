@@ -27,6 +27,7 @@ public sealed class FarmerCropService : IFarmerCropService
             .AsNoTracking()
             .Include(c => c.FarmerProfile)
             .Include(c => c.Images)
+            .Include(c => c.StockTransactions)
             .Where(c => c.FarmerProfileId == farmer.Id)
             .OrderByDescending(c => c.CreatedAtUtc)
             .ToListAsync(cancellationToken);
@@ -42,6 +43,7 @@ public sealed class FarmerCropService : IFarmerCropService
             .AsNoTracking()
             .Include(c => c.FarmerProfile)
             .Include(c => c.Images)
+            .Include(c => c.StockTransactions)
             .FirstOrDefaultAsync(c => c.Id == cropId && c.FarmerProfileId == farmer.Id, cancellationToken);
 
         return crop == null ? null : MapToResponse(crop);
@@ -441,6 +443,33 @@ public sealed class FarmerCropService : IFarmerCropService
         var primaryImageUrl = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
             ?? crop.Images.OrderBy(i => i.DisplayOrder).FirstOrDefault()?.ImageUrl;
 
+        // Use the transaction sum as the ground-truth available stock.
+        // StockTransactions is always loaded via .Include() on every read query,
+        // so the sum reflects the actual per-entry amounts.
+        // crop.Quantity is a cached running total that may be stale if it was
+        // written by a buggy version of the code (e.g. double-counted before the
+        // EF Core fixup fix). We fall back to crop.Quantity only for crops that
+        // have no stock transactions yet (Count == 0).
+        var availableQuantityKg = crop.StockTransactions.Count > 0
+            ? crop.StockTransactions.Sum(t => t.QuantityInBaseUnit)
+            : crop.Quantity;
+
+        string availableQuantityFormatted;
+        if (availableQuantityKg >= 1000m && availableQuantityKg % 100m == 0m)
+        {
+            var tons = availableQuantityKg / 1000m;
+            availableQuantityFormatted = $"{tons:0.##} Ton{(tons != 1 ? "s" : "")}";
+        }
+        else if (availableQuantityKg >= 100m && availableQuantityKg % 100m == 0m)
+        {
+            var quintals = availableQuantityKg / 100m;
+            availableQuantityFormatted = $"{quintals:0.##} Quintal{(quintals != 1 ? "s" : "")}";
+        }
+        else
+        {
+            availableQuantityFormatted = $"{availableQuantityKg:0.##} Kg";
+        }
+
         return new CropResponse(
             Id: crop.Id,
             FarmerProfileId: crop.FarmerProfileId,
@@ -460,6 +489,8 @@ public sealed class FarmerCropService : IFarmerCropService
             Status: crop.Status.ToString(),
             PrimaryImageUrl: primaryImageUrl,
             Images: imageResponses,
+            AvailableQuantityKg: availableQuantityKg,
+            AvailableQuantityFormatted: availableQuantityFormatted,
             CreatedAtUtc: crop.CreatedAtUtc,
             UpdatedAtUtc: crop.UpdatedAtUtc
         );

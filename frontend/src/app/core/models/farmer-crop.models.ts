@@ -1,5 +1,6 @@
 export type CropStatus = 'Planned' | 'Growing' | 'ReadyForHarvest' | 'Harvested' | 'Sold' | 'Archived';
 export type AreaUnit = 'Bigha' | 'Acre' | 'Hectare';
+export type CropStockUnit = 'Kilogram' | 'Quintal' | 'Ton' | 'Kg';
 
 export interface CropImage {
   id: string;
@@ -29,6 +30,8 @@ export interface FarmerCrop {
   status: CropStatus | string;
   primaryImageUrl?: string | null;
   images?: CropImage[];
+  availableQuantityFormatted?: string;
+  availableQuantityKg?: number;
   createdAtUtc: string;
   updatedAtUtc: string;
 }
@@ -57,4 +60,33 @@ export interface UpdateCropRequest {
   actualHarvestDate?: string | null;
   status?: CropStatus | string;
   description?: string | null;
+}
+
+export interface CropStockSummary {
+  cropId: string;
+  cropName: string;
+  cropStatus: string;
+  availableQuantityKg: number;
+  availableQuantityFormatted: string;
+  displayUnit: string;
+  lastUpdatedUtc?: string | null;
+  totalTransactionsCount: number;
+}
+
+export interface CropStockTransaction {
+  id: string;
+  cropId: string;
+  quantity: number;
+  unit: string;
+  quantityInBaseUnit: number;
+  transactionType: string;
+  notes?: string | null;
+  createdAtUtc: string;
+}
+
+export interface AddCropStockRequest {
+  quantity: number;
+  unit: string;
+  transactionType?: string;
+  notes?: string | null;
 }

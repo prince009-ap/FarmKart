@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FarmerCropService } from './farmer-crop.service';
-import { CropImage, FarmerCrop } from '../../core/models/farmer-crop.models';
+import { CropImage, CropStockSummary, CropStockTransaction, FarmerCrop } from '../../core/models/farmer-crop.models';
 
 @Component({
   selector: 'app-farmer-crop-detail',
@@ -13,6 +14,7 @@ import { CropImage, FarmerCrop } from '../../core/models/farmer-crop.models';
   imports: [
     CommonModule,
     RouterLink,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule
@@ -33,6 +35,33 @@ export class FarmerCropDetailComponent implements OnInit {
   showDeleteModal = signal<boolean>(false);
   deleting = signal<boolean>(false);
 
+  // Stock Management Signals
+  stockSummary = signal<CropStockSummary | null>(null);
+  stockHistory = signal<CropStockTransaction[]>([]);
+  showStockModal = signal<boolean>(false);
+  showHistoryModal = signal<boolean>(false);
+  savingStock = signal<boolean>(false);
+  loadingHistory = signal<boolean>(false);
+  stockErrorMessage = signal<string | null>(null);
+
+  // Stock Form Inputs
+  stockQuantity = signal<number | null>(null);
+  stockUnit = signal<string>('Kilogram');
+  stockTransactionType = signal<string>('Harvest');
+  stockNotes = signal<string>('');
+
+  readonly availableStockUnits = [
+    { label: 'Kilogram (Kg)', value: 'Kilogram' },
+    { label: 'Quintal (100 Kg)', value: 'Quintal' },
+    { label: 'Ton (1000 Kg)', value: 'Ton' }
+  ];
+
+  readonly transactionTypes = [
+    { label: 'Harvest Record', value: 'Harvest' },
+    { label: 'Stock Adjustment', value: 'Adjustment' },
+    { label: 'Quantity Correction', value: 'Correction' }
+  ];
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -51,10 +80,24 @@ export class FarmerCropDetailComponent implements OnInit {
         this.selectedImage.set(primary);
         this.imageError.set(false);
         this.loading.set(false);
+
+        // Load Stock Summary if harvest eligible
+        this.loadStockSummary(data.id);
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Unable to load crop details.');
         this.loading.set(false);
+      }
+    });
+  }
+
+  loadStockSummary(cropId: string): void {
+    this.cropService.getCropStock(cropId).subscribe({
+      next: (summary) => {
+        this.stockSummary.set(summary);
+      },
+      error: () => {
+        // Stock summary might return 400 for Planned/Growing crops, which is expected
       }
     });
   }
@@ -66,6 +109,71 @@ export class FarmerCropDetailComponent implements OnInit {
 
   onImageError(): void {
     this.imageError.set(true);
+  }
+
+  openStockModal(): void {
+    this.stockErrorMessage.set(null);
+    this.stockQuantity.set(null);
+    this.stockNotes.set('');
+    this.showStockModal.set(true);
+  }
+
+  closeStockModal(): void {
+    this.showStockModal.set(false);
+  }
+
+  saveStock(): void {
+    const c = this.crop();
+    const qty = this.stockQuantity();
+
+    if (!c) return;
+
+    if (qty === null || qty <= 0) {
+      this.stockErrorMessage.set('Stock quantity must be greater than zero.');
+      return;
+    }
+
+    this.savingStock.set(true);
+    this.stockErrorMessage.set(null);
+
+    this.cropService.addCropStock(c.id, {
+      quantity: qty,
+      unit: this.stockUnit(),
+      transactionType: this.stockTransactionType(),
+      notes: this.stockNotes().trim() || null
+    }).subscribe({
+      next: (updatedSummary) => {
+        this.stockSummary.set(updatedSummary);
+        this.savingStock.set(false);
+        this.closeStockModal();
+      },
+      error: (err) => {
+        this.stockErrorMessage.set(err?.error?.message || 'Failed to add stock record.');
+        this.savingStock.set(false);
+      }
+    });
+  }
+
+  openHistoryModal(): void {
+    const c = this.crop();
+    if (!c) return;
+
+    this.showHistoryModal.set(true);
+    this.loadingHistory.set(true);
+
+    this.cropService.getCropStockHistory(c.id).subscribe({
+      next: (history) => {
+        this.stockHistory.set(history);
+        this.loadingHistory.set(false);
+      },
+      error: () => {
+        this.loadingHistory.set(false);
+      }
+    });
+  }
+
+  closeHistoryModal(): void {
+    this.showHistoryModal.set(false);
   }
 
   openDeleteModal(): void {
@@ -91,5 +199,11 @@ export class FarmerCropDetailComponent implements OnInit {
         alert(err?.error?.message || 'Failed to delete crop.');
       }
     });
+  }
+
+  isStockEligible(): boolean {
+    const c = this.crop();
+    if (!c) return false;
+    return c.status === 'ReadyForHarvest' || c.status === 'Harvested' || c.status === 'Sold' || c.status === 'Archived';
   }
 }

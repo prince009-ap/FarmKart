@@ -23,6 +23,7 @@ public sealed class Crop : BaseEntity
 
     public ICollection<CropImage> Images { get; set; } = [];
     public ICollection<CropListing> Listings { get; set; } = [];
+    public ICollection<CropStockTransaction> StockTransactions { get; set; } = [];
 }
 
 public sealed class CropListing : BaseEntity
@@ -50,3 +51,15 @@ public sealed class CropImage : BaseEntity
     public bool IsPrimary { get; set; }
     public int DisplayOrder { get; set; }
 }
+
+public sealed class CropStockTransaction : BaseEntity
+{
+    public Guid CropId { get; set; }
+    public Crop Crop { get; set; } = null!;
+    public decimal Quantity { get; set; }
+    public MeasurementUnit Unit { get; set; } = MeasurementUnit.Kilogram;
+    public decimal QuantityInBaseUnit { get; set; }
+    public CropStockTransactionType TransactionType { get; set; } = CropStockTransactionType.Harvest;
+    public string? Notes { get; set; }
+}
+

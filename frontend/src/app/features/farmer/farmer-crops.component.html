@@ -128,6 +128,17 @@
               <span class="text-[10px] uppercase font-bold text-slate-400 block">Expected Harvest</span>
               <span class="font-bold text-emerald-700">{{ crop.expectedHarvestDate ? (crop.expectedHarvestDate | date:'mediumDate') : 'Not Set' }}</span>
             </div>
+
+            <!-- Stock quantity row — only for harvest-eligible statuses -->
+            <div *ngIf="crop.status === 'ReadyForHarvest' || crop.status === 'Harvested' || crop.status === 'Sold' || crop.status === 'Archived'"
+                 class="col-span-2 pt-1 border-t border-slate-200 flex items-center justify-between">
+              <span class="text-[10px] uppercase font-bold text-slate-400">Available Stock</span>
+              <span class="flex items-center gap-1 font-extrabold text-sm"
+                    [ngClass]="crop.availableQuantityKg && crop.availableQuantityKg > 0 ? 'text-amber-700' : 'text-slate-400'">
+                <mat-icon class="!w-3.5 !h-3.5 !text-sm">inventory_2</mat-icon>
+                {{ crop.availableQuantityKg && crop.availableQuantityKg > 0 ? crop.availableQuantityFormatted : 'No stock' }}
+              </span>
+            </div>
           </div>
 
           <p *ngIf="crop.description" class="text-xs text-slate-600 line-clamp-2 italic">

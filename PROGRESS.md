@@ -25,6 +25,7 @@
   - [x] Phase 5.9: Worker Profile Verification & Completion
 - [ ] Phase 6: Customer module implementation
   - [x] Phase 6.1: Farmer Crop Management
+  - [x] Phase 6.2: Crop Inventory / Stock Management
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
@@ -371,7 +372,24 @@
 - [x] Added 20 frontend unit specs across crop components and service (**179 / 179 total frontend tests passing**).
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend integration tests (`dotnet test`), frontend tests (`npm test`), production client bundle (`npm run build`), and backend API startup (`dotnet run --project backend/FarmKart.API`).
 
+## Phase 6.2 Deliverables — Crop Inventory / Stock Management
 
-
-
+- [x] Added `CropStockTransactionType` enum (`Harvest`, `Adjustment`, `Correction`) to `DomainEnums.cs`.
+- [x] Added `CropStockTransaction` entity to `Crops.cs` with `CropId`, `Quantity`, `Unit`, `QuantityInBaseUnit` (Kg), `TransactionType`, and `Notes`.
+- [x] Configured EF Core mapping in `CropConfigurations.cs` (precision, FK cascade, indexes) and generated migration `AddCropStockManagement`.
+- [x] Implemented `IFarmerCropStockService` / `FarmerCropStockService` with unit normalization (Kg / Quintal / Ton → Kg), lifecycle validation (Planned/Growing crops cannot receive stock), negative-balance guard, and stock summary formatting.
+- [x] **Fixed EF Core relationship-fixup double-counting bug**: `AddCropStockAsync` and `AdjustCropStockAsync` now use `crop.Quantity + quantityInBaseUnit` instead of re-summing `crop.StockTransactions` after `DbContext.Add()` — EF Core adds the unsaved entity to the navigation collection immediately, causing double-counting.
+- [x] `Crop.Quantity` is the single authoritative running total in Kg, updated atomically on every stock transaction.
+- [x] Added `AvailableQuantityKg` and `AvailableQuantityFormatted` fields to `CropResponse` DTO, populated from `crop.Quantity` in `FarmerCropService.MapToResponse()`.
+- [x] Exposed REST endpoints in `FarmerCropStockController.cs` under `[Authorize(Roles = Roles.Farmer)]`:
+  - `GET /api/farmer/crops/{cropId}/stock` — current stock summary
+  - `POST /api/farmer/crops/{cropId}/stock` — add harvest record
+  - `POST /api/farmer/crops/{cropId}/stock/adjust` — adjustment / correction
+  - `GET /api/farmer/crops/{cropId}/stock/history` — full transaction log
+- [x] Enforced strict security: farmer profile resolved server-side from JWT claims; 404 returned for other farmers' crops.
+- [x] Updated Angular `FarmerCropService` with stock API methods (`getCropStock`, `addCropStock`, `getCropStockHistory`).
+- [x] Updated Angular `FarmerCropDetailComponent` with stock summary section, Add Stock modal (quantity / unit / type / notes), and Stock History modal (transaction list, loading/empty states).
+- [x] Added "Available Stock" row to the Crop Card metric banner in `FarmerCropsComponent` — displays formatted stock (e.g. "5 Quintals") for harvest-eligible crops, "No stock" for zero-stock crops, hidden for Planned/Growing.
+- [x] Added 23 backend integration tests in `FarmerCropStockTests.cs` (Test01–Test23) covering: stock add, associations, summary retrieval, cumulative totals, unit conversions (Kg/Quintal/Ton), history, quantity validation, invalid units, negative balance guard, crop lifecycle enforcement, role security (Worker/Customer/Unauthenticated → 401/403/404), farmer isolation, crop list stock display sync, and formatted display (**271 / 271 total backend tests passing**).
+- [x] Verified backend build (`dotnet build FarmKart.Infrastructure`), test suite (`dotnet test --filter FarmerCropStockTests`: 23/23 passing), and frontend build (`npx ng build`).
 

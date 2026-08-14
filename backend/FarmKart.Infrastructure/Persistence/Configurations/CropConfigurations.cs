@@ -84,3 +84,28 @@ public sealed class CropImageConfiguration : IEntityTypeConfiguration<CropImage>
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public sealed class CropStockTransactionConfiguration : IEntityTypeConfiguration<CropStockTransaction>
+{
+    public void Configure(EntityTypeBuilder<CropStockTransaction> builder)
+    {
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_CropStockTransaction_Quantity_NonZero", "[Quantity] <> 0");
+        });
+
+        builder.ConfigureBaseEntity();
+
+        builder.Property(t => t.Quantity).HasPrecision(18, 2);
+        builder.Property(t => t.QuantityInBaseUnit).HasPrecision(18, 2);
+        builder.Property(t => t.Notes).HasMaxLength(500);
+
+        builder.HasIndex(t => t.CropId);
+
+        builder.HasOne(t => t.Crop)
+            .WithMany(crop => crop.StockTransactions)
+            .HasForeignKey(t => t.CropId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+

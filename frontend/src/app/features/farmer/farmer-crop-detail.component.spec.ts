@@ -35,6 +35,16 @@ describe('FarmerCropDetailComponent', () => {
         createdAtUtc: new Date().toISOString(),
         updatedAtUtc: new Date().toISOString()
       })),
+      getCropStock: vi.fn().mockReturnValue(of({
+        cropId: 'c-1',
+        cropName: 'Wheat Details Test',
+        cropStatus: 'Growing',
+        availableQuantityKg: 0,
+        availableQuantityFormatted: '0 Kg',
+        displayUnit: 'Kg',
+        lastUpdatedUtc: null,
+        totalTransactionsCount: 0
+      })),
       deleteCrop: vi.fn().mockReturnValue(of(void 0))
     };
 

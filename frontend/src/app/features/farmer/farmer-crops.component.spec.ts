@@ -88,4 +88,17 @@ describe('FarmerCropsComponent', () => {
     component.confirmDelete();
     expect(mockCropService.deleteCrop).toHaveBeenCalledWith('c-1');
   });
+
+  it('6. Crop card displays the API-formatted stock without converting it again', () => {
+    component.crops.set([{
+      id: 'c-1', farmerProfileId: 'f-1', farmerName: 'Farmer', cropName: 'Wheat', cropType: 'Cereal',
+      area: 5, areaUnit: 'Bigha', quantity: 500, unit: 'Kg', status: 'Harvested',
+      availableQuantityKg: 500, availableQuantityFormatted: '5 Quintals',
+      createdAtUtc: '', updatedAtUtc: ''
+    }]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('5 Quintals');
+    expect(fixture.nativeElement.textContent).not.toContain('1 Ton');
+  });
 });

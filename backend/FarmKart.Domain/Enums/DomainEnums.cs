@@ -202,3 +202,11 @@ public enum ParticipantProfileType
     Worker = 2,
     Customer = 3
 }
+
+public enum CropStockTransactionType
+{
+    Harvest = 1,
+    Adjustment = 2,
+    Correction = 3
+}
+

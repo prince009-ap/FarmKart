@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateCropRequest, CropImage, FarmerCrop, UpdateCropRequest } from '../../core/models/farmer-crop.models';
+import { AddCropStockRequest, CreateCropRequest, CropImage, CropStockSummary, CropStockTransaction, FarmerCrop, UpdateCropRequest } from '../../core/models/farmer-crop.models';
 
 @Injectable({
   providedIn: 'root'
@@ -85,5 +85,17 @@ export class FarmerCropService {
     return this.http.put<FarmerCrop>(`${this.apiUrl}/${cropId}/images/${imageId}/primary`, {}).pipe(
       map(crop => this.transformCrop(crop))
     );
+  }
+
+  getCropStock(cropId: string): Observable<CropStockSummary> {
+    return this.http.get<CropStockSummary>(`${this.apiUrl}/${cropId}/stock`);
+  }
+
+  addCropStock(cropId: string, request: AddCropStockRequest): Observable<CropStockSummary> {
+    return this.http.post<CropStockSummary>(`${this.apiUrl}/${cropId}/stock`, request);
+  }
+
+  getCropStockHistory(cropId: string): Observable<CropStockTransaction[]> {
+    return this.http.get<CropStockTransaction[]>(`${this.apiUrl}/${cropId}/stock/history`);
   }
 }
