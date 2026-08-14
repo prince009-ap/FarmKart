@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -8,7 +9,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { WorkerJobService } from './worker-job.service';
-import { WorkerProfile, WorkerProfileUpdateRequest, WorkerRatingSummary } from '../../core/models/worker.models';
+import {
+  ProfileCompletionSection,
+  WorkerProfile,
+  WorkerProfileCompletion,
+  WorkerProfileUpdateRequest,
+  WorkerRatingSummary
+} from '../../core/models/worker.models';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -32,10 +39,12 @@ export class WorkerProfileComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
   protected Math = Math;
 
   profile = signal<WorkerProfile | null>(null);
+  profileCompletion = signal<WorkerProfileCompletion | null>(null);
   ratingSummary = signal<WorkerRatingSummary | null>(null);
   loading = signal(true);
   saving = signal(false);
@@ -80,7 +89,8 @@ export class WorkerProfileComponent implements OnInit {
         this.patchForm(data);
         this.loading.set(false);
 
-        // Load Ratings & Reviews
+        // Load Profile Completion & Ratings
+        this.loadProfileCompletion();
         this.workerService.getReviews().subscribe({
           next: (revData) => this.ratingSummary.set(revData),
           error: () => {}
@@ -98,6 +108,13 @@ export class WorkerProfileComponent implements OnInit {
           this.loadError.set('Failed to load profile. Please try again.');
         }
       }
+    });
+  }
+
+  loadProfileCompletion(): void {
+    this.workerService.getProfileCompletion().subscribe({
+      next: (comp) => this.profileCompletion.set(comp),
+      error: () => {}
     });
   }
 
@@ -135,6 +152,14 @@ export class WorkerProfileComponent implements OnInit {
     }
     this.editMode.set(false);
     this.successMessage.set(null);
+  }
+
+  onSectionAction(section: ProfileCompletionSection): void {
+    if (section.actionRoute === '/worker/preferences') {
+      this.router.navigate(['/worker/preferences']);
+    } else {
+      this.enableEdit();
+    }
   }
 
   addSkill(): void {
@@ -199,6 +224,7 @@ export class WorkerProfileComponent implements OnInit {
         this.saving.set(false);
         this.editMode.set(false);
         this.successMessage.set('Profile updated successfully.');
+        this.loadProfileCompletion();
         this.snackBar.open('Profile updated successfully!', 'Close', { duration: 4000 });
       },
       error: (err) => {

@@ -90,6 +90,7 @@ export interface WorkerProfile {
   availabilityNotes?: string | null;
   experienceDescription?: string | null;
   skills?: string[];
+  verificationStatus?: string;
 }
 
 export interface WorkerProfileUpdateRequest {
@@ -189,4 +190,46 @@ export interface WorkerEarningsSummary {
   thisMonthEarnings: number;
   allTimeEarnings: number;
   earningsHistory: WorkerEarningsItem[];
+}
+
+export interface WorkerWorkHistoryItem {
+  assignmentId: string;
+  jobId: string;
+  jobTitle: string;
+  workCategory: string;
+  farmerName: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  dailyWage: number;
+  daysWorked: number;
+  presentCount: number;
+  halfDayCount: number;
+  totalEarned: number;
+  rating?: number | null;
+  reviewComment?: string | null;
+  status: string;
+  completedAtUtc: string;
+}
+
+export interface WorkerWorkHistorySummary {
+  totalCompletedJobs: number;
+  totalWorkDays: number;
+  totalEarnings: number;
+  historyItems: WorkerWorkHistoryItem[];
+}
+
+export interface ProfileCompletionSection {
+  sectionKey: string;
+  sectionName: string;
+  isComplete: boolean;
+  completionPercentage: number;
+  description: string;
+  actionRoute: string;
+}
+
+export interface WorkerProfileCompletion {
+  overallCompletionPercentage: number;
+  verificationStatus: string;
+  sections: ProfileCompletionSection[];
 }

@@ -1,0 +1,194 @@
+<div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-emerald-600 dark:text-emerald-400">history</mat-icon>
+        Work History
+      </h1>
+      <p class="text-sm text-slate-600 dark:text-slate-400">
+        Review all your completed agricultural job assignments and earned wages.
+      </p>
+    </div>
+    <button mat-stroked-button (click)="loadHistory()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="flex flex-col items-center justify-center py-16 text-slate-500">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="mt-4 text-sm font-medium">Loading your work history...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="loadError()" class="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-200 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ loadError() }}</span>
+    </div>
+    <button mat-button color="warn" (click)="loadHistory()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading() && !loadError()">
+    <!-- Summary Metrics Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" *ngIf="summary() as sum">
+      <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <mat-icon class="!w-6 !h-6 text-2xl">verified</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Total Completed Jobs</p>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{{ sum.totalCompletedJobs }}</p>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <mat-icon class="!w-6 !h-6 text-2xl">event_available</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Total Work Days</p>
+          <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{{ sum.totalWorkDays }} Days</p>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <mat-icon class="!w-6 !h-6 text-2xl">payments</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Total Earned</p>
+          <p class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">₹{{ sum.totalEarnings | number:'1.0-2' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="relative w-full sm:w-80">
+        <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Search by job, farmer, location..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
+        />
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+        <button
+          *ngFor="let f of ['All', 'Rated', 'Unrated']"
+          type="button"
+          (click)="onFilterChange(f)"
+          [class]="selectedFilter() === f
+            ? 'px-4 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm'
+            : 'px-4 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+        >
+          {{ f }}
+        </button>
+      </div>
+    </div>
+
+    <!-- History Items List -->
+    <div *ngIf="filteredItems().length > 0; else emptyState" class="space-y-4">
+      <div
+        *ngFor="let item of filteredItems()"
+        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-300 dark:hover:border-emerald-700 transition-all space-y-4"
+      >
+        <!-- Top Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ item.jobTitle }}</h3>
+              <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {{ item.workCategory }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+              <mat-icon class="!w-4 !h-4 text-base">person</mat-icon> Farmer: <strong class="text-slate-700 dark:text-slate-200">{{ item.farmerName }}</strong>
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 w-max">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            {{ item.status }}
+          </span>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <!-- Work Location -->
+          <div class="flex items-start gap-2">
+            <mat-icon class="text-slate-400 !w-4 !h-4 text-base mt-0.5">location_on</mat-icon>
+            <div>
+              <p class="text-slate-400 uppercase tracking-wider font-semibold">Location</p>
+              <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">{{ item.location }}</p>
+            </div>
+          </div>
+
+          <!-- Work Dates -->
+          <div class="flex items-start gap-2">
+            <mat-icon class="text-slate-400 !w-4 !h-4 text-base mt-0.5">date_range</mat-icon>
+            <div>
+              <p class="text-slate-400 uppercase tracking-wider font-semibold">Work Dates</p>
+              <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                {{ item.startDate | date:'dd MMM yyyy' }} - {{ item.endDate | date:'dd MMM yyyy' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Attendance Summary -->
+          <div class="flex items-start gap-2">
+            <mat-icon class="text-slate-400 !w-4 !h-4 text-base mt-0.5">how_to_reg</mat-icon>
+            <div>
+              <p class="text-slate-400 uppercase tracking-wider font-semibold">Attendance Summary</p>
+              <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                <span *ngIf="item.presentCount > 0">{{ item.presentCount }} Present</span>
+                <span *ngIf="item.presentCount > 0 && item.halfDayCount > 0">, </span>
+                <span *ngIf="item.halfDayCount > 0">{{ item.halfDayCount }} Half Day</span>
+                <span *ngIf="item.presentCount === 0 && item.halfDayCount === 0">{{ item.daysWorked }} Days (Full)</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Wage & Earned -->
+          <div class="flex items-start gap-2">
+            <mat-icon class="text-slate-400 !w-4 !h-4 text-base mt-0.5">account_balance_wallet</mat-icon>
+            <div>
+              <p class="text-slate-400 uppercase tracking-wider font-semibold">Daily Wage / Earned</p>
+              <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                ₹{{ item.dailyWage }}/day &rarr; <span class="font-bold text-emerald-600 dark:text-emerald-400">₹{{ item.totalEarned | number:'1.0-2' }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rating & Review Section (if present) -->
+        <div *ngIf="item.rating" class="p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-xl flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <div class="flex items-center text-amber-500">
+              <mat-icon *ngFor="let s of [1,2,3,4,5]" class="!w-4 !h-4 text-base">
+                {{ s <= item.rating ? 'star' : 'star_outline' }}
+              </mat-icon>
+            </div>
+            <span class="font-bold text-amber-800 dark:text-amber-200">{{ item.rating }}.0 Rating</span>
+            <span *ngIf="item.reviewComment" class="text-slate-600 dark:text-slate-400 italic">"{{ item.reviewComment }}"</span>
+          </div>
+          <span class="text-amber-700 dark:text-amber-400 font-medium">Farmer Rating</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+      <div class="p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center justify-center">
+        <mat-icon class="!w-12 !h-12 text-4xl text-slate-300 dark:text-slate-600 mb-3">work_off</mat-icon>
+        <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No Work History Found</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+          You have not completed any job assignments yet. Browse available jobs to start working.
+        </p>
+      </div>
+    </ng-template>
+  </ng-container>
+</div>

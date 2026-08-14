@@ -64,6 +64,7 @@ public sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Worker
         builder.Property(profile => profile.PreferredWorkingHours).HasMaxLength(100);
         builder.Property(profile => profile.FoodPreference).HasMaxLength(50);
         builder.Property(profile => profile.AccommodationPreference).HasMaxLength(50);
+        builder.Property(profile => profile.VerificationStatus).HasMaxLength(50).HasDefaultValue("Not Verified").IsRequired();
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
         builder.ConfigureAddressInfo(profile => profile.AddressInfo);

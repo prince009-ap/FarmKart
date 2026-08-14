@@ -36,6 +36,7 @@ public sealed class WorkerProfile : ProfileBase
     public string? PreferredWorkingHours { get; set; }
     public string? FoodPreference { get; set; }
     public string? AccommodationPreference { get; set; }
+    public string VerificationStatus { get; set; } = "Not Verified";
 
     public ICollection<WorkerSkill> WorkerSkills { get; set; } = [];
     public ICollection<JobApplication> JobApplications { get; set; } = [];

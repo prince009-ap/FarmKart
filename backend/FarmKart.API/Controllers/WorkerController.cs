@@ -25,6 +25,8 @@ public class WorkerController : ControllerBase
     private readonly INotificationService _notificationService;
     private readonly IWorkerReviewService _workerReviewService;
     private readonly IWorkerEarningsService _workerEarningsService;
+    private readonly IWorkerWorkHistoryService _workerWorkHistoryService;
+    private readonly IWorkerProfileCompletionService _workerProfileCompletionService;
 
     public WorkerController(
         IWorkerJobService workerJobService,
@@ -33,7 +35,9 @@ public class WorkerController : ControllerBase
         IWorkerProfileService workerProfileService,
         INotificationService notificationService,
         IWorkerReviewService workerReviewService,
-        IWorkerEarningsService workerEarningsService)
+        IWorkerEarningsService workerEarningsService,
+        IWorkerWorkHistoryService workerWorkHistoryService,
+        IWorkerProfileCompletionService workerProfileCompletionService)
     {
         _workerJobService = workerJobService;
         _workerAssignmentService = workerAssignmentService;
@@ -42,6 +46,8 @@ public class WorkerController : ControllerBase
         _notificationService = notificationService;
         _workerReviewService = workerReviewService;
         _workerEarningsService = workerEarningsService;
+        _workerWorkHistoryService = workerWorkHistoryService;
+        _workerProfileCompletionService = workerProfileCompletionService;
     }
 
     [HttpGet("profile")]
@@ -80,6 +86,25 @@ public class WorkerController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("profile/completion")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerProfileCompletionResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfileCompletion()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerProfileCompletionService.GetProfileCompletionAsync(userId.Value));
         }
         catch (ProfileNotFoundException ex)
         {
@@ -161,6 +186,25 @@ public class WorkerController : ControllerBase
         try
         {
             return Ok(await _workerEarningsService.GetWorkerEarningsAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("work-history")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerWorkHistorySummaryResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyWorkHistory()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerWorkHistoryService.GetWorkerWorkHistoryAsync(userId.Value));
         }
         catch (ProfileNotFoundException ex)
         {

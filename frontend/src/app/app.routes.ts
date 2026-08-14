@@ -200,6 +200,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'work-history',
+        loadComponent: () =>
+          import('./features/worker/worker-work-history.component').then(
+            (module) => module.WorkerWorkHistoryComponent,
+          ),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/worker/worker-profile.component').then(

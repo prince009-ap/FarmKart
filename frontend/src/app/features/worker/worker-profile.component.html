@@ -59,6 +59,86 @@
     </div>
   }
 
+  <!-- PROFILE COMPLETION & VERIFICATION CARD -->
+  @if (!loading() && profileCompletion()) {
+    <div class="p-6 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">Profile Completion</h2>
+            <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              {{ profileCompletion()?.overallCompletionPercentage }}%
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Complete your profile details to increase visibility to hiring farmers.
+          </p>
+        </div>
+
+        <!-- Verification Status Badge -->
+        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 w-max">
+          <mat-icon class="!w-5 !h-5 !text-[20px]" [ngClass]="profileCompletion()?.verificationStatus === 'Verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'">
+            {{ profileCompletion()?.verificationStatus === 'Verified' ? 'verified_user' : 'shield' }}
+          </mat-icon>
+          <div class="text-xs">
+            <span class="text-slate-400 font-medium block text-[10px] uppercase tracking-wider">Verification Status</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200">{{ profileCompletion()?.verificationStatus }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Progress Bar -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+          <span>Completion Progress</span>
+          <span>{{ profileCompletion()?.overallCompletionPercentage }}%</span>
+        </div>
+        <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+          <div
+            class="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+            [style.width.%]="profileCompletion()?.overallCompletionPercentage || 0"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Section Checklist & Actions -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+        <div
+          *ngFor="let sec of profileCompletion()?.sections"
+          class="p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs transition-all"
+          [ngClass]="sec.isComplete
+            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50'
+            : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50'"
+        >
+          <div class="flex items-center gap-2.5">
+            <mat-icon
+              class="!w-5 !h-5 !text-[20px]"
+              [ngClass]="sec.isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'"
+            >
+              {{ sec.isComplete ? 'check_circle' : 'radio_button_unchecked' }}
+            </mat-icon>
+            <div>
+              <p class="font-bold" [ngClass]="sec.isComplete ? 'text-emerald-900 dark:text-emerald-200' : 'text-amber-900 dark:text-amber-200'">
+                {{ sec.sectionName }}
+              </p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ sec.completionPercentage }}% weight</p>
+            </div>
+          </div>
+
+          <button
+            *ngIf="!sec.isComplete"
+            type="button"
+            mat-button
+            class="!px-2.5 !py-1 !min-w-0 !h-auto text-[11px] font-bold rounded-lg bg-amber-600 text-white hover:bg-amber-700 shadow-xs shrink-0"
+            (click)="onSectionAction(sec)"
+          >
+            Complete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Profile Content -->
   @if (!loading() && profile()) {
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">

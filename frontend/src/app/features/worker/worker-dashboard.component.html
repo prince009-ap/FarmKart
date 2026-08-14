@@ -1,75 +1,297 @@
-<div class="app-page animate-fk-rise">
-  <section class="app-hero-banner app-hero-banner--worker">
-    <p class="app-hero-banner__eyebrow">Worker workspace</p>
-    <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
-    <p class="app-hero-banner__summary">
-      Browse farm jobs, track your applications, and connect with local farmers looking for skilled labor.
-    </p>
-    <div class="app-hero-banner__actions">
-      <a mat-flat-button class="app-primary-btn app-primary-btn--worker" routerLink="/worker/jobs">
-        <mat-icon>search</mat-icon>
-        Browse Jobs
+<div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+  <!-- Hero Greeting Banner -->
+  <div class="p-6 md:p-8 rounded-3xl bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div class="relative z-10 max-w-xl space-y-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-700/60 border border-emerald-500/30 text-emerald-100">
+        <mat-icon class="!w-4 !h-4 text-base text-amber-300">verified</mat-icon>
+        Worker Workspace
+      </span>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+        Welcome back, {{ userName() }}!
+      </h1>
+      <p class="text-sm text-emerald-100/90 leading-relaxed">
+        Discover new agricultural job postings, manage active assignments, track daily attendance, and monitor your earnings.
+      </p>
+
+      <!-- Profile Completion Quick Banner -->
+      <div *ngIf="profileCompletion() as comp" class="pt-2 flex items-center gap-3">
+        <div class="flex-1 bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-600/30 flex items-center gap-3">
+          <mat-icon class="text-amber-400 !w-5 !h-5 text-lg">pie_chart</mat-icon>
+          <div class="flex-1 text-xs">
+            <div class="flex justify-between font-semibold">
+              <span>Profile Completion</span>
+              <span class="text-amber-300">{{ comp.overallCompletionPercentage }}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-emerald-900 rounded-full mt-1 overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full transition-all duration-500" [style.width.%]="comp.overallCompletionPercentage"></div>
+            </div>
+          </div>
+        </div>
+        <a routerLink="/worker/profile" class="px-3 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all shrink-0">
+          Complete
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="relative z-10 flex flex-wrap sm:flex-nowrap items-center gap-3 w-full md:w-auto">
+      <a mat-flat-button routerLink="/worker/jobs" class="!bg-amber-500 hover:!bg-amber-400 !text-slate-950 !font-bold !rounded-xl !px-5 !py-3 flex-1 sm:flex-none justify-center shadow-lg">
+        <mat-icon>search</mat-icon> Browse Jobs
       </a>
-      <a mat-stroked-button class="!border-white/30 !text-white" routerLink="/worker/applications">
-        <mat-icon>assignment</mat-icon>
-        My Applications
+      <a mat-stroked-button routerLink="/worker/earnings" class="!border-white/30 !text-white hover:!bg-white/10 !rounded-xl !px-5 !py-3 flex-1 sm:flex-none justify-center">
+        <mat-icon>account_balance_wallet</mat-icon> Earnings
       </a>
     </div>
-  </section>
 
-  <section class="app-grid app-grid--modules">
-    <article class="app-card app-card--interactive">
-      <div class="app-card__icon app-card__icon--worker">
-        <mat-icon>work</mat-icon>
-      </div>
-      <h2 class="app-card__title">Browse Jobs</h2>
-      <span class="app-badge app-badge--worker mt-2">Active</span>
-      <p class="app-card__text">Find and apply to farm labor opportunities posted by local farmers.</p>
-      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
-        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/jobs">
-          Open module
-          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
-        </a>
-      </div>
-    </article>
+    <!-- Decorative Overlay Glow -->
+    <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+  </div>
 
-    <article class="app-card">
-      <div class="app-card__icon app-card__icon--worker">
-        <mat-icon>assignment_turned_in</mat-icon>
+  <!-- Live Stats Metrics Grid -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Active Assignments -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+        <mat-icon class="!w-6 !h-6 text-2xl">assignment_turned_in</mat-icon>
       </div>
-      <h2 class="app-card__title">My Applications</h2>
-      <span class="app-badge app-badge--worker mt-2">Active</span>
-      <p class="app-card__text">Track pending, accepted, and rejected applications in one place.</p>
-      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
-        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/applications">
-          Open module
-          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
-        </a>
+      <div>
+        <p class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">Active Work</p>
+        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ activeAssignmentsCount() }}</p>
       </div>
-    </article>
+    </div>
 
-    <article class="app-card">
-      <div class="app-card__icon app-card__icon--worker">
-        <mat-icon>work_history</mat-icon>
+    <!-- Applications -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+        <mat-icon class="!w-6 !h-6 text-2xl">assignment</mat-icon>
       </div>
-      <h2 class="app-card__title">My Assignments</h2>
-      <span class="app-badge app-badge--worker mt-2">Active</span>
-      <p class="app-card__text">View active and upcoming job assignments and work terms.</p>
-      <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
-        <a mat-button class="font-semibold !text-amber-800" routerLink="/worker/assignments">
-          Open module
-          <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
-        </a>
+      <div>
+        <p class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">Applied Jobs</p>
+        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ applicationsCount() }}</p>
       </div>
-    </article>
+    </div>
 
-    <article class="app-card">
-      <div class="app-card__icon app-card__icon--worker">
-        <mat-icon>person</mat-icon>
+    <!-- Monthly Earnings -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+        <mat-icon class="!w-6 !h-6 text-2xl">payments</mat-icon>
       </div>
-      <h2 class="app-card__title">My Profile</h2>
-      <span class="app-badge app-badge--soon mt-2">Coming Soon</span>
-      <p class="app-card__text">Update skills, experience, and availability for better job matches.</p>
-    </article>
-  </section>
+      <div>
+        <p class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">This Month</p>
+        <p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">₹{{ monthlyEarnings() | number:'1.0-0' }}</p>
+      </div>
+    </div>
+
+    <!-- Attendance Rate -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+        <mat-icon class="!w-6 !h-6 text-2xl">event_available</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">Attendance Rate</p>
+        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">{{ attendanceRate() }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary Modules Grid -->
+  <div class="space-y-4">
+    <h2 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+      <mat-icon class="text-emerald-600 dark:text-emerald-400">apps</mat-icon>
+      Worker Modules
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <!-- Browse Jobs -->
+      <a
+        routerLink="/worker/jobs"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">work</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+              Active
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            Browse Jobs
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Search for local farm labor opportunities, filter by daily wage & category, and apply instantly.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+          <span>Explore Open Jobs</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+
+      <!-- My Applications -->
+      <a
+        routerLink="/worker/applications"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">assignment</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+              {{ applicationsCount() }} Active
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            My Applications
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Track pending, accepted, and rejected job applications submitted to local farmers.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
+          <span>View Applications</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+
+      <!-- My Assignments -->
+      <a
+        routerLink="/worker/assignments"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950/80 text-teal-600 dark:text-teal-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">assignment_turned_in</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+              {{ activeAssignmentsCount() }} Assigned
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            My Assignments
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Access active farm job terms, location details, farmer contact, and daily work schedules.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-teal-600 dark:text-teal-400">
+          <span>View Assignments</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+
+      <!-- My Earnings -->
+      <a
+        routerLink="/worker/earnings"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">account_balance_wallet</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
+              ₹{{ monthlyEarnings() | number:'1.0-0' }}
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            My Earnings
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Monitor total earned income calculated dynamically from attendance logs and daily wages.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
+          <span>View Earnings Breakdown</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+
+      <!-- Work History -->
+      <a
+        routerLink="/worker/work-history"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">history</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300">
+              History
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            Work History
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Review completed farm work records, farmer star ratings (`★★★★★`), and detailed review notes.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-400">
+          <span>View Work History</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+
+      <!-- My Profile -->
+      <a
+        routerLink="/worker/profile"
+        class="group p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-400 dark:hover:border-emerald-600 transition-all flex flex-col justify-between"
+      >
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <mat-icon class="!w-6 !h-6 text-2xl">badge</mat-icon>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+              Active
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            My Profile
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Update personal info, skills list, experience details, availability status, and profile photo.
+          </p>
+        </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400">
+          <span>Manage Profile</span>
+          <mat-icon class="!w-4 !h-4 text-base group-hover:translate-x-1 transition-transform">arrow_forward</mat-icon>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent Notifications Feed -->
+  <div *ngIf="recentNotifications().length > 0" class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-amber-500">notifications</mat-icon>
+        Recent Notifications
+      </h3>
+      <a routerLink="/worker/notifications" class="text-xs font-bold text-emerald-600 hover:underline">
+        View All
+      </a>
+    </div>
+
+    <div class="space-y-2.5">
+      <div
+        *ngFor="let n of recentNotifications()"
+        class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 flex items-start justify-between gap-3 text-xs"
+      >
+        <div class="flex items-start gap-2.5">
+          <mat-icon class="text-emerald-600 dark:text-emerald-400 !w-4 !h-4 text-base mt-0.5">info</mat-icon>
+          <div>
+            <p class="font-bold text-slate-900 dark:text-white">{{ n.title }}</p>
+            <p class="text-slate-600 dark:text-slate-300 mt-0.5">{{ n.message }}</p>
+          </div>
+        </div>
+        <span class="text-[10px] text-slate-400 whitespace-nowrap">{{ n.createdAtUtc | date:'shortTime' }}</span>
+      </div>
+    </div>
+  </div>
 </div>

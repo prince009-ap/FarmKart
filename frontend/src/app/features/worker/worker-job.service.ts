@@ -14,8 +14,10 @@ import {
   WorkerPreferences,
   WorkerPreferencesUpdateRequest,
   WorkerProfile,
+  WorkerProfileCompletion,
   WorkerProfileUpdateRequest,
-  WorkerRatingSummary
+  WorkerRatingSummary,
+  WorkerWorkHistorySummary
 } from '../../core/models/worker.models';
 
 @Injectable({
@@ -65,6 +67,10 @@ export class WorkerJobService {
     return this.http.put<WorkerProfile>(`${this.baseUrl}/profile`, request, { withCredentials: true });
   }
 
+  getProfileCompletion(): Observable<WorkerProfileCompletion> {
+    return this.http.get<WorkerProfileCompletion>(`${this.baseUrl}/profile/completion`, { withCredentials: true });
+  }
+
   getPreferences(): Observable<WorkerPreferences> {
     return this.http.get<WorkerPreferences>(`${this.baseUrl}/preferences`, { withCredentials: true });
   }
@@ -95,5 +101,9 @@ export class WorkerJobService {
 
   getEarnings(): Observable<WorkerEarningsSummary> {
     return this.http.get<WorkerEarningsSummary>(`${this.baseUrl}/earnings`, { withCredentials: true });
+  }
+
+  getWorkHistory(): Observable<WorkerWorkHistorySummary> {
+    return this.http.get<WorkerWorkHistorySummary>(`${this.baseUrl}/work-history`, { withCredentials: true });
   }
 }

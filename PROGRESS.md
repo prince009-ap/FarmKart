@@ -21,6 +21,8 @@
   - [x] Phase 5.5: Worker In-App Notifications
   - [x] Phase 5.6: Worker Ratings & Reviews
   - [x] Phase 5.7: Worker Earnings Management
+  - [x] Phase 5.8: Worker Work History
+  - [x] Phase 5.9: Worker Profile Verification & Completion
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
@@ -332,8 +334,23 @@
 - [x] Updated Angular `WorkerProfileComponent` (`/worker/profile`) displaying Received Ratings & Reviews summary (Average Rating, Total Reviews, Star breakdown chart, Recent Reviews).
 - [x] Updated `WorkerShellComponent` sidebar/drawer navigation and `app.routes.ts` with `/worker/earnings`.
 - [x] Added 14 backend integration tests in `WorkerRatingTests.cs` and 12 in `WorkerEarningsTests.cs` (203/203 total backend tests passing).
-- [x] Added 8 frontend unit specs in `worker-earnings.component.spec.ts` and updated `farmer-job-assignments.component.spec.ts` & `worker-profile.component.spec.ts` (148/148 total frontend tests passing).
+## Phase 5.8 & 5.9 Deliverables — Worker Work History & Worker Profile Verification & Completion
+
+- [x] Derived Worker Work History 100% dynamically from existing `WorkerAssignment`, `Job`, `Attendance`, `Review`, and `WorkerEarnings` records without creating duplicate WorkHistory tables.
+- [x] Added `VerificationStatus` (`nvarchar(50)`, default `'Not Verified'`) property to `WorkerProfile` entity and `WorkerProfileConfiguration` with EF Core migration `AddWorkerVerificationStatus`.
+- [x] Implemented `IWorkerWorkHistoryService` / `WorkerWorkHistoryService` returning completed job history cards with Job Title, Work Category, Farmer Name, Farm Location, Work Dates, Daily Wage, Attendance Summary breakdown (`5 Present, 1 Half Day`), Earned Amount, Farmer Star Rating & Comment, and Completion Status, as well as summary metrics (Total Completed Jobs, Total Work Days, Total Earnings).
+- [x] Implemented `IWorkerProfileCompletionService` / `WorkerProfileCompletionService` calculating profile completion dynamically across 5 weighted sections (Basic Information: 20%, Skills & Experience: 25%, Availability: 20%, Job Preferences: 25%, Profile Photo: 10%) and exposing application verification status.
+- [x] Enforced strict security: Server-side identity resolution from JWT claims prevents accessing or modifying another worker's history or completion status; workers cannot manually mark themselves `Verified`.
+- [x] Exposed REST endpoints in `WorkerController.cs` under `[Authorize(Roles = Roles.Worker)]`:
+  - `GET /api/worker/work-history`
+  - `GET /api/worker/profile/completion`
+- [x] Created Angular `WorkerWorkHistoryComponent` (`/worker/work-history`) with summary metric cards, completed job cards, search & rating filters, loading, error, and empty states.
+- [x] Updated Angular `WorkerProfileComponent` (`/worker/profile`) displaying Profile Completion Progress Bar (`85%`), Verification Status Badge (`Not Verified`), section checklist with `[ Complete Section ]` action buttons navigating to incomplete sections.
+- [x] Updated `WorkerShellComponent` sidebar/drawer navigation and `app.routes.ts` with `/worker/work-history`.
+- [x] Added 12 backend integration tests in `WorkerWorkHistoryTests.cs` and 9 in `WorkerProfileCompletionTests.cs` (**224 / 224 total backend tests passing**).
+- [x] Added 10 frontend unit specs in `worker-work-history.component.spec.ts` and updated `worker-profile.component.spec.ts` (**159 / 159 total frontend tests passing**).
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
+
 
 
 
