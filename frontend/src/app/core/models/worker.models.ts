@@ -137,3 +137,56 @@ export interface WorkerNotification {
 export interface UnreadNotificationCount {
   unreadCount: number;
 }
+
+export interface CreateWorkerReviewRequest {
+  rating: number;
+  comment?: string | null;
+}
+
+export interface WorkerReview {
+  reviewId: string;
+  workerAssignmentId: string;
+  farmerName: string;
+  jobTitle: string;
+  rating: number;
+  comment?: string | null;
+  createdAtUtc: string;
+}
+
+export interface WorkerRatingBreakdown {
+  fiveStars: number;
+  fourStars: number;
+  threeStars: number;
+  twoStars: number;
+  oneStar: number;
+}
+
+export interface WorkerRatingSummary {
+  averageRating: number;
+  totalReviews: number;
+  breakdown: WorkerRatingBreakdown;
+  recentReviews: WorkerReview[];
+}
+
+export interface WorkerEarningsItem {
+  assignmentId: string;
+  jobId: string;
+  jobTitle: string;
+  farmerName: string;
+  workCategory: string;
+  startDate: string;
+  endDate?: string | null;
+  daysWorked: number;
+  dailyWage: number;
+  totalEarned: number;
+  status: string;
+  assignedAtUtc: string;
+}
+
+export interface WorkerEarningsSummary {
+  totalEarnings: number;
+  completedJobsCount: number;
+  thisMonthEarnings: number;
+  allTimeEarnings: number;
+  earningsHistory: WorkerEarningsItem[];
+}

@@ -193,6 +193,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'earnings',
+        loadComponent: () =>
+          import('./features/worker/worker-earnings.component').then(
+            (module) => module.WorkerEarningsComponent,
+          ),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/worker/worker-profile.component').then(

@@ -3,12 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { FarmerAttendanceRecord, FarmerJob, FarmerJobApplication, FarmerJobRequest, FarmerWorkerAssignment, SaveJobAttendanceRequest } from '../../core/models/farmer.models';
+import { CreateWorkerReviewRequest, WorkerReview } from '../../core/models/worker.models';
 
 @Injectable({ providedIn: 'root' })
 export class FarmerJobService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/farmer/jobs`;
   private readonly appApiUrl = `${environment.apiUrl}/farmer/applications`;
+  private readonly assignApiUrl = `${environment.apiUrl}/farmer/assignments`;
 
   getMyJobs(): Observable<FarmerJob[]> { return this.http.get<FarmerJob[]>(this.apiUrl); }
   getJob(id: string): Observable<FarmerJob> { return this.http.get<FarmerJob>(`${this.apiUrl}/${id}`); }
@@ -43,5 +45,13 @@ export class FarmerJobService {
 
   saveJobAttendance(jobId: string, request: SaveJobAttendanceRequest): Observable<FarmerAttendanceRecord[]> {
     return this.http.post<FarmerAttendanceRecord[]>(`${this.apiUrl}/${jobId}/attendance`, request);
+  }
+
+  rateWorker(assignmentId: string, request: CreateWorkerReviewRequest): Observable<WorkerReview> {
+    return this.http.post<WorkerReview>(`${this.assignApiUrl}/${assignmentId}/review`, request);
+  }
+
+  getWorkerReview(assignmentId: string): Observable<WorkerReview> {
+    return this.http.get<WorkerReview>(`${this.assignApiUrl}/${assignmentId}/review`);
   }
 }

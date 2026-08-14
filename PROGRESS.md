@@ -19,6 +19,8 @@
   - [x] Phase 5.3: Worker Availability Management
   - [x] Phase 5.4: Worker Job Preferences
   - [x] Phase 5.5: Worker In-App Notifications
+  - [x] Phase 5.6: Worker Ratings & Reviews
+  - [x] Phase 5.7: Worker Earnings Management
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
@@ -314,5 +316,24 @@
 - [x] Added 14 backend integration tests in `WorkerPreferencesTests.cs` and 12 in `WorkerNotificationTests.cs` (177/177 total backend tests passing).
 - [x] Added 10 frontend unit specs in `worker-preferences.component.spec.ts` and 8 in `worker-notifications.component.spec.ts` (138/138 total frontend tests passing).
 - [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
+
+## Phase 5.6 & 5.7 Deliverables — Worker Ratings & Reviews and Worker Earnings
+
+- [x] Confirmed `Review` entity (`Communication.cs`) and `Reviews` table with `CK_Review_Rating_Range` (`1 <= Rating <= 5`) already exist in SQL Server schema; no database migration required.
+- [x] Implemented `IWorkerReviewService` / `WorkerReviewService` for rating workers (1 to 5 stars, optional comment up to 2000 chars), fetching assignment reviews, and calculating worker rating summaries (average rating, total reviews count, star breakdown, recent reviews).
+- [x] Enforced completion rules (ratings only allowed for completed or finished worker assignments) and security rules (only assigned farmers can rate workers, workers cannot rate themselves, customers cannot rate workers).
+- [x] Integrated in-app notification trigger ("New Review Received", "{FarmerName} rated your work {Rating} stars.") when a review is created.
+- [x] Implemented `IWorkerEarningsService` / `WorkerEarningsService` deriving earnings dynamically from `WorkerAssignment`, `Job`, and `Attendance` records (`Present` = 100% daily wage, `HalfDay` = 50% daily wage, `Absent`/`Leave` = ₹0).
+- [x] Exposed REST endpoints in `FarmerController.cs` and `WorkerController.cs`:
+  - `POST /api/farmer/assignments/{assignmentId}/review` & `GET /api/farmer/assignments/{assignmentId}/review`
+  - `GET /api/worker/reviews` & `GET /api/worker/earnings`
+- [x] Updated Angular `FarmerJobAssignmentsComponent` with a "Rate Worker" / "Edit Rating" button and interactive star rating modal for completed worker assignments.
+- [x] Created Angular `WorkerEarningsComponent` (`/worker/earnings`) displaying Total Earnings banner, Completed Jobs counter, This Month earnings, and Earnings History table.
+- [x] Updated Angular `WorkerProfileComponent` (`/worker/profile`) displaying Received Ratings & Reviews summary (Average Rating, Total Reviews, Star breakdown chart, Recent Reviews).
+- [x] Updated `WorkerShellComponent` sidebar/drawer navigation and `app.routes.ts` with `/worker/earnings`.
+- [x] Added 14 backend integration tests in `WorkerRatingTests.cs` and 12 in `WorkerEarningsTests.cs` (203/203 total backend tests passing).
+- [x] Added 8 frontend unit specs in `worker-earnings.component.spec.ts` and updated `farmer-job-assignments.component.spec.ts` & `worker-profile.component.spec.ts` (148/148 total frontend tests passing).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
+
 
 

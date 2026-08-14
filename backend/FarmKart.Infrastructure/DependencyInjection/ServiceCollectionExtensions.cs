@@ -42,6 +42,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkerAttendanceService, WorkerAttendanceService>();
         services.AddScoped<IWorkerProfileService, WorkerProfileService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IWorkerReviewService, WorkerReviewService>();
+        services.AddScoped<IWorkerEarningsService, WorkerEarningsService>();
 
         // Register JWT options and services
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

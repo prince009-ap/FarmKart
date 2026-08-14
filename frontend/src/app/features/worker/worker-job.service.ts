@@ -8,12 +8,14 @@ import {
   WorkerAssignment,
   WorkerAttendanceSummary,
   WorkerAvailableJob,
+  WorkerEarningsSummary,
   WorkerJobApplication,
   WorkerNotification,
   WorkerPreferences,
   WorkerPreferencesUpdateRequest,
   WorkerProfile,
-  WorkerProfileUpdateRequest
+  WorkerProfileUpdateRequest,
+  WorkerRatingSummary
 } from '../../core/models/worker.models';
 
 @Injectable({
@@ -85,5 +87,13 @@ export class WorkerJobService {
 
   markAllNotificationsAsRead(): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.baseUrl}/notifications/read-all`, {}, { withCredentials: true });
+  }
+
+  getReviews(): Observable<WorkerRatingSummary> {
+    return this.http.get<WorkerRatingSummary>(`${this.baseUrl}/reviews`, { withCredentials: true });
+  }
+
+  getEarnings(): Observable<WorkerEarningsSummary> {
+    return this.http.get<WorkerEarningsSummary>(`${this.baseUrl}/earnings`, { withCredentials: true });
   }
 }

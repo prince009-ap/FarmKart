@@ -23,19 +23,25 @@ public class WorkerController : ControllerBase
     private readonly IWorkerAttendanceService _workerAttendanceService;
     private readonly IWorkerProfileService _workerProfileService;
     private readonly INotificationService _notificationService;
+    private readonly IWorkerReviewService _workerReviewService;
+    private readonly IWorkerEarningsService _workerEarningsService;
 
     public WorkerController(
         IWorkerJobService workerJobService,
         IWorkerAssignmentService workerAssignmentService,
         IWorkerAttendanceService workerAttendanceService,
         IWorkerProfileService workerProfileService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IWorkerReviewService workerReviewService,
+        IWorkerEarningsService workerEarningsService)
     {
         _workerJobService = workerJobService;
         _workerAssignmentService = workerAssignmentService;
         _workerAttendanceService = workerAttendanceService;
         _workerProfileService = workerProfileService;
         _notificationService = notificationService;
+        _workerReviewService = workerReviewService;
+        _workerEarningsService = workerEarningsService;
     }
 
     [HttpGet("profile")]
@@ -117,6 +123,44 @@ public class WorkerController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("reviews")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerRatingSummaryResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyReviews()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerReviewService.GetWorkerRatingSummaryAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("earnings")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerEarningsSummaryResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyEarnings()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerEarningsService.GetWorkerEarningsAsync(userId.Value));
         }
         catch (ProfileNotFoundException ex)
         {

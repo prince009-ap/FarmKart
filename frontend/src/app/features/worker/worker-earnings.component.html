@@ -1,0 +1,146 @@
+<div class="container mx-auto px-4 py-6 max-w-5xl">
+  <!-- Page Header -->
+  <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-emerald-600">account_balance_wallet</mat-icon>
+        My Earnings
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Track your total earnings, completed farm work history, and daily wage calculations
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <mat-spinner diameter="40" color="primary"></mat-spinner>
+      <p class="mt-4 text-slate-600 dark:text-slate-400 text-sm font-medium">Loading earnings summary...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (loadError()) {
+    <div class="p-4 mb-6 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-start gap-3">
+      <mat-icon class="text-rose-500 shrink-0">error</mat-icon>
+      <div>
+        <h3 class="font-semibold text-sm">Error Loading Earnings</h3>
+        <p class="text-xs mt-0.5">{{ loadError() }}</p>
+        <button
+          mat-button
+          color="warn"
+          class="mt-2 text-xs font-semibold underline"
+          (click)="loadEarnings()">
+          Try Again
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Summary Metric Cards -->
+  @if (!loading() && summary()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Total Earnings -->
+      <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+        <div class="relative z-10">
+          <span class="text-xs uppercase tracking-wider font-semibold text-emerald-200 block">Total Earnings</span>
+          <p class="text-3xl font-black mt-2 font-mono">₹{{ summary()?.totalEarnings | number:'1.0-2' }}</p>
+          <p class="text-xs text-emerald-200 mt-2 flex items-center gap-1">
+            <mat-icon class="!w-4 !h-4 !text-[16px]">check_circle</mat-icon> Derived from completed & verified work
+          </p>
+        </div>
+        <mat-icon class="absolute right-3 bottom-3 !w-24 !h-24 !text-[96px] text-emerald-500/20 pointer-events-none">payments</mat-icon>
+      </div>
+
+      <!-- Completed Jobs Count -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block">Completed Jobs</span>
+        <p class="text-3xl font-black text-slate-800 dark:text-white mt-2 font-mono">{{ summary()?.completedJobsCount }}</p>
+        <p class="text-xs text-slate-400 mt-2">Finished farm assignments</p>
+      </div>
+
+      <!-- This Month Earnings -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block">This Month</span>
+        <p class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-2 font-mono">₹{{ summary()?.thisMonthEarnings | number:'1.0-2' }}</p>
+        <p class="text-xs text-slate-400 mt-2">Current month earnings</p>
+      </div>
+
+    </div>
+
+    <!-- Earnings History Table -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-600">history</mat-icon>
+          Earnings History
+        </h2>
+        <span class="text-xs text-slate-400 font-medium">
+          {{ summary()?.earningsHistory?.length || 0 }} Record(s)
+        </span>
+      </div>
+
+      @if (summary()?.earningsHistory && summary()!.earningsHistory.length > 0) {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+              <tr>
+                <th class="px-6 py-3.5">Job & Category</th>
+                <th class="px-6 py-3.5">Farmer</th>
+                <th class="px-6 py-3.5">Work Period</th>
+                <th class="px-6 py-3.5 text-center">Days Worked</th>
+                <th class="px-6 py-3.5 text-right">Daily Wage</th>
+                <th class="px-6 py-3.5 text-right">Earned</th>
+                <th class="px-6 py-3.5 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+              @for (item of summary()!.earningsHistory; track item.assignmentId) {
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-750 transition-colors">
+                  <td class="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                    {{ item.jobTitle }}
+                    <span class="block text-xs font-normal text-slate-500 dark:text-slate-400">{{ item.workCategory }}</span>
+                  </td>
+                  <td class="px-6 py-4 font-medium">{{ item.farmerName }}</td>
+                  <td class="px-6 py-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {{ item.startDate | date:'mediumDate' }}
+                    @if (item.endDate) {
+                      - {{ item.endDate | date:'mediumDate' }}
+                    }
+                  </td>
+                  <td class="px-6 py-4 text-center font-bold text-slate-800 dark:text-slate-200">
+                    {{ item.daysWorked }} {{ item.daysWorked === 1 ? 'day' : 'days' }}
+                  </td>
+                  <td class="px-6 py-4 text-right font-mono font-medium text-slate-700 dark:text-slate-300">
+                    ₹{{ item.dailyWage }}/day
+                  </td>
+                  <td class="px-6 py-4 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400 text-base">
+                    ₹{{ item.totalEarned | number:'1.0-2' }}
+                  </td>
+                  <td class="px-6 py-4 text-center">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                          [ngClass]="item.status === 'Completed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'">
+                      ● {{ item.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="py-16 px-6 text-center">
+          <div class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 mx-auto flex items-center justify-center mb-3">
+            <mat-icon class="!w-7 !h-7 !text-[28px]">payments</mat-icon>
+          </div>
+          <h3 class="text-base font-bold text-slate-800 dark:text-white">No Earnings History Yet</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            Once you complete assigned farm work and attendance is logged, your calculated earnings will appear here.
+          </p>
+        </div>
+      }
+    </div>
+  }
+</div>

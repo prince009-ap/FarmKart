@@ -32,7 +32,13 @@ describe('WorkerProfileComponent', () => {
   beforeEach(async () => {
     workerJobServiceMock = {
       getProfile: vi.fn().mockReturnValue(of(mockProfile)),
-      updateProfile: vi.fn().mockReturnValue(of(mockProfile))
+      updateProfile: vi.fn().mockReturnValue(of(mockProfile)),
+      getReviews: vi.fn().mockReturnValue(of({
+        averageRating: 4.5,
+        totalReviews: 2,
+        breakdown: { fiveStars: 1, fourStars: 1, threeStars: 0, twoStars: 0, oneStar: 0 },
+        recentReviews: []
+      }))
     };
 
     authServiceMock = {

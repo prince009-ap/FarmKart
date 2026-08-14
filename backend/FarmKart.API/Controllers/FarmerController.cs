@@ -9,6 +9,8 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using FarmKart.Application.Abstractions.Worker;
+
 namespace FarmKart.API.Controllers;
 
 [ApiController]
@@ -21,19 +23,22 @@ public class FarmerController : ControllerBase
     private readonly IFarmerApplicationService _farmerApplicationService;
     private readonly IFarmerAssignmentService _farmerAssignmentService;
     private readonly IFarmerAttendanceService _farmerAttendanceService;
+    private readonly IWorkerReviewService _workerReviewService;
 
     public FarmerController(
         IFarmerProfileService farmerProfileService,
         IFarmerJobService farmerJobService,
         IFarmerApplicationService farmerApplicationService,
         IFarmerAssignmentService farmerAssignmentService,
-        IFarmerAttendanceService farmerAttendanceService)
+        IFarmerAttendanceService farmerAttendanceService,
+        IWorkerReviewService workerReviewService)
     {
         _farmerProfileService = farmerProfileService;
         _farmerJobService = farmerJobService;
         _farmerApplicationService = farmerApplicationService;
         _farmerAssignmentService = farmerAssignmentService;
         _farmerAttendanceService = farmerAttendanceService;
+        _workerReviewService = workerReviewService;
     }
 
     [HttpGet("profile")]
@@ -306,6 +311,39 @@ public class FarmerController : ControllerBase
         catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPost("assignments/{assignmentId:guid}/review")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerReviewResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RateWorker(Guid assignmentId, [FromBody] CreateWorkerReviewRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerReviewService.RateWorkerAsync(userId.Value, assignmentId, request));
+        }
+        catch (JobNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ProfileNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpGet("assignments/{assignmentId:guid}/review")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerReviewResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignmentReview(Guid assignmentId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        var review = await _workerReviewService.GetAssignmentReviewAsync(userId.Value, assignmentId);
+        return review is null ? NotFound(new { message = "No review found for this assignment." }) : Ok(review);
     }
 
     /// <summary>

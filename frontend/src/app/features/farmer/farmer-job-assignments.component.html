@@ -89,6 +89,12 @@
                   </mat-icon>
                   {{ item.status }}
                 </span>
+
+                @if (existingReviewsMap()[item.assignmentId]) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                    ★ {{ existingReviewsMap()[item.assignmentId].rating }}.0 Rated
+                  </span>
+                }
               </div>
 
               <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-emerald-800 font-medium">
@@ -110,10 +116,21 @@
               </div>
             </div>
 
-            <div class="flex items-center">
+            <div class="flex items-center gap-2">
               <a [routerLink]="['/farmer/jobs', job()?.id, 'attendance']" mat-stroked-button class="!border-emerald-300 !text-emerald-800">
                 <mat-icon class="mr-1">event_available</mat-icon> Attendance
               </a>
+
+              @if (isEligibleForRating(item)) {
+                <button
+                  type="button"
+                  mat-flat-button
+                  class="!bg-amber-600 !text-white flex items-center gap-1"
+                  (click)="openRateModal(item)">
+                  <mat-icon class="!w-4 !h-4 !text-[18px]">star</mat-icon>
+                  <span>{{ existingReviewsMap()[item.assignmentId] ? 'Edit Rating' : 'Rate Worker' }}</span>
+                </button>
+              }
             </div>
           </div>
         </article>
@@ -121,3 +138,100 @@
     </div>
   </div>
 </div>
+
+<!-- RATE WORKER MODAL DIALOG -->
+@if (selectedAssignmentForRating()) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-lg overflow-hidden animate-fk-rise">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-amber-50 dark:bg-amber-950/30">
+        <div class="flex items-center gap-2">
+          <mat-icon class="text-amber-600">star</mat-icon>
+          <h3 class="text-lg font-bold text-slate-800 dark:text-white">
+            Rate Worker: {{ selectedAssignmentForRating()?.workerName }}
+          </h3>
+        </div>
+        <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" (click)="closeRateModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5">
+        @if (ratingError()) {
+          <div class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            {{ ratingError() }}
+          </div>
+        }
+
+        <!-- Interactive Star Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            Rating (1 to 5 Stars) <span class="text-rose-500">*</span>
+          </label>
+
+          <div class="flex items-center gap-2">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="p-2 rounded-xl border transition-all flex items-center justify-center"
+                [ngClass]="star <= ratingValue() ? 'bg-amber-100 border-amber-400 text-amber-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-300 hover:text-amber-400'"
+                (click)="setRating(star)">
+                <mat-icon class="!w-8 !h-8 !text-[32px]">star</mat-icon>
+              </button>
+            }
+            <span class="ml-2 font-bold text-lg text-amber-700 dark:text-amber-400">
+              {{ ratingValue() }}.0 / 5
+            </span>
+          </div>
+        </div>
+
+        <!-- Optional Review Comment -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            Review / Feedback (Optional)
+          </label>
+          <textarea
+            [value]="reviewComment()"
+            (input)="reviewComment.set($any($event.target).value)"
+            rows="4"
+            maxlength="2000"
+            class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 outline-none"
+            placeholder="Describe the worker's performance, punctuality, and work quality..."></textarea>
+          <p class="text-xs text-slate-400 mt-1 text-right">{{ reviewComment().length }} / 2000</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
+        <button
+          type="button"
+          mat-stroked-button
+          class="border-slate-300 text-slate-700"
+          (click)="closeRateModal()"
+          [disabled]="submittingRating()">
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          mat-flat-button
+          class="!bg-amber-600 !text-white flex items-center gap-2"
+          (click)="submitRating()"
+          [disabled]="submittingRating()">
+          @if (submittingRating()) {
+            <mat-spinner diameter="18" color="accent"></mat-spinner>
+            <span>Submitting...</span>
+          } @else {
+            <ng-container>
+              <mat-icon>send</mat-icon>
+              <span>Submit Rating</span>
+            </ng-container>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

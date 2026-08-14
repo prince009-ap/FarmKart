@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { WorkerJobService } from './worker-job.service';
-import { WorkerProfile, WorkerProfileUpdateRequest } from '../../core/models/worker.models';
+import { WorkerProfile, WorkerProfileUpdateRequest, WorkerRatingSummary } from '../../core/models/worker.models';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -33,7 +33,10 @@ export class WorkerProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
 
+  protected Math = Math;
+
   profile = signal<WorkerProfile | null>(null);
+  ratingSummary = signal<WorkerRatingSummary | null>(null);
   loading = signal(true);
   saving = signal(false);
   editMode = signal(false);
@@ -76,6 +79,12 @@ export class WorkerProfileComponent implements OnInit {
         this.skills.set(data.skills || []);
         this.patchForm(data);
         this.loading.set(false);
+
+        // Load Ratings & Reviews
+        this.workerService.getReviews().subscribe({
+          next: (revData) => this.ratingSummary.set(revData),
+          error: () => {}
+        });
       },
       error: (err) => {
         this.loading.set(false);

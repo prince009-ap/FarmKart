@@ -6,6 +6,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { FarmerJob, FarmerWorkerAssignment } from '../../core/models/farmer.models';
+import { WorkerReview } from '../../core/models/worker.models';
 
 describe('FarmerJobAssignmentsComponent', () => {
   let component: FarmerJobAssignmentsComponent;
@@ -21,16 +22,16 @@ describe('FarmerJobAssignmentsComponent', () => {
     workersRequired: 2,
     requiredExperience: 1,
     wagePerDay: 700,
-    startDate: '2026-08-20',
-    endDate: '2026-08-25',
+    startDate: '2026-08-01',
+    endDate: '2026-08-05',
     workingHours: '8 AM - 5 PM',
     farmLocation: 'Surat Farm',
     farmSize: 5,
     foodProvided: true,
     accommodationProvided: false,
     isUrgent: false,
-    status: 'Open',
-    createdAtUtc: '2026-08-14T00:00:00Z'
+    status: 'Completed',
+    createdAtUtc: '2026-08-01T00:00:00Z'
   };
 
   const mockAssignments: FarmerWorkerAssignment[] = [
@@ -43,17 +44,27 @@ describe('FarmerJobAssignmentsComponent', () => {
       workerPhone: '9876543210',
       workerExperienceYears: 4,
       workerSkills: ['Plowing', 'Tractor Operator'],
-      startDate: '2026-08-20',
-      endDate: '2026-08-25',
-      assignedAtUtc: '2026-08-14T01:00:00Z',
-      status: 'Active'
+      startDate: '2026-08-01',
+      endDate: '2026-08-05',
+      assignedAtUtc: '2026-08-01T01:00:00Z',
+      status: 'Completed'
     }
   ];
 
   beforeEach(async () => {
     jobServiceMock = {
       getJob: vi.fn().mockReturnValue(of(mockJob)),
-      getJobAssignments: vi.fn().mockReturnValue(of(mockAssignments))
+      getJobAssignments: vi.fn().mockReturnValue(of(mockAssignments)),
+      getWorkerReview: vi.fn().mockReturnValue(of(null)),
+      rateWorker: vi.fn().mockReturnValue(of({
+        reviewId: 'rev-1',
+        workerAssignmentId: 'assign-1',
+        farmerName: 'Happy Farmer',
+        jobTitle: 'Plowing Paddy Field',
+        rating: 5,
+        comment: 'Great work',
+        createdAtUtc: '2026-08-14T00:00:00Z'
+      } as WorkerReview))
     };
 
     await TestBed.configureTestingModule({
@@ -87,7 +98,7 @@ describe('FarmerJobAssignmentsComponent', () => {
     const compiled: HTMLElement = fixture.nativeElement;
     expect(compiled.textContent).toContain('Plowing Paddy Field');
     expect(compiled.textContent).toContain('Suresh Fieldworker');
-    expect(compiled.textContent).toContain('Active');
+    expect(compiled.textContent).toContain('Completed');
   });
 
   it('should display empty state when zero workers assigned', () => {
@@ -107,5 +118,28 @@ describe('FarmerJobAssignmentsComponent', () => {
 
     expect(component.loading()).toBe(false);
     expect(component.error()).toBe('Job not found.');
+  });
+
+  it('should open Rate Worker modal dialog for completed assignment', () => {
+    fixture.detectChanges();
+    component.openRateModal(mockAssignments[0]);
+
+    expect(component.selectedAssignmentForRating()).toEqual(mockAssignments[0]);
+    expect(component.ratingValue()).toBe(5);
+  });
+
+  it('should submit rating successfully via rateWorker', () => {
+    fixture.detectChanges();
+    component.openRateModal(mockAssignments[0]);
+    component.setRating(5);
+    component.reviewComment.set('Outstanding performance');
+
+    component.submitRating();
+
+    expect(jobServiceMock.rateWorker).toHaveBeenCalledWith('assign-1', {
+      rating: 5,
+      comment: 'Outstanding performance'
+    });
+    expect(component.selectedAssignmentForRating()).toBeNull();
   });
 });

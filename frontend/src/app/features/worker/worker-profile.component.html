@@ -251,6 +251,115 @@
               </div>
             </div>
           </div>
+
+          <!-- RATINGS & REVIEWS SUMMARY SECTION -->
+          <div class="pt-6 border-t border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
+              <mat-icon class="text-amber-500">star</mat-icon>
+              Ratings & Farmer Reviews
+            </h3>
+
+            @if (ratingSummary()) {
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Average Rating Card -->
+                <div class="p-5 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-center flex flex-col items-center justify-center">
+                  <span class="text-4xl font-black text-amber-700 dark:text-amber-400 font-mono">
+                    {{ ratingSummary()?.totalReviews ? (ratingSummary()?.averageRating | number:'1.1-1') : 'N/A' }}
+                  </span>
+                  <div class="flex items-center gap-1 text-amber-500 my-2">
+                    @for (s of [1, 2, 3, 4, 5]; track s) {
+                      <mat-icon class="!w-5 !h-5 !text-[20px]">
+                        {{ s <= Math.round(ratingSummary()?.averageRating || 0) ? 'star' : 'star_border' }}
+                      </mat-icon>
+                    }
+                  </div>
+                  <span class="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    Based on {{ ratingSummary()?.totalReviews }} review(s)
+                  </span>
+                </div>
+
+                <!-- Star Rating Breakdown Chart -->
+                <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 md:col-span-2 space-y-2">
+                  <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
+                    Rating Breakdown
+                  </span>
+
+                  <!-- 5 Stars -->
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="w-12 font-semibold text-slate-600 dark:text-slate-300">5 ★</span>
+                    <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" [style.width.%]="ratingSummary()?.totalReviews ? (ratingSummary()!.breakdown.fiveStars / ratingSummary()!.totalReviews) * 100 : 0"></div>
+                    </div>
+                    <span class="w-8 text-right text-slate-400 font-mono">{{ ratingSummary()?.breakdown?.fiveStars || 0 }}</span>
+                  </div>
+
+                  <!-- 4 Stars -->
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="w-12 font-semibold text-slate-600 dark:text-slate-300">4 ★</span>
+                    <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" [style.width.%]="ratingSummary()?.totalReviews ? (ratingSummary()!.breakdown.fourStars / ratingSummary()!.totalReviews) * 100 : 0"></div>
+                    </div>
+                    <span class="w-8 text-right text-slate-400 font-mono">{{ ratingSummary()?.breakdown?.fourStars || 0 }}</span>
+                  </div>
+
+                  <!-- 3 Stars -->
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="w-12 font-semibold text-slate-600 dark:text-slate-300">3 ★</span>
+                    <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" [style.width.%]="ratingSummary()?.totalReviews ? (ratingSummary()!.breakdown.threeStars / ratingSummary()!.totalReviews) * 100 : 0"></div>
+                    </div>
+                    <span class="w-8 text-right text-slate-400 font-mono">{{ ratingSummary()?.breakdown?.threeStars || 0 }}</span>
+                  </div>
+
+                  <!-- 2 Stars -->
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="w-12 font-semibold text-slate-600 dark:text-slate-300">2 ★</span>
+                    <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" [style.width.%]="ratingSummary()?.totalReviews ? (ratingSummary()!.breakdown.twoStars / ratingSummary()!.totalReviews) * 100 : 0"></div>
+                    </div>
+                    <span class="w-8 text-right text-slate-400 font-mono">{{ ratingSummary()?.breakdown?.twoStars || 0 }}</span>
+                  </div>
+
+                  <!-- 1 Star -->
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="w-12 font-semibold text-slate-600 dark:text-slate-300">1 ★</span>
+                    <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div class="bg-amber-500 h-full rounded-full" [style.width.%]="ratingSummary()?.totalReviews ? (ratingSummary()!.breakdown.oneStar / ratingSummary()!.totalReviews) * 100 : 0"></div>
+                    </div>
+                    <span class="w-8 text-right text-slate-400 font-mono">{{ ratingSummary()?.breakdown?.oneStar || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Reviews List -->
+              @if (ratingSummary()?.recentReviews && ratingSummary()!.recentReviews.length > 0) {
+                <div class="space-y-3">
+                  <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Recent Reviews</span>
+                  @for (rev of ratingSummary()!.recentReviews; track rev.reviewId) {
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-sm text-slate-800 dark:text-white">{{ rev.farmerName }}</span>
+                          <span class="text-xs text-slate-400">• {{ rev.jobTitle }}</span>
+                        </div>
+                        <div class="flex items-center text-amber-500 text-xs font-bold gap-1 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                          <span>★</span> {{ rev.rating }}.0
+                        </div>
+                      </div>
+                      @if (rev.comment) {
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 italic">"{{ rev.comment }}"</p>
+                      }
+                      <span class="text-[10px] text-slate-400 mt-2 block">{{ rev.createdAtUtc | date:'mediumDate' }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-slate-400 italic p-4 bg-slate-50 dark:bg-slate-700/40 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                  No ratings or reviews received yet. Ratings will be posted here after completing farm work.
+                </p>
+              }
+            }
+          </div>
         </div>
       }
 
