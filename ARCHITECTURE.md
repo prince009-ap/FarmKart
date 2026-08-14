@@ -163,8 +163,12 @@ These are application profiles only. They store business-facing profile data and
 - **Auction Durations**: Farmers choose predefined duration options (`5 Hours`, `12 Hours`, `1 Day`, `3 Days`, `7 Days`) or custom manual hours. The backend authoritatively calculates `EndDateTimeUtc = StartDateTimeUtc + DurationHours`.
 - **Server Time Offset Sync**: DTO responses (`FarmerAuctionResponse`, `CustomerAuctionResponse`) deliver server UTC timestamp (`ServerTimeUtc`) enabling clients to compute clock offsets (`serverTimeUtc - clientUtcNow`) to ensure consistent timing across all user devices regardless of client system clock drift.
 - **Real-time Countdown Timer**: Reusable `AuctionCountdownComponent` renders dynamic badges (`UPCOMING`, `LIVE`, `ENDED`, `CANCELLED`) and a tick-by-tick countdown timer (`DD:HH:MM:SS` or `HH:MM:SS`) derived strictly from authoritative UTC timestamps and server offset.
-- `Bid` belongs to an auction and a customer
-- `AuctionWinner` finalizes the winning bid and customer after auction completion
+- **Server-Authoritative Finalization**: `AuctionFinalizationBackgroundService` hosted background service periodically scans expired live/scheduled auctions (`EndTimeUtc <= DateTime.UtcNow`) every 10 seconds. In addition, inline finalization checks run on-demand during API queries.
+- **Winner Selection & Tie-Breaker**: The customer associated with the highest active bid amount is selected as `AuctionWinner`. In the event of equal highest bid amounts, the earliest `BidTimeUtc` is selected.
+- **No-Bid Auctions**: Expired auctions with zero bids transition to `ENDED` status with `AuctionWinner = null` and `HasWinner = false`.
+- **Idempotency & Concurrency**: Winner selection executes inside EF Core `Serializable` transaction locks, ensuring repeated finalization checks do not produce duplicate `AuctionWinner` records or alter finalized winners.
+- **Auction Results & Result DTOs**: `AuctionResultResponse` delivers winner identity (`WinnerCustomerName`), winning bid amount (`WinningBidAmount`), total bids count, and customer-specific status (`WON`, `LOST`, `DID NOT BID`, `NO WINNER`). Exposed via `GET /api/customer/auctions/{id}/result` and `GET /api/farmer/auctions/{id}/result`.
+- **Customer My Bids Dashboard**: `/customer/bids` displays bid status badges (`🏆 WON` [Emerald] vs `LOST` [Rose/Gray]) along with final winning bid per unit.
 - The schema is ready for future real-time bidding without implementing SignalR yet
 
 ## Machinery Rental Data Model

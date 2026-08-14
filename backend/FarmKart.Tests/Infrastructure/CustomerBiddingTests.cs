@@ -273,18 +273,19 @@ public class CustomerBiddingTests : IClassFixture<WebApplicationFactory<Program>
 
     private async Task<Guid> SeedLiveAuctionAsync(decimal startingPrice, decimal minIncrement)
     {
+        var emailSuffix = Guid.NewGuid().ToString("N");
+        await GetAuthenticatedFarmerClientAsync($"live_farmer_{emailSuffix}@test.com", "Password123!", "Live Farmer");
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
 
-        var farmer = new FarmerProfile { UserId = Guid.NewGuid(), FullName = "Seed Farmer", Phone = "9990001112", FarmName = "Seed Farm", FarmSize = 10, FarmSizeUnit = FarmSizeUnit.Acre, FarmLocation = "Surat, Gujarat" };
-        db.FarmerProfiles.Add(farmer);
-        await db.SaveChangesAsync();
+        var farmer = await db.FarmerProfiles.OrderByDescending(f => f.CreatedAtUtc).FirstAsync();
 
         var crop = new Crop { FarmerProfileId = farmer.Id, CropName = "Bidding Wheat", CropType = "Grain", Area = 5, AreaUnit = FarmSizeUnit.Acre, Status = CropStatus.Harvested, Quantity = 500, Unit = MeasurementUnit.Kilogram };
         db.Crops.Add(crop);
         await db.SaveChangesAsync();
 
-        var listing = new CropListing { Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
+        var listing = new CropListing { FarmerProfileId = farmer.Id, Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
         db.CropListings.Add(listing);
         await db.SaveChangesAsync();
 
@@ -307,18 +308,19 @@ public class CustomerBiddingTests : IClassFixture<WebApplicationFactory<Program>
 
     private async Task<Guid> SeedScheduledAuctionAsync(decimal startingPrice, decimal minIncrement)
     {
+        var emailSuffix = Guid.NewGuid().ToString("N");
+        await GetAuthenticatedFarmerClientAsync($"sch_farmer_{emailSuffix}@test.com", "Password123!", "Sch Farmer");
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
 
-        var farmer = new FarmerProfile { UserId = Guid.NewGuid(), FullName = "Scheduled Farmer", Phone = "9990001113", FarmName = "Sch Farm", FarmSize = 10, FarmSizeUnit = FarmSizeUnit.Acre, FarmLocation = "Surat, Gujarat" };
-        db.FarmerProfiles.Add(farmer);
-        await db.SaveChangesAsync();
+        var farmer = await db.FarmerProfiles.OrderByDescending(f => f.CreatedAtUtc).FirstAsync();
 
         var crop = new Crop { FarmerProfileId = farmer.Id, CropName = "Scheduled Wheat", CropType = "Grain", Area = 5, AreaUnit = FarmSizeUnit.Acre, Status = CropStatus.Harvested, Quantity = 500, Unit = MeasurementUnit.Kilogram };
         db.Crops.Add(crop);
         await db.SaveChangesAsync();
 
-        var listing = new CropListing { Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
+        var listing = new CropListing { FarmerProfileId = farmer.Id, Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
         db.CropListings.Add(listing);
         await db.SaveChangesAsync();
 
@@ -341,18 +343,19 @@ public class CustomerBiddingTests : IClassFixture<WebApplicationFactory<Program>
 
     private async Task<Guid> SeedEndedAuctionAsync(decimal startingPrice, decimal minIncrement)
     {
+        var emailSuffix = Guid.NewGuid().ToString("N");
+        await GetAuthenticatedFarmerClientAsync($"ended_farmer_{emailSuffix}@test.com", "Password123!", "Ended Farmer");
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
 
-        var farmer = new FarmerProfile { UserId = Guid.NewGuid(), FullName = "Ended Farmer", Phone = "9990001114", FarmName = "Ended Farm", FarmSize = 10, FarmSizeUnit = FarmSizeUnit.Acre, FarmLocation = "Surat, Gujarat" };
-        db.FarmerProfiles.Add(farmer);
-        await db.SaveChangesAsync();
+        var farmer = await db.FarmerProfiles.OrderByDescending(f => f.CreatedAtUtc).FirstAsync();
 
         var crop = new Crop { FarmerProfileId = farmer.Id, CropName = "Ended Wheat", CropType = "Grain", Area = 5, AreaUnit = FarmSizeUnit.Acre, Status = CropStatus.Harvested, Quantity = 500, Unit = MeasurementUnit.Kilogram };
         db.Crops.Add(crop);
         await db.SaveChangesAsync();
 
-        var listing = new CropListing { Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
+        var listing = new CropListing { FarmerProfileId = farmer.Id, Crop = crop, QuantityForSale = 300, Unit = MeasurementUnit.Kilogram, ListingType = ListingType.Auction, ListingStatus = ListingStatus.Active };
         db.CropListings.Add(listing);
         await db.SaveChangesAsync();
 

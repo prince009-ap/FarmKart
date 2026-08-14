@@ -1,0 +1,115 @@
+<div class="app-page animate-fk-rise space-y-6 max-w-6xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="space-y-1">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+        <mat-icon class="text-sky-600 dark:text-sky-400 !w-8 !h-8 text-3xl">gavel</mat-icon>
+        My Auction Bids
+      </h1>
+      <p class="text-xs font-semibold text-slate-500">
+        Track your live placed bids, winning status, and completed auction outcomes.
+      </p>
+    </div>
+
+    <div>
+      <a mat-flat-button color="primary" routerLink="/customer/auctions" class="!bg-sky-600 !rounded-xl text-xs font-bold">
+        <mat-icon>storefront</mat-icon> Browse Marketplace
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-20 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold text-slate-500">Loading your placed bids...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-8 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-center space-y-4 max-w-md mx-auto">
+    <mat-icon class="text-red-500 !w-12 !h-12 text-5xl">error_outline</mat-icon>
+    <h2 class="text-base font-bold text-red-800 dark:text-red-300">{{ errorMessage() }}</h2>
+    <button mat-flat-button color="primary" (click)="loadMyBids()" class="!bg-sky-600 !rounded-xl text-xs">
+      Retry
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && !errorMessage() && bids().length === 0" class="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 max-w-lg mx-auto shadow-sm">
+    <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+      <mat-icon class="!w-8 !h-8 text-4xl">gavel</mat-icon>
+    </div>
+    <h3 class="text-lg font-bold text-slate-900 dark:text-white">No Bids Placed Yet</h3>
+    <p class="text-xs text-slate-500">
+      You haven't participated in any crop auctions yet. Browse active live auctions in the marketplace to place your first bid!
+    </p>
+    <a mat-flat-button color="primary" routerLink="/customer/auctions" class="!bg-sky-600 !rounded-xl text-xs font-bold">
+      <mat-icon>search</mat-icon> Explore Live Auctions
+    </a>
+  </div>
+
+  <!-- Bids Grid -->
+  <div *ngIf="!isLoading() && !errorMessage() && bids().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let item of bids()" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+      
+      <div class="space-y-3">
+        <!-- Top Row: Category & Status Badge -->
+        <div class="flex items-center justify-between gap-2">
+          <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase tracking-wider">
+            {{ item.cropType }}
+          </span>
+
+          <span class="px-3 py-1 rounded-full text-xs font-black border tracking-wider flex items-center gap-1.5 shadow-sm"
+            [ngClass]="getBidStatusBadgeClass(item.customerBidStatus, item.auctionStatus)">
+            <mat-icon *ngIf="item.auctionStatus === 'ENDED' && (item.customerBidStatus === 'HIGHEST BID' || item.customerBidStatus === 'WON')" class="!w-4 !h-4 text-xs text-amber-500">emoji_events</mat-icon>
+            {{ item.auctionStatus === 'ENDED' ? (item.customerBidStatus === 'HIGHEST BID' || item.customerBidStatus === 'WON' ? '🏆 WON' : 'LOST') : item.customerBidStatus }}
+          </span>
+        </div>
+
+        <!-- Crop Image & Title -->
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+            <img [src]="item.primaryImageUrl" [alt]="item.cropName" (error)="onImageError($event)" class="w-full h-full object-cover" />
+          </div>
+          <div>
+            <h3 class="font-extrabold text-slate-900 dark:text-white text-base leading-snug">
+              {{ item.cropName }}
+            </h3>
+            <p class="text-xs font-semibold text-slate-500">
+              Quantity: {{ item.quantity }} {{ item.unit }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Bidding Stats Grid -->
+        <div class="grid grid-cols-2 gap-2.5 pt-2">
+          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Your Bid</span>
+            <span class="text-sm font-extrabold text-sky-600 dark:text-sky-400">₹{{ item.customerBidAmount }} / {{ item.unit }}</span>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">{{ item.auctionStatus === 'ENDED' ? 'Final Winning' : 'Highest Bid' }}</span>
+            <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ item.currentHighestBid }} / {{ item.unit }}</span>
+          </div>
+        </div>
+
+        <!-- Countdown / Schedule -->
+        <div>
+          <app-auction-countdown
+            [startTimeUtc]="item.startTimeUtc"
+            [endTimeUtc]="item.endTimeUtc"
+            [serverTimeUtc]="item.serverTimeUtc"
+            [hideCountdown]="false">
+          </app-auction-countdown>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pt-2">
+        <a mat-stroked-button [routerLink]="['/customer/auctions', item.auctionId]" class="!w-full !rounded-xl text-xs font-bold">
+          View Auction Details
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

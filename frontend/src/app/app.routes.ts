@@ -282,10 +282,9 @@ export const routes: Routes = [
       },
       {
         path: 'bids',
-        data: { title: 'My Bids' },
         loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/customer/customer-bids.component').then(
+            (module) => module.CustomerBidsComponent,
           ),
       },
       {

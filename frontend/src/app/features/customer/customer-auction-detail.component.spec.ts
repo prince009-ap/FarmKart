@@ -3,7 +3,7 @@ import { provideRouter, ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { CustomerAuctionDetailComponent } from './customer-auction-detail.component';
 import { CustomerAuctionService } from './customer-auction.service';
-import { CustomerAuction } from '../../core/models/customer-auction.models';
+import { AuctionResult, CustomerAuction } from '../../core/models/customer-auction.models';
 
 describe('CustomerAuctionDetailComponent', () => {
   let fixture: ComponentFixture<CustomerAuctionDetailComponent>;
@@ -33,9 +33,30 @@ describe('CustomerAuctionDetailComponent', () => {
     serverTimeUtc: new Date().toISOString()
   };
 
+  const mockResult: AuctionResult = {
+    auctionId: 'auc-ended-1',
+    cropId: 'crop-1',
+    cropName: 'Basmati Rice',
+    cropType: 'Grain',
+    quantity: 500,
+    unit: 'Kg',
+    auctionStatus: 'ENDED',
+    hasWinner: true,
+    winningBidAmount: 55,
+    winnerCustomerName: 'Winning Customer',
+    winnerCustomerProfileId: 'cust-1',
+    totalBids: 3,
+    startTimeUtc: new Date(Date.now() - 36000000).toISOString(),
+    endTimeUtc: new Date(Date.now() - 3600000).toISOString(),
+    finalizedAtUtc: new Date(Date.now() - 3600000).toISOString(),
+    customerResultStatus: 'WON',
+    serverTimeUtc: new Date().toISOString()
+  };
+
   beforeEach(async () => {
     auctionServiceMock = {
-      getAuctionById: (id: string) => id === 'auc-1' ? of(mockAuction) : throwError(() => new Error('Not found'))
+      getAuctionById: (id: string) => id === 'auc-1' ? of(mockAuction) : throwError(() => new Error('Not found')),
+      getAuctionResult: (id: string) => of(mockResult)
     };
 
     await TestBed.configureTestingModule({
@@ -59,14 +80,12 @@ describe('CustomerAuctionDetailComponent', () => {
     fixture = TestBed.createComponent(CustomerAuctionDetailComponent);
   });
 
-  it('renders auction detail and live bidding placeholder', () => {
+  it('renders auction detail information', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Basmati Rice');
     expect(fixture.nativeElement.textContent).toContain('Ramesh Patel');
     expect(fixture.nativeElement.textContent).toContain('Surat, Gujarat');
-    expect(fixture.nativeElement.textContent).toContain('Live Bidding');
-    expect(fixture.nativeElement.textContent).toContain('Bidding will be available in the next phase.');
   });
 
   it('displays error when auction ID is not found', () => {

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CustomerAuction, CustomerAuctionFilter } from '../../core/models/customer-auction.models';
+import { AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid } from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +10,7 @@ import { CustomerAuction, CustomerAuctionFilter } from '../../core/models/custom
 export class CustomerAuctionService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/customer/auctions`;
+  private readonly bidsUrl = `${environment.apiUrl}/customer/bids`;
 
   private get serverBaseUrl(): string {
     return environment.apiUrl.replace(/\/api\/?$/, '');
@@ -48,6 +49,19 @@ export class CustomerAuctionService {
   getAuctionById(id: string): Observable<CustomerAuction> {
     return this.http.get<CustomerAuction>(`${this.apiUrl}/${id}`).pipe(
       map(auc => this.transformAuction(auc))
+    );
+  }
+
+  getAuctionResult(id: string): Observable<AuctionResult> {
+    return this.http.get<AuctionResult>(`${this.apiUrl}/${id}/result`);
+  }
+
+  getMyBids(): Observable<CustomerMyBid[]> {
+    return this.http.get<CustomerMyBid[]>(this.bidsUrl).pipe(
+      map(bids => bids.map(bid => ({
+        ...bid,
+        primaryImageUrl: this.resolveImageUrl(bid.primaryImageUrl)
+      })))
     );
   }
 }

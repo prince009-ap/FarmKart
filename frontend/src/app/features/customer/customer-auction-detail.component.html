@@ -23,11 +23,80 @@
 
   <!-- Auction Details Container -->
   <div *ngIf="!isLoading() && auction() as auc" class="space-y-6">
+    
+    <!-- AUCTION RESULT BANNER (If Ended) -->
+    <div *ngIf="isAuctionEnded()" class="rounded-3xl p-6 md:p-8 text-white shadow-xl border overflow-hidden relative"
+      [ngClass]="{
+        'bg-gradient-to-r from-emerald-700 to-teal-800 border-emerald-500': auctionResult()?.customerResultStatus === 'WON',
+        'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700': auctionResult()?.customerResultStatus !== 'WON'
+      }">
+
+      <!-- WINNER STATE -->
+      <div *ngIf="auctionResult()?.customerResultStatus === 'WON'" class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 text-center md:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-extrabold uppercase tracking-wider">
+            <mat-icon class="!w-4 !h-4 text-sm text-yellow-300">emoji_events</mat-icon>
+            Auction Winner
+          </div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+            🏆 YOU WON THIS AUCTION!
+          </h2>
+          <p class="text-sm text-emerald-100 font-medium max-w-xl">
+            Congratulations! You submitted the highest bid of 
+            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>.
+          </p>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[200px]">
+          <span class="text-[10px] font-extrabold text-emerald-200 uppercase block">Winning Bid</span>
+          <span class="text-2xl font-black text-white">₹{{ auctionResult()?.winningBidAmount }}</span>
+          <span class="text-xs text-emerald-200 block">per {{ auc.unit }}</span>
+        </div>
+      </div>
+
+      <!-- LOSER STATE -->
+      <div *ngIf="auctionResult()?.customerResultStatus === 'LOST'" class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 text-center md:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-extrabold uppercase tracking-wider">
+            <mat-icon class="!w-4 !h-4 text-sm">flag</mat-icon>
+            Auction Ended
+          </div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            You did not win this auction.
+          </h2>
+          <p class="text-sm text-slate-300 font-medium max-w-xl">
+            Winning Bid: <span class="font-bold text-white">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>.
+            Thank you for participating!
+          </p>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[200px]">
+          <span class="text-[10px] font-extrabold text-slate-300 uppercase block">Final Winning Bid</span>
+          <span class="text-2xl font-black text-white">₹{{ auctionResult()?.winningBidAmount || 'N/A' }}</span>
+          <span class="text-xs text-slate-300 block">per {{ auc.unit }}</span>
+        </div>
+      </div>
+
+      <!-- NO BIDS STATE -->
+      <div *ngIf="auctionResult() && !auctionResult()?.hasWinner" class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 text-center md:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700 border border-slate-600 text-slate-300 text-xs font-extrabold uppercase tracking-wider">
+            <mat-icon class="!w-4 !h-4 text-sm">info</mat-icon>
+            Auction Ended
+          </div>
+          <h2 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-200">
+            No bids were placed.
+          </h2>
+          <p class="text-xs text-slate-400 font-medium">
+            This auction closed without receiving any valid customer bids.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN PRODUCT CARD -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
       
-      <!-- Left Column: Crop Images Gallery -->
+      <!-- Left Column: Crop Gallery -->
       <div class="space-y-4">
-        <!-- Main Large Image -->
         <div class="relative h-72 sm:h-80 md:h-96 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700">
           <img
             *ngIf="auc.images.length > 0"
@@ -41,7 +110,6 @@
             <span class="text-xs font-semibold">No crop image available</span>
           </div>
 
-          <!-- Status Countdown Overlay -->
           <div class="absolute top-4 right-4">
             <app-auction-countdown
               [startTimeUtc]="auc.startTimeUtc"
@@ -52,7 +120,6 @@
           </div>
         </div>
 
-        <!-- Thumbnails Row -->
         <div *ngIf="auc.images.length > 1" class="flex items-center gap-3 overflow-x-auto pb-2">
           <button
             *ngFor="let img of auc.images; let i = index"
@@ -65,15 +132,13 @@
         </div>
       </div>
 
-      <!-- Right Column: Crop & Auction Info -->
+      <!-- Right Column: Crop Info -->
       <div class="space-y-6 flex flex-col justify-between">
         <div class="space-y-4">
-          <!-- Crop Category Tag & Title -->
           <div class="space-y-1">
             <span class="inline-block px-3 py-1 rounded-lg text-xs font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase tracking-wider">
               {{ auc.cropType }}
             </span>
-            <!-- Live Countdown in detail view header -->
             <div class="mt-1">
               <app-auction-countdown
                 [startTimeUtc]="auc.startTimeUtc"
@@ -90,12 +155,10 @@
             </p>
           </div>
 
-          <!-- Description -->
           <p *ngIf="auc.description" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
             {{ auc.description }}
           </p>
 
-          <!-- Farmer Details Card -->
           <div class="p-4 rounded-2xl bg-sky-50/60 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/60 flex items-center gap-3.5">
             <div class="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-sky-700 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow">
               {{ auc.farmerName.substring(0, 1).toUpperCase() }}
@@ -107,7 +170,6 @@
             </div>
           </div>
 
-          <!-- Key Metrics Grid -->
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Auction Quantity</span>
@@ -137,29 +199,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Live Bidding Section (Guarded Placeholder for Phase 6.6) -->
-    <div class="p-6 md:p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-lg space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-sky-950 border border-sky-600/40 text-sky-400 flex items-center justify-center">
-          <mat-icon>gavel</mat-icon>
-        </div>
-        <div>
-          <h2 class="text-lg font-bold">Live Bidding</h2>
-          <p class="text-xs text-slate-400">Place bids on this crop auction</p>
-        </div>
-      </div>
-
-      <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-3">
-        <mat-icon class="text-amber-400 !w-8 !h-8 text-3xl">auto_awesome</mat-icon>
-        <p class="text-sm font-bold text-slate-200">
-          Bidding will be available in the next phase.
-        </p>
-        <p class="text-xs text-slate-400 max-w-md mx-auto">
-          Real-time bidding functionality for customer accounts will unlock in Phase 6.6. Stay tuned!
-        </p>
       </div>
     </div>
   </div>

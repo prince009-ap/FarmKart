@@ -28,6 +28,8 @@
   - [x] Phase 6.2: Crop Inventory / Stock Management
   - [x] Phase 6.4: Customer Dashboard and Navigation Shell
   - [x] Phase 6.5: Customer Auction Marketplace
+  - [x] Phase 6.6: Customer Bidding System
+  - [x] Phase 6.7: Auction Ending and Winner Finalization
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR

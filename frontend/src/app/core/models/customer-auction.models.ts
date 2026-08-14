@@ -29,3 +29,43 @@ export interface CustomerAuctionFilter {
   location?: string;
   sortBy?: string;
 }
+
+export interface AuctionResult {
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  cropType: string;
+  quantity: number;
+  unit: string;
+  auctionStatus: string;
+  hasWinner: boolean;
+  winningBidAmount?: number | null;
+  winnerCustomerName?: string | null;
+  winnerCustomerProfileId?: string | null;
+  totalBids: number;
+  startTimeUtc: string;
+  endTimeUtc: string;
+  finalizedAtUtc?: string | null;
+  customerResultStatus?: 'WON' | 'LOST' | 'DID NOT BID' | 'NO WINNER' | string | null;
+  serverTimeUtc: string;
+}
+
+export interface CustomerMyBid {
+  bidId: string;
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  primaryImageUrl?: string | null;
+  cropType: string;
+  quantity: number;
+  unit: string;
+  customerBidAmount: number;
+  currentHighestBid: number;
+  minimumBidIncrement: number;
+  auctionStatus: string;
+  customerBidStatus: 'HIGHEST BID' | 'OUTBID' | 'WON' | 'LOST' | string;
+  bidTimeUtc: string;
+  startTimeUtc: string;
+  endTimeUtc: string;
+  serverTimeUtc: string;
+}
