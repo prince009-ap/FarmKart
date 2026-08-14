@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,6 +23,7 @@ import { AuctionCountdownComponent } from '../../shared/auction-countdown.compon
 })
 export class CustomerAuctionDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly auctionService = inject(CustomerAuctionService);
 
   auction = signal<CustomerAuction | null>(null);
@@ -30,11 +31,6 @@ export class CustomerAuctionDetailComponent implements OnInit {
   selectedImageIndex = signal<number>(0);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
-
-  bidAmount = signal<number | null>(null);
-  isSubmittingBid = signal<boolean>(false);
-  bidSuccessMessage = signal<string | null>(null);
-  bidErrorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -55,13 +51,6 @@ export class CustomerAuctionDetailComponent implements OnInit {
         this.auction.set(data);
         this.isLoading.set(false);
 
-        // Pre-fill minimum valid bid
-        const nextMin = data.currentHighestBid > 0
-          ? data.currentHighestBid + data.minimumBidIncrement
-          : data.startingBidPrice;
-        this.bidAmount.set(nextMin);
-
-        // Load result if ended
         if (data.status === 'ENDED' || new Date(data.endTimeUtc).getTime() <= Date.now()) {
           this.loadResult(id);
         }
@@ -84,20 +73,19 @@ export class CustomerAuctionDetailComponent implements OnInit {
     this.selectedImageIndex.set(index);
   }
 
-  isAuctionLive(): boolean {
-    const auc = this.auction();
-    if (!auc) return false;
-    const now = Date.now();
-    const end = new Date(auc.endTimeUtc).getTime();
-    return auc.status === 'LIVE' && now < end;
-  }
-
   isAuctionEnded(): boolean {
     const auc = this.auction();
     if (!auc) return false;
     const now = Date.now();
     const end = new Date(auc.endTimeUtc).getTime();
     return auc.status === 'ENDED' || now >= end;
+  }
+
+  goToCheckout(): void {
+    const auc = this.auction();
+    if (auc) {
+      this.router.navigate(['/customer/auctions', auc.id, 'checkout']);
+    }
   }
 
   onImageError(event: Event): void {

@@ -1,0 +1,207 @@
+<div class="app-page animate-fk-rise space-y-6 max-w-4xl mx-auto">
+  <!-- Back Button Navigation -->
+  <div>
+    <a mat-button [routerLink]="['/customer/auctions', auction()?.id || '']" class="!text-slate-600 dark:!text-slate-300 font-bold">
+      <mat-icon class="!w-4 !h-4 text-base">arrow_back</mat-icon> Back to Auction Details
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-20 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold text-slate-500">Loading checkout summary...</p>
+  </div>
+
+  <!-- Error State (Not Winner / Invalid) -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-8 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-center space-y-4 max-w-md mx-auto shadow-sm">
+    <mat-icon class="text-rose-500 !w-12 !h-12 text-5xl">lock</mat-icon>
+    <h2 class="text-base font-bold text-rose-800 dark:text-rose-300">{{ errorMessage() }}</h2>
+    <a mat-flat-button color="primary" routerLink="/customer/auctions" class="!bg-sky-600 !rounded-xl text-xs">
+      <mat-icon>storefront</mat-icon> Return to Marketplace
+    </a>
+  </div>
+
+  <!-- SUCCESSFUL PAYMENT RECEIPT -->
+  <div *ngIf="completedPayment() as pay" class="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 shadow-xl space-y-6 text-center max-w-xl mx-auto animate-fk-rise">
+    <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
+      <mat-icon class="!w-10 !h-10 text-5xl">check_circle</mat-icon>
+    </div>
+
+    <div class="space-y-1">
+      <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wider">
+        ✅ {{ pay.paymentStatus }}
+      </span>
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white">
+        Payment Successful!
+      </h1>
+      <p class="text-xs font-semibold text-slate-500">
+        Transaction Reference: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ pay.transactionReference }}</strong>
+      </p>
+    </div>
+
+    <!-- Receipt Details Box -->
+    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-3 text-left">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+        <span class="text-slate-500 font-medium">Crop Purchased</span>
+        <span class="font-extrabold text-slate-900 dark:text-white text-sm">{{ pay.cropName }} ({{ pay.cropType }})</span>
+      </div>
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+        <span class="text-slate-500 font-medium">Purchased Quantity</span>
+        <span class="font-bold text-slate-800 dark:text-slate-200">{{ pay.quantity }} {{ pay.unit }}</span>
+      </div>
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+        <span class="text-slate-500 font-medium">Winning Bid Rate</span>
+        <span class="font-bold text-slate-800 dark:text-slate-200">₹{{ pay.winningBidAmount }} / {{ pay.unit }}</span>
+      </div>
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+        <span class="text-slate-500 font-medium">Payment Method</span>
+        <span class="font-bold text-slate-800 dark:text-slate-200 uppercase">{{ pay.paymentMethod }}</span>
+      </div>
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+        <span class="text-slate-500 font-medium">Farmer</span>
+        <span class="font-bold text-slate-800 dark:text-slate-200">{{ pay.farmerName }}</span>
+      </div>
+      <div class="flex justify-between items-center pt-1 text-base font-extrabold">
+        <span class="text-slate-900 dark:text-white">Amount Paid</span>
+        <span class="text-emerald-600 dark:text-emerald-400 font-black text-lg">₹{{ pay.totalPayableAmount | number:'1.0-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <a mat-flat-button color="primary" routerLink="/customer/payments" class="!bg-sky-600 !rounded-xl text-xs font-bold !w-full sm:!w-auto">
+        <mat-icon>history</mat-icon> View My Purchases / Payments
+      </a>
+      <a mat-stroked-button routerLink="/customer/auctions" class="!rounded-xl text-xs font-bold !w-full sm:!w-auto">
+        Return to Marketplace
+      </a>
+    </div>
+  </div>
+
+  <!-- CHECKOUT FORM -->
+  <div *ngIf="!isLoading() && !errorMessage() && !completedPayment() && auction() as auc" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    
+    <!-- Left Column: Checkout Order Summary (2 cols) -->
+    <div class="md:col-span-2 space-y-6">
+      
+      <!-- Top Banner -->
+      <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-900 text-white shadow-lg space-y-2 border border-emerald-600">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-extrabold uppercase tracking-wider">
+          <mat-icon class="!w-4 !h-4 text-sm text-yellow-300">emoji_events</mat-icon>
+          Auction Won Checkout
+        </div>
+        <h1 class="text-2xl font-extrabold">Complete Your Purchase</h1>
+        <p class="text-xs text-emerald-100">
+          As the verified auction winner, review your purchase details and proceed with payment.
+        </p>
+      </div>
+
+      <!-- Item Breakdown Card -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+          <mat-icon class="text-sky-600">shopping_bag</mat-icon> Order Breakdown
+        </h2>
+
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+            <img [src]="auc.primaryImageUrl" [alt]="auc.cropName" (error)="onImageError($event)" class="w-full h-full object-cover" />
+          </div>
+          <div class="space-y-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase">
+              {{ auc.cropType }}
+            </span>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ auc.cropName }}</h3>
+            <p class="text-xs text-slate-500">Farmer: <strong class="text-slate-700 dark:text-slate-300">{{ auc.farmerName }}</strong> ({{ auc.farmLocation }})</p>
+          </div>
+        </div>
+
+        <!-- Metric Table -->
+        <div class="space-y-2.5 pt-2 text-xs">
+          <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 font-semibold">Auction Reserved Quantity</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }}</span>
+          </div>
+
+          <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 font-semibold">Your Final Winning Bid</span>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>
+          </div>
+
+          <div class="flex justify-between py-3 text-base font-black text-slate-900 dark:text-white">
+            <span>Total Payable Amount</span>
+            <span class="text-xl text-emerald-600 dark:text-emerald-400">₹{{ calculateTotalPayable() | number:'1.0-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Payment Method & Pay Now Button (1 col) -->
+    <div class="space-y-6">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
+        <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+          <mat-icon class="text-emerald-600">payment</mat-icon> Select Payment Method
+        </h2>
+
+        <mat-radio-group [ngModel]="selectedPaymentMethod()" (ngModelChange)="selectedPaymentMethod.set($event)" class="flex flex-col gap-3">
+          <label class="p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors"
+            [ngClass]="selectedPaymentMethod() === 'UPI' ? 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/30' : 'border-slate-200 dark:border-slate-800'">
+            <div class="flex items-center gap-3">
+              <mat-radio-button value="UPI" color="primary"></mat-radio-button>
+              <div>
+                <span class="text-xs font-extrabold block text-slate-900 dark:text-white">UPI Payment</span>
+                <span class="text-[10px] text-slate-500">GPay, PhonePe, Paytm, BHIM</span>
+              </div>
+            </div>
+            <mat-icon class="text-sky-600">account_balance_wallet</mat-icon>
+          </label>
+
+          <label class="p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors"
+            [ngClass]="selectedPaymentMethod() === 'CARD' ? 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/30' : 'border-slate-200 dark:border-slate-800'">
+            <div class="flex items-center gap-3">
+              <mat-radio-button value="CARD" color="primary"></mat-radio-button>
+              <div>
+                <span class="text-xs font-extrabold block text-slate-900 dark:text-white">Credit / Debit Card</span>
+                <span class="text-[10px] text-slate-500">Visa, Mastercard, RuPay</span>
+              </div>
+            </div>
+            <mat-icon class="text-emerald-600">credit_card</mat-icon>
+          </label>
+
+          <label class="p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors"
+            [ngClass]="selectedPaymentMethod() === 'NET_BANKING' ? 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/30' : 'border-slate-200 dark:border-slate-800'">
+            <div class="flex items-center gap-3">
+              <mat-radio-button value="NET_BANKING" color="primary"></mat-radio-button>
+              <div>
+                <span class="text-xs font-extrabold block text-slate-900 dark:text-white">Net Banking</span>
+                <span class="text-[10px] text-slate-500">All major Indian banks</span>
+              </div>
+            </div>
+            <mat-icon class="text-purple-600">account_balance</mat-icon>
+          </label>
+        </mat-radio-group>
+
+        <!-- Payment Error Message -->
+        <div *ngIf="paymentError()" class="p-3 rounded-xl bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 text-xs font-semibold">
+          {{ paymentError() }}
+        </div>
+
+        <!-- PAY NOW BUTTON -->
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="payNow()"
+          [disabled]="isProcessingPayment()"
+          class="!w-full !py-3 !rounded-2xl !bg-emerald-600 hover:!bg-emerald-700 !text-white text-sm font-black shadow-lg flex items-center justify-center gap-2"
+        >
+          <span *ngIf="isProcessingPayment()" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <mat-icon *ngIf="!isProcessingPayment()">lock</mat-icon>
+          {{ isProcessingPayment() ? 'PROCESSING PAYMENT...' : 'PAY NOW (₹' + (calculateTotalPayable() | number:'1.0-2') + ')' }}
+        </button>
+
+        <p class="text-[10px] text-slate-400 text-center flex items-center justify-center gap-1">
+          <mat-icon class="!w-3 !h-3 text-xs">shield</mat-icon> Secure 256-bit encrypted test checkout
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

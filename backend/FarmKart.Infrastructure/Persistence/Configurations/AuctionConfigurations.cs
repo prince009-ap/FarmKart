@@ -92,3 +92,32 @@ public sealed class AuctionWinnerConfiguration : IEntityTypeConfiguration<Auctio
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class AuctionPaymentConfiguration : IEntityTypeConfiguration<AuctionPayment>
+{
+    public void Configure(EntityTypeBuilder<AuctionPayment> builder)
+    {
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_AuctionPayment_Amount_NonNegative", "[Amount] >= 0");
+        });
+
+        builder.ConfigureBaseEntity();
+
+        builder.Property(payment => payment.Amount).HasPrecision(18, 2);
+        builder.Property(payment => payment.Currency).HasMaxLength(10);
+        builder.Property(payment => payment.TransactionReference).HasMaxLength(150);
+
+        builder.HasIndex(payment => payment.AuctionId).IsUnique();
+
+        builder.HasOne(payment => payment.Auction)
+            .WithOne(auction => auction.AuctionPayment)
+            .HasForeignKey<AuctionPayment>(payment => payment.AuctionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(payment => payment.CustomerProfile)
+            .WithMany()
+            .HasForeignKey(payment => payment.CustomerProfileId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

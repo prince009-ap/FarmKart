@@ -1,4 +1,5 @@
 using FarmKart.Application.Abstractions.Auctions;
+using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.Abstractions.Farmer;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
@@ -13,7 +14,8 @@ namespace FarmKart.API.Controllers;
 [Authorize(Roles = Roles.Farmer)]
 public sealed class FarmerAuctionsController(
     IFarmerAuctionService auctionService,
-    IAuctionFinalizationService finalizationService) : ControllerBase
+    IAuctionFinalizationService finalizationService,
+    ICustomerPaymentService paymentService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll() => CurrentUserId() is { } userId ? Ok(await auctionService.GetAuctionsAsync(userId)) : Unauthorized();
@@ -32,6 +34,19 @@ public sealed class FarmerAuctionsController(
         if (CurrentUserId() is not { } userId) return Unauthorized();
         try { return Ok(await finalizationService.GetAuctionResultAsync(id, userId, cancellationToken)); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("{id:guid}/payment")]
+    public async Task<IActionResult> GetPayment(Guid id, CancellationToken cancellationToken)
+    {
+        if (CurrentUserId() is not { } userId) return Unauthorized();
+        try
+        {
+            var payment = await paymentService.GetFarmerAuctionPaymentAsync(userId, id, cancellationToken);
+            return payment != null ? Ok(payment) : Ok(new { paymentStatus = "PENDING", message = "Payment not initiated yet." });
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
     }
 
     [HttpPost]

@@ -69,3 +69,43 @@ export interface CustomerMyBid {
   endTimeUtc: string;
   serverTimeUtc: string;
 }
+
+export interface AuctionPayment {
+  paymentId: string;
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  cropType: string;
+  quantity: number;
+  unit: string;
+  winningBidAmount: number;
+  totalPayableAmount: number;
+  currency: string;
+  paymentMethod: string;
+  paymentStatus: 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED' | string;
+  transactionReference: string;
+  winnerCustomerName: string;
+  farmerName: string;
+  createdAtUtc: string;
+  paidAtUtc?: string | null;
+  serverTimeUtc: string;
+}
+
+export interface CustomerPaymentHistory {
+  paymentId: string;
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  primaryImageUrl?: string | null;
+  cropType: string;
+  quantity: number;
+  unit: string;
+  winningBidAmount: number;
+  totalPayableAmount: number;
+  currency: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  transactionReference: string;
+  createdAtUtc: string;
+  paidAtUtc?: string | null;
+}

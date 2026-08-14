@@ -42,14 +42,24 @@
             🏆 YOU WON THIS AUCTION!
           </h2>
           <p class="text-sm text-emerald-100 font-medium max-w-xl">
-            Congratulations! You submitted the highest bid of 
-            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>.
+            Winning Bid Rate: 
+            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span> | 
+            Total Payable Amount: 
+            <span class="font-extrabold text-white text-base">₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
           </p>
+
+          <!-- PROCEED TO PAYMENT BUTTON -->
+          <div class="pt-2">
+            <button mat-flat-button (click)="goToCheckout()" class="!bg-yellow-400 !text-slate-950 hover:!bg-yellow-300 !rounded-xl text-sm !font-black !px-6 !py-2.5 shadow-lg flex items-center gap-2">
+              <mat-icon>payment</mat-icon> PROCEED TO PAYMENT (₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }})
+            </button>
+          </div>
         </div>
-        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[200px]">
-          <span class="text-[10px] font-extrabold text-emerald-200 uppercase block">Winning Bid</span>
-          <span class="text-2xl font-black text-white">₹{{ auctionResult()?.winningBidAmount }}</span>
-          <span class="text-xs text-emerald-200 block">per {{ auc.unit }}</span>
+
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[220px]">
+          <span class="text-[10px] font-extrabold text-emerald-200 uppercase block">Total Payable Amount</span>
+          <span class="text-3xl font-black text-white">₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
+          <span class="text-xs text-emerald-200 block">({{ auc.quantity }} {{ auc.unit }} @ ₹{{ auctionResult()?.winningBidAmount }}/{{ auc.unit }})</span>
         </div>
       </div>
 

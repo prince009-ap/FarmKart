@@ -396,6 +396,7 @@ public class FarmerAuctionDurationTests : IClassFixture<WebApplicationFactory<Pr
         db.CropStockTransactions.Add(new CropStockTransaction
         {
             CropId = crop.Id,
+            Quantity = 1000,
             QuantityInBaseUnit = 1000,
             TransactionType = CropStockTransactionType.Harvest,
             Notes = "Test harvest"

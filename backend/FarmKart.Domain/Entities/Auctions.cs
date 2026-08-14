@@ -18,6 +18,7 @@ public sealed class Auction : BaseEntity
 
     public ICollection<Bid> Bids { get; set; } = [];
     public AuctionWinner? AuctionWinner { get; set; }
+    public AuctionPayment? AuctionPayment { get; set; }
 }
 
 public sealed class Bid : BaseEntity
@@ -41,4 +42,18 @@ public sealed class AuctionWinner : BaseEntity
     public Bid WinningBid { get; set; } = null!;
     public decimal FinalAmount { get; set; }
     public DateTime SelectedAtUtc { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class AuctionPayment : BaseEntity
+{
+    public Guid AuctionId { get; set; }
+    public Auction Auction { get; set; } = null!;
+    public Guid CustomerProfileId { get; set; }
+    public CustomerProfile CustomerProfile { get; set; } = null!;
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = "INR";
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Other;
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+    public string TransactionReference { get; set; } = string.Empty;
+    public DateTime? PaidAtUtc { get; set; }
 }

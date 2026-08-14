@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid } from '../../core/models/customer-auction.models';
+import { AuctionPayment, AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid, CustomerPaymentHistory } from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,7 @@ export class CustomerAuctionService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/customer/auctions`;
   private readonly bidsUrl = `${environment.apiUrl}/customer/bids`;
+  private readonly paymentsUrl = `${environment.apiUrl}/customer/payments`;
 
   private get serverBaseUrl(): string {
     return environment.apiUrl.replace(/\/api\/?$/, '');
@@ -61,6 +62,19 @@ export class CustomerAuctionService {
       map(bids => bids.map(bid => ({
         ...bid,
         primaryImageUrl: this.resolveImageUrl(bid.primaryImageUrl)
+      })))
+    );
+  }
+
+  processAuctionPayment(auctionId: string, paymentMethod: string): Observable<AuctionPayment> {
+    return this.http.post<AuctionPayment>(`${this.apiUrl}/${auctionId}/payments`, { paymentMethod });
+  }
+
+  getPaymentHistory(): Observable<CustomerPaymentHistory[]> {
+    return this.http.get<CustomerPaymentHistory[]>(this.paymentsUrl).pipe(
+      map(payments => payments.map(p => ({
+        ...p,
+        primaryImageUrl: this.resolveImageUrl(p.primaryImageUrl)
       })))
     );
   }

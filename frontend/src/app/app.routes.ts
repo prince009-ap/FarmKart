@@ -281,6 +281,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'auctions/:id/checkout',
+        loadComponent: () =>
+          import('./features/customer/customer-checkout.component').then(
+            (module) => module.CustomerCheckoutComponent,
+          ),
+      },
+      {
         path: 'bids',
         loadComponent: () =>
           import('./features/customer/customer-bids.component').then(
@@ -288,19 +295,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'orders',
-        data: { title: 'My Orders' },
-        loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
-          ),
-      },
-      {
         path: 'payments',
-        data: { title: 'Payments' },
         loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/customer/customer-payments.component').then(
+            (module) => module.CustomerPaymentsComponent,
           ),
       },
       {

@@ -13,7 +13,8 @@ namespace FarmKart.API.Controllers;
 [Authorize(Roles = Roles.Customer)]
 public sealed class CustomerAuctionsController(
     ICustomerAuctionService customerAuctionService,
-    IAuctionFinalizationService finalizationService) : ControllerBase
+    IAuctionFinalizationService finalizationService,
+    ICustomerPaymentService paymentService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAuctions(
@@ -92,6 +93,33 @@ public sealed class CustomerAuctionsController(
         }
     }
 
+    [HttpPost("{id:guid}/payments")]
+    public async Task<IActionResult> ProcessPayment(Guid id, [FromBody] ProcessPaymentRequest request, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var response = await paymentService.ProcessAuctionPaymentAsync(userId, id, request, cancellationToken);
+            return Ok(response);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("~/api/customer/bids")]
     public async Task<IActionResult> GetMyBids(CancellationToken cancellationToken)
     {
@@ -108,6 +136,48 @@ public sealed class CustomerAuctionsController(
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("~/api/customer/payments")]
+    public async Task<IActionResult> GetPaymentHistory(CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var history = await paymentService.GetCustomerPaymentHistoryAsync(userId, cancellationToken);
+            return Ok(history);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("~/api/customer/payments/{id:guid}")]
+    public async Task<IActionResult> GetPaymentById(Guid id, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var payment = await paymentService.GetPaymentByIdAsync(userId, id, cancellationToken);
+            return Ok(payment);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
         }
     }
 
