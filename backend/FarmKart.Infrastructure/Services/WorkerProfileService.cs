@@ -185,4 +185,84 @@ public class WorkerProfileService : IWorkerProfileService
             Skills: updatedSkills
         );
     }
+
+    public async Task<WorkerPreferencesResponse> GetPreferencesAsync(Guid userId)
+    {
+        var profile = await _dbContext.WorkerProfiles
+            .AsNoTracking()
+            .SingleOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile is null)
+        {
+            throw new ProfileNotFoundException();
+        }
+
+        var categories = ParseDelimitedList(profile.PreferredWorkCategories);
+        var locations = ParseDelimitedList(profile.PreferredLocations);
+
+        return new WorkerPreferencesResponse(
+            PreferredWorkCategories: categories,
+            PreferredLocations: locations,
+            MinimumDailyWage: profile.MinimumDailyWage,
+            PreferredWorkingHours: profile.PreferredWorkingHours,
+            FoodPreference: profile.FoodPreference,
+            AccommodationPreference: profile.AccommodationPreference
+        );
+    }
+
+    public async Task<WorkerPreferencesResponse> UpdatePreferencesAsync(Guid userId, WorkerPreferencesUpdateRequest request)
+    {
+        if (request.MinimumDailyWage < 0)
+        {
+            throw new ArgumentException("Minimum daily wage cannot be negative.");
+        }
+
+        var profile = await _dbContext.WorkerProfiles
+            .SingleOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile is null)
+        {
+            throw new ProfileNotFoundException();
+        }
+
+        var cleanCategories = CleanList(request.PreferredWorkCategories);
+        var cleanLocations = CleanList(request.PreferredLocations);
+
+        profile.PreferredWorkCategories = cleanCategories.Count > 0 ? string.Join(",", cleanCategories) : null;
+        profile.PreferredLocations = cleanLocations.Count > 0 ? string.Join(",", cleanLocations) : null;
+        profile.MinimumDailyWage = request.MinimumDailyWage;
+        profile.PreferredWorkingHours = string.IsNullOrWhiteSpace(request.PreferredWorkingHours) ? null : request.PreferredWorkingHours.Trim();
+        profile.FoodPreference = string.IsNullOrWhiteSpace(request.FoodPreference) ? null : request.FoodPreference.Trim();
+        profile.AccommodationPreference = string.IsNullOrWhiteSpace(request.AccommodationPreference) ? null : request.AccommodationPreference.Trim();
+
+        await _dbContext.SaveChangesAsync();
+
+        return new WorkerPreferencesResponse(
+            PreferredWorkCategories: cleanCategories,
+            PreferredLocations: cleanLocations,
+            MinimumDailyWage: profile.MinimumDailyWage,
+            PreferredWorkingHours: profile.PreferredWorkingHours,
+            FoodPreference: profile.FoodPreference,
+            AccommodationPreference: profile.AccommodationPreference
+        );
+    }
+
+    private static IReadOnlyList<string> ParseDelimitedList(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return Array.Empty<string>();
+        return raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static IReadOnlyList<string> CleanList(IReadOnlyList<string>? input)
+    {
+        if (input is null || input.Count == 0) return Array.Empty<string>();
+        return input
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => s.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
 }

@@ -2,7 +2,19 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApplyJobRequest, WorkerAssignment, WorkerAttendanceSummary, WorkerAvailableJob, WorkerJobApplication, WorkerProfile, WorkerProfileUpdateRequest } from '../../core/models/worker.models';
+import {
+  ApplyJobRequest,
+  UnreadNotificationCount,
+  WorkerAssignment,
+  WorkerAttendanceSummary,
+  WorkerAvailableJob,
+  WorkerJobApplication,
+  WorkerNotification,
+  WorkerPreferences,
+  WorkerPreferencesUpdateRequest,
+  WorkerProfile,
+  WorkerProfileUpdateRequest
+} from '../../core/models/worker.models';
 
 @Injectable({
   providedIn: 'root'
@@ -49,5 +61,29 @@ export class WorkerJobService {
 
   updateProfile(request: WorkerProfileUpdateRequest): Observable<WorkerProfile> {
     return this.http.put<WorkerProfile>(`${this.baseUrl}/profile`, request, { withCredentials: true });
+  }
+
+  getPreferences(): Observable<WorkerPreferences> {
+    return this.http.get<WorkerPreferences>(`${this.baseUrl}/preferences`, { withCredentials: true });
+  }
+
+  updatePreferences(request: WorkerPreferencesUpdateRequest): Observable<WorkerPreferences> {
+    return this.http.put<WorkerPreferences>(`${this.baseUrl}/preferences`, request, { withCredentials: true });
+  }
+
+  getNotifications(): Observable<WorkerNotification[]> {
+    return this.http.get<WorkerNotification[]>(`${this.baseUrl}/notifications`, { withCredentials: true });
+  }
+
+  getUnreadNotificationCount(): Observable<UnreadNotificationCount> {
+    return this.http.get<UnreadNotificationCount>(`${this.baseUrl}/notifications/unread-count`, { withCredentials: true });
+  }
+
+  markNotificationAsRead(id: string): Observable<WorkerNotification> {
+    return this.http.put<WorkerNotification>(`${this.baseUrl}/notifications/${id}/read`, {}, { withCredentials: true });
+  }
+
+  markAllNotificationsAsRead(): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.baseUrl}/notifications/read-all`, {}, { withCredentials: true });
   }
 }

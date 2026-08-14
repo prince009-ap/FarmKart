@@ -105,3 +105,35 @@ export interface WorkerProfileUpdateRequest {
   experienceDescription?: string | null;
   skills?: string[];
 }
+
+export interface WorkerPreferences {
+  preferredWorkCategories: string[];
+  preferredLocations: string[];
+  minimumDailyWage: number;
+  preferredWorkingHours: string | null;
+  foodPreference: string | null;
+  accommodationPreference: string | null;
+}
+
+export interface WorkerPreferencesUpdateRequest {
+  preferredWorkCategories?: string[];
+  preferredLocations?: string[];
+  minimumDailyWage: number;
+  preferredWorkingHours?: string | null;
+  foodPreference?: string | null;
+  accommodationPreference?: string | null;
+}
+
+export interface WorkerNotification {
+  id: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  isRead: boolean;
+  relatedEntityId?: string | null;
+  createdAtUtc: string;
+}
+
+export interface UnreadNotificationCount {
+  unreadCount: number;
+}

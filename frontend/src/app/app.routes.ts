@@ -199,6 +199,20 @@ export const routes: Routes = [
             (module) => module.WorkerProfileComponent,
           ),
       },
+      {
+        path: 'preferences',
+        loadComponent: () =>
+          import('./features/worker/worker-preferences.component').then(
+            (module) => module.WorkerPreferencesComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/worker/worker-notifications.component').then(
+            (module) => module.WorkerNotificationsComponent,
+          ),
+      },
     ],
   },
   {

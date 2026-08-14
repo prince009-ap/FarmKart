@@ -6,10 +6,25 @@ using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
+using FarmKart.Application.Abstractions.Notification;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace FarmKart.Infrastructure.Services;
 
-public sealed class FarmerJobService(FarmKartDbContext dbContext) : IFarmerJobService
+public sealed class FarmerJobService : IFarmerJobService
 {
+    private readonly FarmKartDbContext dbContext;
+    private readonly INotificationService notificationService;
+
+    public FarmerJobService(FarmKartDbContext dbContext, INotificationService notificationService)
+    {
+        this.dbContext = dbContext;
+        this.notificationService = notificationService;
+    }
+
     public async Task<IReadOnlyList<FarmerJobResponse>> GetJobsAsync(Guid userId) =>
         await dbContext.Jobs.AsNoTracking()
             .Where(job => job.FarmerProfile.UserId == userId)
@@ -57,8 +72,32 @@ public sealed class FarmerJobService(FarmKartDbContext dbContext) : IFarmerJobSe
         var job = await FindOwnedJobAsync(userId, jobId);
         if (job.Status is JobStatus.Completed or JobStatus.Cancelled)
             throw new InvalidOperationException("This job cannot be cancelled.");
+
         job.Status = JobStatus.Cancelled;
         await dbContext.SaveChangesAsync();
+
+        // Notify assigned and applicant workers
+        var workerUserIds = await dbContext.JobApplications
+            .AsNoTracking()
+            .Where(a => a.JobId == jobId && a.WorkerProfile != null)
+            .Select(a => a.WorkerProfile.UserId.ToString())
+            .Distinct()
+            .ToListAsync();
+
+        foreach (var wUserId in workerUserIds)
+        {
+            try
+            {
+                await notificationService.CreateNotificationAsync(
+                    wUserId,
+                    "Job Cancelled",
+                    $"The job '{job.Title}' has been cancelled.",
+                    NotificationType.Job,
+                    job.Id
+                );
+            }
+            catch { }
+        }
     }
 
     private async Task<Job> FindOwnedJobAsync(Guid userId, Guid jobId, bool asNoTracking = false)

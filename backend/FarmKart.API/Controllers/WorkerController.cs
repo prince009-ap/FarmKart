@@ -1,3 +1,4 @@
+using FarmKart.Application.Abstractions.Notification;
 using FarmKart.Application.Abstractions.Worker;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
@@ -21,17 +22,20 @@ public class WorkerController : ControllerBase
     private readonly IWorkerAssignmentService _workerAssignmentService;
     private readonly IWorkerAttendanceService _workerAttendanceService;
     private readonly IWorkerProfileService _workerProfileService;
+    private readonly INotificationService _notificationService;
 
     public WorkerController(
         IWorkerJobService workerJobService,
         IWorkerAssignmentService workerAssignmentService,
         IWorkerAttendanceService workerAttendanceService,
-        IWorkerProfileService workerProfileService)
+        IWorkerProfileService workerProfileService,
+        INotificationService notificationService)
     {
         _workerJobService = workerJobService;
         _workerAssignmentService = workerAssignmentService;
         _workerAttendanceService = workerAttendanceService;
         _workerProfileService = workerProfileService;
+        _notificationService = notificationService;
     }
 
     [HttpGet("profile")]
@@ -75,6 +79,102 @@ public class WorkerController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    [HttpGet("preferences")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerPreferencesResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPreferences()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerProfileService.GetPreferencesAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("preferences")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerPreferencesResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePreferences([FromBody] WorkerPreferencesUpdateRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerProfileService.UpdatePreferencesAsync(userId.Value, request));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("notifications")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<WorkerNotificationResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetNotifications()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        return Ok(await _notificationService.GetWorkerNotificationsAsync(userId.Value));
+    }
+
+    [HttpGet("notifications/unread-count")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UnreadNotificationCountResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetUnreadNotificationCount()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        return Ok(await _notificationService.GetUnreadCountAsync(userId.Value));
+    }
+
+    [HttpPut("notifications/{id:guid}/read")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerNotificationResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MarkNotificationAsRead(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _notificationService.MarkAsReadAsync(userId.Value, id));
+        }
+        catch (JobNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("notifications/read-all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> MarkAllNotificationsAsRead()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        await _notificationService.MarkAllAsReadAsync(userId.Value);
+        return Ok(new { message = "All notifications marked as read." });
     }
 
     [HttpGet("jobs")]

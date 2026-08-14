@@ -17,6 +17,8 @@
   - [x] Phase 5.1: Worker Profile Management
   - [x] Phase 5.2: Worker Skills & Experience Management
   - [x] Phase 5.3: Worker Availability Management
+  - [x] Phase 5.4: Worker Job Preferences
+  - [x] Phase 5.5: Worker In-App Notifications
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
@@ -294,5 +296,23 @@
 - [x] Added 10 backend integration tests in `WorkerProfileTests.cs` verifying availability reading, updating, toggle, persistence, 401/403 security, and worker isolation (151 total backend tests passing).
 - [x] Added 8 frontend unit specs in `worker-profile.component.spec.ts` verifying availability loading, toggle, persistence, validation, and error states (120 total frontend tests passing).
 - [x] Verified solution build (`dotnet build FarmKart.sln`), test suites (`dotnet test` & `npm test`), and production client bundle (`npm run build`).
+
+## Phase 5.4 & 5.5 Deliverables — Worker Job Preferences and In-App Notifications
+
+- [x] Extended `WorkerProfile` entity with preference properties (`PreferredWorkCategories`, `PreferredLocations`, `MinimumDailyWage`, `PreferredWorkingHours`, `FoodPreference`, `AccommodationPreference`).
+- [x] Configured EF Core check constraint `CK_WorkerProfile_MinimumDailyWage_NonNegative` and generated EF migration `AddWorkerJobPreferences`.
+- [x] Implemented `IWorkerProfileService` methods (`GetPreferencesAsync`, `UpdatePreferencesAsync`) supporting comma-separated category/location deduplication, trimming, and non-negative wage validation.
+- [x] Implemented `INotificationService` / `NotificationService` supporting notification creation, retrieval, unread count resolution, marking as read, and marking all as read.
+- [x] Integrated notification triggers as side-effects in `FarmerApplicationService` (Application Accepted/Rejected, Assignment Created), `FarmerAttendanceService` (Attendance Updated), and `FarmerJobService` (Job Cancelled).
+- [x] Exposed REST endpoints in `WorkerController.cs` under `[Authorize(Roles = Roles.Worker)]`:
+  - `GET /api/worker/preferences` & `PUT /api/worker/preferences`
+  - `GET /api/worker/notifications` & `GET /api/worker/notifications/unread-count`
+  - `PUT /api/worker/notifications/{id}/read` & `PUT /api/worker/notifications/read-all`
+- [x] Created Angular `WorkerPreferencesComponent` (`/worker/preferences`) for managing work categories (chip tags), locations (chip tags), minimum daily wage, working hours, food preference, and accommodation preference.
+- [x] Created Angular `WorkerNotificationsComponent` (`/worker/notifications`) with unread count badges, notification category icons, mark as read, mark all read, and target route navigation.
+- [x] Updated `WorkerShellComponent` sidebar navigation and drawer with `Job Preferences`, `Notifications`, and dynamic unread badge counter.
+- [x] Added 14 backend integration tests in `WorkerPreferencesTests.cs` and 12 in `WorkerNotificationTests.cs` (177/177 total backend tests passing).
+- [x] Added 10 frontend unit specs in `worker-preferences.component.spec.ts` and 8 in `worker-notifications.component.spec.ts` (138/138 total frontend tests passing).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
 
 

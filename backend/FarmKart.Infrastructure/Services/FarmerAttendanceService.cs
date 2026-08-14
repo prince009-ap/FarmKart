@@ -9,15 +9,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FarmKart.Application.Abstractions.Notification;
+using FarmKart.Domain.Enums;
+
 namespace FarmKart.Infrastructure.Services;
 
 public sealed class FarmerAttendanceService : IFarmerAttendanceService
 {
     private readonly FarmKartDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public FarmerAttendanceService(FarmKartDbContext dbContext)
+    public FarmerAttendanceService(FarmKartDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<IReadOnlyList<FarmerAttendanceResponse>> GetJobAttendanceAsync(Guid userId, Guid jobId, DateOnly? date = null)
@@ -129,6 +134,26 @@ public sealed class FarmerAttendanceService : IFarmerAttendanceService
             .Where(a => attendanceIds.Contains(a.Id))
             .ToListAsync();
 
+        foreach (var att in reloaded)
+        {
+            if (att.WorkerAssignment?.WorkerProfile != null)
+            {
+                var workerUserId = att.WorkerAssignment.WorkerProfile.UserId.ToString();
+                var jobTitle = job.Title;
+                try
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        workerUserId,
+                        "Attendance Updated",
+                        $"Your attendance for '{jobTitle}' on {att.Date:yyyy-MM-dd} was marked {att.Status}.",
+                        NotificationType.Job,
+                        att.Id
+                    );
+                }
+                catch { }
+            }
+        }
+
         return reloaded.Select(ToResponse).ToList();
     }
 
@@ -174,6 +199,23 @@ public sealed class FarmerAttendanceService : IFarmerAttendanceService
         }
 
         await _dbContext.SaveChangesAsync();
+
+        if (attendance.WorkerAssignment?.WorkerProfile != null)
+        {
+            var workerUserId = attendance.WorkerAssignment.WorkerProfile.UserId.ToString();
+            var jobTitle = attendance.WorkerAssignment.Job?.Title ?? "Job";
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    workerUserId,
+                    "Attendance Updated",
+                    $"Your attendance for '{jobTitle}' on {attendance.Date:yyyy-MM-dd} was marked {attendance.Status}.",
+                    NotificationType.Job,
+                    attendance.Id
+                );
+            }
+            catch { }
+        }
         return ToResponse(attendance);
     }
 

@@ -30,6 +30,12 @@ public sealed class WorkerProfile : ProfileBase
     public bool IsAvailable { get; set; } = true;
     public DateOnly? AvailableFrom { get; set; }
     public string? AvailabilityNotes { get; set; }
+    public string? PreferredWorkCategories { get; set; }
+    public string? PreferredLocations { get; set; }
+    public decimal MinimumDailyWage { get; set; }
+    public string? PreferredWorkingHours { get; set; }
+    public string? FoodPreference { get; set; }
+    public string? AccommodationPreference { get; set; }
 
     public ICollection<WorkerSkill> WorkerSkills { get; set; } = [];
     public ICollection<JobApplication> JobApplications { get; set; } = [];

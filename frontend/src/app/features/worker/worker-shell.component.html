@@ -27,6 +27,11 @@
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-900/30 text-slate-300 hover:text-white transition-all group font-medium text-sm">
           <mat-icon class="text-amber-400 group-hover:text-amber-300 transition-colors">{{ item.icon }}</mat-icon>
           <span>{{ item.label }}</span>
+          @if (item.label === 'Notifications' && unreadNotifCount() > 0) {
+            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white">
+              {{ unreadNotifCount() }}
+            </span>
+          }
           @if (item.isPlaceholder) {
             <span class="ml-auto app-badge app-badge--soon">Soon</span>
           }
@@ -80,6 +85,11 @@
            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-900/30 text-slate-300 hover:text-white transition-all group font-medium text-sm">
           <mat-icon class="text-amber-400">{{ item.icon }}</mat-icon>
           <span>{{ item.label }}</span>
+          @if (item.label === 'Notifications' && unreadNotifCount() > 0) {
+            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white">
+              {{ unreadNotifCount() }}
+            </span>
+          }
           @if (item.isPlaceholder) {
             <span class="ml-auto app-badge app-badge--soon">Soon</span>
           }

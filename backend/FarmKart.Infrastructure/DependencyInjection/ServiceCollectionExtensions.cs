@@ -1,5 +1,6 @@
 using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.Abstractions.Farmer;
+using FarmKart.Application.Abstractions.Notification;
 using FarmKart.Application.Abstractions.Worker;
 using FarmKart.Application.Abstractions.Persistence;
 using FarmKart.Infrastructure.Identity;
@@ -40,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkerAssignmentService, WorkerAssignmentService>();
         services.AddScoped<IWorkerAttendanceService, WorkerAttendanceService>();
         services.AddScoped<IWorkerProfileService, WorkerProfileService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         // Register JWT options and services
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

@@ -10,15 +10,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FarmKart.Application.Abstractions.Notification;
+
 namespace FarmKart.Infrastructure.Services;
 
 public sealed class FarmerApplicationService : IFarmerApplicationService
 {
     private readonly FarmKartDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public FarmerApplicationService(FarmKartDbContext dbContext)
+    public FarmerApplicationService(FarmKartDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<IReadOnlyList<FarmerJobApplicationResponse>> GetApplicationsForJobAsync(Guid userId, Guid jobId)
@@ -120,6 +124,32 @@ public sealed class FarmerApplicationService : IFarmerApplicationService
         _dbContext.WorkerAssignments.Add(assignment);
         await _dbContext.SaveChangesAsync();
 
+        if (application.WorkerProfile != null)
+        {
+            var workerUserId = application.WorkerProfile.UserId.ToString();
+            var jobTitle = application.Job?.Title ?? "Job";
+
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    workerUserId,
+                    "Application Accepted",
+                    $"Your application for '{jobTitle}' was accepted.",
+                    NotificationType.Application,
+                    application.Id
+                );
+
+                await _notificationService.CreateNotificationAsync(
+                    workerUserId,
+                    "Assignment Created",
+                    $"You have been assigned to '{jobTitle}'.",
+                    NotificationType.Assignment,
+                    assignment.Id
+                );
+            }
+            catch { /* Do not fail business transaction on notification side-effect error */ }
+        }
+
         return ToResponse(application);
     }
 
@@ -145,6 +175,24 @@ public sealed class FarmerApplicationService : IFarmerApplicationService
 
         application.Status = ApplicationStatus.Rejected;
         await _dbContext.SaveChangesAsync();
+
+        if (application.WorkerProfile != null)
+        {
+            var workerUserId = application.WorkerProfile.UserId.ToString();
+            var jobTitle = application.Job?.Title ?? "Job";
+
+            try
+            {
+                await _notificationService.CreateNotificationAsync(
+                    workerUserId,
+                    "Application Rejected",
+                    $"Your application for '{jobTitle}' was rejected.",
+                    NotificationType.Application,
+                    application.Id
+                );
+            }
+            catch { /* Do not fail business transaction on notification side-effect error */ }
+        }
 
         return ToResponse(application);
     }

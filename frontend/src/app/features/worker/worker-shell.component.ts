@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
+import { WorkerJobService } from './worker-job.service';
 
 interface NavItem {
   label: string;
@@ -27,11 +28,13 @@ interface NavItem {
 })
 export class WorkerShellComponent implements OnInit {
   protected readonly authService = inject(AuthService);
+  private readonly workerService = inject(WorkerJobService);
   private readonly router = inject(Router);
 
   isMobileMenuOpen = signal(false);
   userName = signal<string>('Worker');
   userEmail = signal<string>('');
+  unreadNotifCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', route: '/worker', icon: 'dashboard' },
@@ -39,6 +42,8 @@ export class WorkerShellComponent implements OnInit {
     { label: 'My Applications', route: '/worker/applications', icon: 'assignment' },
     { label: 'My Assignments', route: '/worker/assignments', icon: 'assignment_turned_in' },
     { label: 'My Attendance', route: '/worker/attendance', icon: 'event_available' },
+    { label: 'Job Preferences', route: '/worker/preferences', icon: 'tune' },
+    { label: 'Notifications', route: '/worker/notifications', icon: 'notifications' },
     { label: 'My Profile', route: '/worker/profile', icon: 'person' }
   ];
 
@@ -48,6 +53,11 @@ export class WorkerShellComponent implements OnInit {
         this.userName.set(user.fullName || 'Worker');
         this.userEmail.set(user.email || '');
       }
+    });
+
+    this.workerService.getUnreadNotificationCount().subscribe({
+      next: (res) => this.unreadNotifCount.set(res.unreadCount),
+      error: () => {}
     });
   }
 

@@ -1,0 +1,241 @@
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+  <!-- Header -->
+  <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-amber-600">tune</mat-icon>
+        Job Preferences
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Set your work categories, location choices, minimum wage, and shift preferences for job matching
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <mat-spinner diameter="40" color="primary"></mat-spinner>
+      <p class="mt-4 text-slate-600 dark:text-slate-400 text-sm font-medium">Loading preferences...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (loadError()) {
+    <div class="p-4 mb-6 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-start gap-3">
+      <mat-icon class="text-rose-500 shrink-0">error</mat-icon>
+      <div>
+        <h3 class="font-semibold text-sm">Error Loading Preferences</h3>
+        <p class="text-xs mt-0.5">{{ loadError() }}</p>
+        <button
+          mat-button
+          color="warn"
+          class="mt-2 text-xs font-semibold underline"
+          (click)="loadPreferences()">
+          Try Again
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Success Banner -->
+  @if (successMessage()) {
+    <div class="p-4 mb-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-center gap-2 text-sm font-medium">
+      <mat-icon class="text-emerald-600 dark:text-emerald-400">check_circle</mat-icon>
+      {{ successMessage() }}
+    </div>
+  }
+
+  <!-- Main Preference Form Card -->
+  @if (!loading()) {
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+      <form [formGroup]="prefForm" (ngSubmit)="onSubmit()" class="space-y-8">
+        
+        <!-- PREFERRED WORK CATEGORIES -->
+        <div>
+          <h3 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
+            <mat-icon class="text-amber-600">category</mat-icon>
+            Preferred Work Categories
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            Select farm work types you specialize in or prefer (e.g. Harvesting, Sowing, Irrigation, Crop Maintenance)
+          </p>
+
+          <div class="flex items-center gap-2 mb-3">
+            <input
+              type="text"
+              [value]="newCategoryInput()"
+              (input)="newCategoryInput.set($any($event.target).value)"
+              (keydown.enter)="$event.preventDefault(); addCategory()"
+              class="flex-1 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+              placeholder="Type category (e.g. Harvesting)..." />
+            <button
+              type="button"
+              mat-flat-button
+              class="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
+              (click)="addCategory()">
+              + Add Category
+            </button>
+          </div>
+
+          @if (categoryError()) {
+            <p class="text-xs text-rose-500 mb-2">{{ categoryError() }}</p>
+          }
+
+          <div class="flex flex-wrap gap-2 min-h-[42px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            @if (categories().length > 0) {
+              @for (cat of categories(); track cat; let i = $index) {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
+                  {{ cat }}
+                  <button
+                    type="button"
+                    class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-amber-200 dark:hover:bg-amber-800 text-amber-700 dark:text-amber-300"
+                    (click)="removeCategory(i)"
+                    [attr.aria-label]="'Remove ' + cat">
+                    <mat-icon class="!w-3 !h-3 !text-[12px] flex items-center justify-center">close</mat-icon>
+                  </button>
+                </span>
+              }
+            } @else {
+              <span class="text-xs text-slate-400 italic">No categories added yet. Add your preferred work categories above.</span>
+            }
+          </div>
+        </div>
+
+        <!-- PREFERRED LOCATIONS -->
+        <div class="pt-6 border-t border-slate-200 dark:border-slate-700">
+          <h3 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
+            <mat-icon class="text-amber-600">place</mat-icon>
+            Preferred Work Locations
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            Towns or regions where you are willing to work (e.g. Nadiad, Anand, Kheda)
+          </p>
+
+          <div class="flex items-center gap-2 mb-3">
+            <input
+              type="text"
+              [value]="newLocationInput()"
+              (input)="newLocationInput.set($any($event.target).value)"
+              (keydown.enter)="$event.preventDefault(); addLocation()"
+              class="flex-1 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+              placeholder="Type location (e.g. Nadiad)..." />
+            <button
+              type="button"
+              mat-flat-button
+              class="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
+              (click)="addLocation()">
+              + Add Location
+            </button>
+          </div>
+
+          @if (locationError()) {
+            <p class="text-xs text-rose-500 mb-2">{{ locationError() }}</p>
+          }
+
+          <div class="flex flex-wrap gap-2 min-h-[42px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            @if (locations().length > 0) {
+              @for (loc of locations(); track loc; let i = $index) {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800">
+                  {{ loc }}
+                  <button
+                    type="button"
+                    class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-emerald-200 dark:hover:bg-emerald-800 text-emerald-700 dark:text-emerald-300"
+                    (click)="removeLocation(i)"
+                    [attr.aria-label]="'Remove ' + loc">
+                    <mat-icon class="!w-3 !h-3 !text-[12px] flex items-center justify-center">close</mat-icon>
+                  </button>
+                </span>
+              }
+            } @else {
+              <span class="text-xs text-slate-400 italic">No locations added yet. Add your preferred towns or villages above.</span>
+            }
+          </div>
+        </div>
+
+        <!-- WAGE, HOURS & PREFERENCES GRID -->
+        <div class="pt-6 border-t border-slate-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Minimum Daily Wage -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Minimum Daily Wage (₹) <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="minimumDailyWage"
+              min="0"
+              step="10"
+              class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+              placeholder="500" />
+            @if (prefForm.get('minimumDailyWage')?.touched && prefForm.get('minimumDailyWage')?.hasError('required')) {
+              <p class="text-xs text-rose-500 mt-1">Minimum Daily Wage is required.</p>
+            }
+            @if (prefForm.get('minimumDailyWage')?.hasError('min')) {
+              <p class="text-xs text-rose-500 mt-1">Minimum wage cannot be negative.</p>
+            }
+          </div>
+
+          <!-- Preferred Working Hours -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Preferred Working Hours
+            </label>
+            <input
+              type="text"
+              formControlName="preferredWorkingHours"
+              class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+              placeholder="e.g. 08:00 AM - 05:00 PM" />
+          </div>
+
+          <!-- Food Preference -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Food Preference
+            </label>
+            <select
+              formControlName="foodPreference"
+              class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+              <option value="Preferred">Preferred</option>
+              <option value="Not Required">Not Required</option>
+            </select>
+          </div>
+
+          <!-- Accommodation Preference -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Accommodation Preference
+            </label>
+            <select
+              formControlName="accommodationPreference"
+              class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+              <option value="Required">Required</option>
+              <option value="Not Required">Not Required</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-6 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+          <button
+            type="submit"
+            mat-flat-button
+            class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+            [disabled]="saving() || prefForm.invalid">
+            @if (saving()) {
+              <mat-spinner diameter="18" color="accent"></mat-spinner>
+              <span>Saving...</span>
+            } @else {
+              <ng-container>
+                <mat-icon>save</mat-icon>
+                <span>Save Preferences</span>
+              </ng-container>
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+</div>
