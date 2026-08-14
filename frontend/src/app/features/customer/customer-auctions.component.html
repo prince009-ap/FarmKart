@@ -1,0 +1,199 @@
+<div class="app-page animate-fk-rise space-y-6">
+  <!-- Header Banner -->
+  <div class="p-6 md:p-8 rounded-3xl bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div class="space-y-2 max-w-2xl">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-800/60 border border-sky-600/30 text-sky-200">
+        <mat-icon class="!w-4 !h-4 text-base text-amber-400">gavel</mat-icon>
+        Auction Marketplace
+      </span>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+        Browse Farm Produce Auctions
+      </h1>
+      <p class="text-sm text-sky-100/90 leading-relaxed">
+        Discover fresh harvests listed by local farmers. View upcoming and live produce auctions.
+      </p>
+    </div>
+  </div>
+
+  <!-- Search & Filters Toolbar -->
+  <div class="p-4 md:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Search Input -->
+      <div class="relative">
+        <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !w-5 !h-5 text-xl">search</mat-icon>
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search crop, variety, location..."
+          class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+        />
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <mat-select
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="onCategoryChange($event)"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium"
+        >
+          <mat-option *ngFor="let cat of categories" [value]="cat">
+            Category: {{ cat }}
+          </mat-option>
+        </mat-select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <mat-select
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="onStatusChange($event)"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium"
+        >
+          <mat-option *ngFor="let st of statusOptions" [value]="st">
+            Status: {{ st }}
+          </mat-option>
+        </mat-select>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div>
+        <mat-select
+          [ngModel]="selectedSort()"
+          (ngModelChange)="onSortChange($event)"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium"
+        >
+          <mat-option *ngFor="let opt of sortOptions" [value]="opt.value">
+            Sort: {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </div>
+    </div>
+
+    <!-- Active Filters Row -->
+    <div *ngIf="searchQuery() || selectedCategory() !== 'All' || selectedStatus() !== 'All' || selectedSort() !== 'newest'" class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+      <span class="text-slate-500">Filtered results</span>
+      <button (click)="clearFilters()" class="text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1">
+        <mat-icon class="!w-4 !h-4 text-sm">clear</mat-icon> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-16 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold text-slate-500">Loading produce auctions...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-6 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-center space-y-3 max-w-md mx-auto">
+    <mat-icon class="text-red-500 !w-10 !h-10 text-4xl">error_outline</mat-icon>
+    <p class="text-xs font-bold text-red-800 dark:text-red-300">{{ errorMessage() }}</p>
+    <button mat-flat-button color="warn" (click)="loadAuctions()" class="!rounded-xl text-xs">
+      <mat-icon>refresh</mat-icon> Retry
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && !errorMessage() && auctions().length === 0" class="app-empty-state max-w-md mx-auto py-12">
+    <div class="app-card__icon mx-auto !bg-sky-50 !border-sky-200/60 !text-sky-600">
+      <mat-icon>gavel</mat-icon>
+    </div>
+    <h2 class="app-empty-state__title">No auctions available</h2>
+    <p class="app-empty-state__text mt-2">
+      Check back soon for fresh produce auctions from local farmers.
+    </p>
+    <button *ngIf="searchQuery() || selectedCategory() !== 'All' || selectedStatus() !== 'All'" mat-stroked-button (click)="clearFilters()" class="mt-4 !rounded-xl text-xs">
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Auctions Grid -->
+  <div *ngIf="!isLoading() && !errorMessage() && auctions().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let auction of auctions()" class="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden">
+      
+      <!-- Card Image Header -->
+      <div class="relative h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <img
+          *ngIf="auction.primaryImageUrl"
+          [src]="auction.primaryImageUrl"
+          [alt]="auction.cropName"
+          (error)="onImageError($event)"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div *ngIf="!auction.primaryImageUrl" class="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-100 dark:bg-slate-800">
+          <mat-icon class="!w-10 !h-10 text-4xl text-slate-400">eco</mat-icon>
+          <span class="text-[11px] font-semibold">No crop image</span>
+        </div>
+
+        <!-- Status Badge Overlay -->
+        <span [class]="'absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-extrabold uppercase shadow-sm ' + getStatusBadgeClass(auction.status)">
+          {{ auction.status }}
+        </span>
+
+        <!-- Category Tag Overlay -->
+        <span class="absolute bottom-3 left-3 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-slate-950/70 text-white backdrop-blur-sm">
+          {{ auction.cropType }}
+        </span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="p-5 space-y-4 flex-grow">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+            {{ auction.cropName }}
+          </h3>
+          <p *ngIf="auction.variety" class="text-xs text-slate-500 font-medium">
+            Variety: {{ auction.variety }}
+          </p>
+        </div>
+
+        <!-- Auction Details Table/Grid -->
+        <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+          <div>
+            <span class="text-slate-400 block text-[10px] font-bold uppercase">Quantity</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ auction.quantity }} {{ auction.unit }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] font-bold uppercase">Starting Price</span>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auction.startingBidPrice }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] font-bold uppercase">Highest Bid</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.currentHighestBid }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] font-bold uppercase">Min Increment</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.minimumBidIncrement }}</span>
+          </div>
+        </div>
+
+        <!-- Farmer Info -->
+        <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+          <mat-icon class="!w-4 !h-4 text-base text-sky-600 dark:text-sky-400">person</mat-icon>
+          <span class="font-bold truncate">{{ auction.farmerName }}</span>
+          <span class="text-slate-400 font-normal">({{ auction.farmLocation }})</span>
+        </div>
+
+        <!-- Start/End Time Info -->
+        <div class="text-[11px] text-slate-500 space-y-0.5 pt-1 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex justify-between">
+            <span>Starts:</span>
+            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ auction.startTimeUtc | date:'short' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Ends:</span>
+            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ auction.endTimeUtc | date:'short' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Footer Action -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+        <a mat-flat-button color="primary" [routerLink]="['/customer/auctions', auction.id]" class="!bg-sky-600 hover:!bg-sky-700 !rounded-xl text-xs font-bold w-full justify-center">
+          <mat-icon>visibility</mat-icon> View Auction
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

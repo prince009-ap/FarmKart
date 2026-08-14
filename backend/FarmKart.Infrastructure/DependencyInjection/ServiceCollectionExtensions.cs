@@ -49,6 +49,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkerEarningsService, WorkerEarningsService>();
         services.AddScoped<IWorkerWorkHistoryService, WorkerWorkHistoryService>();
         services.AddScoped<IWorkerProfileCompletionService, WorkerProfileCompletionService>();
+        services.AddScoped<FarmKart.Application.Abstractions.Customer.ICustomerAuctionService, CustomerAuctionService>();
 
         // Register JWT options and services
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

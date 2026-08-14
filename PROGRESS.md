@@ -27,6 +27,7 @@
   - [x] Phase 6.1: Farmer Crop Management
   - [x] Phase 6.2: Crop Inventory / Stock Management
   - [x] Phase 6.4: Customer Dashboard and Navigation Shell
+  - [x] Phase 6.5: Customer Auction Marketplace
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
@@ -403,5 +404,22 @@
 - [x] Dynamically resolved customer name and email from `AuthService.currentUser$` observable without hardcoded values.
 - [x] Added Angular unit tests for `CustomerShellComponent`, `CustomerDashboardComponent`, and customer `ComingSoonComponent` (**190 / 190 total frontend unit tests passing**).
 - [x] Verified frontend build (`npx ng build`) and test suite (`npm test`).
+
+## Phase 6.5 Deliverables — Customer Auction Marketplace
+
+- [x] Enforced strictly **AUCTION-ONLY marketplace business rule**: Zero direct buy, cart, checkout, or payment functionality added.
+- [x] Created `CustomerAuctionResponse` and `CustomerAuctionFilterRequest` DTOs in `CustomerAuctionDtos.cs`.
+- [x] Implemented `ICustomerAuctionService` / `CustomerAuctionService` with dynamic status computation (`LIVE`, `UPCOMING`, `ENDED`), search (crop name, variety, farmer name, location), category filter, status filter, location filter, sorting (Ending soon, Newest, Price asc/desc), and primary image resolution.
+- [x] Excluded `Draft` and `Cancelled` auctions from customer marketplace queries.
+- [x] Exposed REST endpoints in `CustomerAuctionsController.cs` under `[Authorize(Roles = Roles.Customer)]`:
+  - `GET /api/customer/auctions` — query marketplace with filters & sorting
+  - `GET /api/customer/auctions/{id}` — retrieve single auction details
+- [x] Created Angular `customer-auction.models.ts` and `CustomerAuctionService` API client.
+- [x] Created Angular `CustomerAuctionsComponent` (`/customer/auctions`) with search bar, category select, status select, sort dropdown, clear filters action, responsive auction card grid (primary image, crop type badge, status overlay, quantity, starting price, current highest bid, min increment, farmer info, start/end dates, "View Auction" button), loading skeleton, error retry state, and empty result state.
+- [x] Created Angular `CustomerAuctionDetailComponent` (`/customer/auctions/:id`) displaying large primary crop photo with gallery thumbnails, crop description, farmer profile, auction schedule, starting price & min increment, and a guarded "Live Bidding" section showing notice `"Bidding will be available in the next phase."`.
+- [x] Added 9 backend integration tests in `CustomerAuctionTests.cs` verifying marketplace retrieval, cancelled/draft exclusion, search/category/status filters, single auction resolution, 404 for invalid IDs, 401 unauthenticated rejection, and 403 role security for Farmer/Worker (**280 / 280 total backend tests passing**).
+- [x] Added Angular unit specs for `CustomerAuctionsComponent` and `CustomerAuctionDetailComponent` (**196 / 196 total frontend unit tests passing**).
+- [x] Verified solution build (`dotnet build backend/FarmKart.API`), backend tests (`dotnet test`), frontend build (`npx ng build`), and frontend tests (`npm test`).
+
 
 

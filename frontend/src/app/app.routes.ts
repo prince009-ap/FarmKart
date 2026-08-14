@@ -268,10 +268,16 @@ export const routes: Routes = [
       },
       {
         path: 'auctions',
-        data: { title: 'Browse Auctions' },
         loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/customer/customer-auctions.component').then(
+            (module) => module.CustomerAuctionsComponent,
+          ),
+      },
+      {
+        path: 'auctions/:id',
+        loadComponent: () =>
+          import('./features/customer/customer-auction-detail.component').then(
+            (module) => module.CustomerAuctionDetailComponent,
           ),
       },
       {
