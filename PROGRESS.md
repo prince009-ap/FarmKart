@@ -23,13 +23,17 @@
   - [x] Phase 5.7: Worker Earnings Management
   - [x] Phase 5.8: Worker Work History
   - [x] Phase 5.9: Worker Profile Verification & Completion
-- [ ] Phase 6: Customer module implementation
+- [x] Phase 6: Customer module implementation
   - [x] Phase 6.1: Farmer Crop Management
   - [x] Phase 6.2: Crop Inventory / Stock Management
+  - [x] Phase 6.3: Farmer Auction Creation
   - [x] Phase 6.4: Customer Dashboard and Navigation Shell
   - [x] Phase 6.5: Customer Auction Marketplace
   - [x] Phase 6.6: Customer Bidding System
   - [x] Phase 6.7: Auction Ending and Winner Finalization
+  - [x] Phase 6.8: Auction Winner Payment / Checkout
+  - [x] Safe Pricing Model Change: ₹ per 20 Kg (₹ per Man) Across System
+  - [x] Farmer Auction UI Fixes: Timezone Display & Auction Visibility
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR

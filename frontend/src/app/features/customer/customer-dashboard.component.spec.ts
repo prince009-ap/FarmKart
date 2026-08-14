@@ -58,6 +58,6 @@ describe('CustomerDashboardComponent', () => {
     expect(activeCard?.status).toBe('ACTIVE');
 
     const soonCards = fixture.componentInstance.moduleCards.filter(c => c.status === 'COMING SOON');
-    expect(soonCards.length).toBe(5);
+    expect(soonCards.length).toBe(3);
   });
 });

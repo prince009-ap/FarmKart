@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuctionPayment, AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid, CustomerPaymentHistory } from '../../core/models/customer-auction.models';
+import { AuctionBid, AuctionPayment, AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid, CustomerPaymentHistory } from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -51,6 +51,14 @@ export class CustomerAuctionService {
     return this.http.get<CustomerAuction>(`${this.apiUrl}/${id}`).pipe(
       map(auc => this.transformAuction(auc))
     );
+  }
+
+  placeBid(auctionId: string, amount: number): Observable<AuctionBid> {
+    return this.http.post<AuctionBid>(`${this.apiUrl}/${auctionId}/bids`, { amount });
+  }
+
+  getAuctionBids(auctionId: string): Observable<AuctionBid[]> {
+    return this.http.get<AuctionBid[]>(`${this.apiUrl}/${auctionId}/bids`);
   }
 
   getAuctionResult(id: string): Observable<AuctionResult> {

@@ -23,7 +23,7 @@ public sealed record UpdateFarmerAuctionRequest(
 
 
 public sealed record FarmerAuctionResponse(
-    Guid Id, Guid CropId, string CropName, decimal Quantity, string Unit, decimal QuantityKg,
+    Guid Id, Guid CropId, string CropName, decimal Quantity, string Unit, decimal QuantityKg, decimal QuantityMan,
     decimal AvailableStockKg, decimal ReservedStockKg, decimal RemainingUnreservedStockKg,
     decimal StartingBidPrice, decimal MinimumBidIncrement, DateTime StartTimeUtc, DateTime EndTimeUtc,
     string Status, string? Description, DateTime CreatedAtUtc, DateTime UpdatedAtUtc, DateTime ServerTimeUtc);

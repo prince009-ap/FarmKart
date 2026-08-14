@@ -43,23 +43,23 @@
           </h2>
           <p class="text-sm text-emerald-100 font-medium max-w-xl">
             Winning Bid Rate: 
-            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span> | 
+            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / Man (20 Kg)</span> | 
             Total Payable Amount: 
-            <span class="font-extrabold text-white text-base">₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
+            <span class="font-extrabold text-white text-base">₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
           </p>
 
           <!-- PROCEED TO PAYMENT BUTTON -->
           <div class="pt-2">
             <button mat-flat-button (click)="goToCheckout()" class="!bg-yellow-400 !text-slate-950 hover:!bg-yellow-300 !rounded-xl text-sm !font-black !px-6 !py-2.5 shadow-lg flex items-center gap-2">
-              <mat-icon>payment</mat-icon> PROCEED TO PAYMENT (₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }})
+              <mat-icon>payment</mat-icon> PROCEED TO PAYMENT (₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }})
             </button>
           </div>
         </div>
 
         <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[220px]">
           <span class="text-[10px] font-extrabold text-emerald-200 uppercase block">Total Payable Amount</span>
-          <span class="text-3xl font-black text-white">₹{{ (auc.quantity * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
-          <span class="text-xs text-emerald-200 block">({{ auc.quantity }} {{ auc.unit }} @ ₹{{ auctionResult()?.winningBidAmount }}/{{ auc.unit }})</span>
+          <span class="text-3xl font-black text-white">₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
+          <span class="text-xs text-emerald-200 block">({{ auc.quantity }} {{ auc.unit }} [{{ auc.quantityMan }} Man] @ ₹{{ auctionResult()?.winningBidAmount }}/Man)</span>
         </div>
       </div>
 
@@ -183,22 +183,22 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Auction Quantity</span>
-              <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }}</span>
+              <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }} <span class="text-xs text-sky-600 font-bold">({{ auc.quantityMan }} Man)</span></span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Starting Price</span>
-              <span class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auc.startingBidPrice }}</span>
+              <span class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auc.startingBidPrice }} / Man</span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Current Highest Bid</span>
-              <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ auc.currentHighestBid }}</span>
+              <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ auc.currentHighestBid }} / Man</span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Min Increment</span>
-              <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ auc.minimumBidIncrement }}</span>
+              <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ auc.minimumBidIncrement }} / Man</span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 col-span-2 sm:col-span-2">
@@ -211,5 +211,114 @@
         </div>
       </div>
     </div>
+
+    <!-- LIVE BIDDING PANEL (Shown when Auction is LIVE) -->
+    <div *ngIf="isAuctionLive()" class="rounded-3xl bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 p-6 md:p-8 text-white shadow-xl space-y-6">
+      <div class="flex items-center justify-between border-b border-sky-800/60 pb-4 flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+          <h2 class="text-xl font-extrabold flex items-center gap-2">
+            <mat-icon class="text-amber-400">gavel</mat-icon> Place Your Bid
+          </h2>
+        </div>
+        <span class="text-xs font-bold text-sky-200 bg-sky-800/60 px-3 py-1 rounded-full border border-sky-600/40">
+          Minimum Next Bid: ₹{{ minNextBid() }} / Man
+        </span>
+      </div>
+
+      <!-- Bid Feedback Alerts -->
+      <div *ngIf="bidError()" class="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-bold flex items-center gap-2">
+        <mat-icon class="!w-4 !h-4 text-sm text-rose-400">error</mat-icon>
+        <span>{{ bidError() }}</span>
+      </div>
+
+      <div *ngIf="bidSuccess()" class="p-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center gap-2">
+        <mat-icon class="!w-4 !h-4 text-sm text-emerald-400">check_circle</mat-icon>
+        <span>{{ bidSuccess() }}</span>
+      </div>
+
+      <!-- Bid Form Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        <div class="sm:col-span-2 space-y-1.5">
+          <label class="text-xs font-extrabold text-sky-200 block">
+            Your Bid Amount (₹ per 20 Kg / Man) <span class="text-rose-400">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
+            <input
+              type="number"
+              [min]="minNextBid()"
+              step="1"
+              placeholder="e.g. {{ minNextBid() }}"
+              [ngModel]="bidAmountInput()"
+              (ngModelChange)="bidAmountInput.set($event)"
+              class="w-full pl-8 pr-4 py-3 rounded-2xl border border-sky-700/60 bg-slate-900/80 text-white font-extrabold text-base focus:ring-2 focus:ring-amber-400 focus:outline-none placeholder:text-slate-500"
+            />
+          </div>
+          <p class="text-[11px] text-sky-300/80 font-medium">
+            💡 1 Man = 20 Kg. Enter bid rate per 20 Kg lot (must be at least ₹{{ minNextBid() }}/Man).
+          </p>
+        </div>
+
+        <div>
+          <button
+            mat-flat-button
+            (click)="placeBid()"
+            [disabled]="placingBid()"
+            class="!bg-gradient-to-r !from-amber-400 !to-yellow-500 !text-slate-950 hover:!from-amber-300 hover:!to-yellow-400 !rounded-2xl text-sm !font-black w-full !py-3 shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95"
+          >
+            <mat-icon>gavel</mat-icon>
+            <span>{{ placingBid() ? 'Placing Bid...' : 'PLACE BID NOW' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Bid Suggestions -->
+      <div class="flex items-center gap-2 pt-1 text-xs flex-wrap">
+        <span class="text-sky-300 font-semibold text-[11px]">Quick Bid:</span>
+        <button (click)="bidAmountInput.set(minNextBid())" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
+          ₹{{ minNextBid() }}
+        </button>
+        <button (click)="bidAmountInput.set(minNextBid() + (auc.minimumBidIncrement || 10))" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
+          ₹{{ minNextBid() + (auc.minimumBidIncrement || 10) }}
+        </button>
+        <button (click)="bidAmountInput.set(minNextBid() + ((auc.minimumBidIncrement * 2) || 20))" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
+          ₹{{ minNextBid() + ((auc.minimumBidIncrement * 2) || 20) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- BID HISTORY TABLE -->
+    <div *ngIf="bidsHistory().length > 0" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <mat-icon class="text-sky-600">history</mat-icon> Auction Bid History ({{ bidsHistory().length }})
+      </h3>
+
+      <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <div *ngFor="let b of bidsHistory(); let first = first" class="flex items-center justify-between p-3 rounded-2xl border text-xs"
+          [ngClass]="first ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800'">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs"
+              [ngClass]="first ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'">
+              {{ b.customerName ? b.customerName.substring(0, 1).toUpperCase() : 'C' }}
+            </div>
+            <div>
+              <span class="font-extrabold text-slate-900 dark:text-white block">{{ b.customerName }}</span>
+              <span class="text-[10px] text-slate-500 font-mono">{{ b.bidTimeUtc | date:'shortTime' }}</span>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="font-black text-sm block" [ngClass]="first ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'">
+              ₹{{ b.amount }} / Man
+            </span>
+            <span *ngIf="first" class="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase">
+              Highest Bid
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

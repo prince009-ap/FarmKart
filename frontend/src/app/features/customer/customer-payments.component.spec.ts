@@ -20,8 +20,9 @@ describe('CustomerPaymentsComponent', () => {
       cropType: 'Grain',
       quantity: 300,
       unit: 'Kg',
-      winningBidAmount: 31,
-      totalPayableAmount: 9300,
+      quantityMan: 15,
+      winningBidAmount: 600,
+      totalPayableAmount: 9000,
       currency: 'INR',
       paymentMethod: 'UPI',
       paymentStatus: 'PAID',
@@ -56,7 +57,7 @@ describe('CustomerPaymentsComponent', () => {
   it('should create and load payment history', () => {
     expect(component).toBeTruthy();
     expect(component.payments().length).toBe(1);
-    expect(component.payments()[0].totalPayableAmount).toBe(9300);
+    expect(component.payments()[0].totalPayableAmount).toBe(9000);
     expect(component.payments()[0].paymentStatus).toBe('PAID');
   });
 });

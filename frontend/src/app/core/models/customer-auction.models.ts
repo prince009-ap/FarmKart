@@ -7,6 +7,7 @@ export interface CustomerAuction {
   quantity: number;
   unit: string;
   quantityKg: number;
+  quantityMan: number;
   startingBidPrice: number;
   currentHighestBid: number;
   minimumBidIncrement: number;
@@ -30,6 +31,16 @@ export interface CustomerAuctionFilter {
   sortBy?: string;
 }
 
+export interface AuctionBid {
+  id: string;
+  auctionId: string;
+  customerProfileId: string;
+  customerName: string;
+  amount: number;
+  bidTimeUtc: string;
+  bidStatus: string;
+}
+
 export interface AuctionResult {
   auctionId: string;
   cropId: string;
@@ -37,6 +48,7 @@ export interface AuctionResult {
   cropType: string;
   quantity: number;
   unit: string;
+  quantityMan: number;
   auctionStatus: string;
   hasWinner: boolean;
   winningBidAmount?: number | null;
@@ -59,6 +71,7 @@ export interface CustomerMyBid {
   cropType: string;
   quantity: number;
   unit: string;
+  quantityMan: number;
   customerBidAmount: number;
   currentHighestBid: number;
   minimumBidIncrement: number;
@@ -78,6 +91,7 @@ export interface AuctionPayment {
   cropType: string;
   quantity: number;
   unit: string;
+  quantityMan: number;
   winningBidAmount: number;
   totalPayableAmount: number;
   currency: string;
@@ -100,6 +114,7 @@ export interface CustomerPaymentHistory {
   cropType: string;
   quantity: number;
   unit: string;
+  quantityMan: number;
   winningBidAmount: number;
   totalPayableAmount: number;
   currency: string;

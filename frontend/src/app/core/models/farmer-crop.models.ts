@@ -92,7 +92,7 @@ export interface AddCropStockRequest {
 }
 
 export interface FarmerAuction {
-  id: string; cropId: string; cropName: string; quantity: number; unit: string; quantityKg: number;
+  id: string; cropId: string; cropName: string; quantity: number; unit: string; quantityKg: number; quantityMan: number;
   availableStockKg: number; reservedStockKg: number; remainingUnreservedStockKg: number;
   startingBidPrice: number; minimumBidIncrement: number; startTimeUtc: string; endTimeUtc: string;
   status: string; description?: string | null; createdAtUtc: string; updatedAtUtc: string;

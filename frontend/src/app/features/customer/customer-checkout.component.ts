@@ -80,7 +80,8 @@ export class CustomerCheckoutComponent implements OnInit {
     const auc = this.auction();
     const res = this.auctionResult();
     if (!auc || !res || !res.winningBidAmount) return 0;
-    return auc.quantity * res.winningBidAmount;
+    const manQuantity = auc.quantityMan || (auc.quantity / 20);
+    return manQuantity * res.winningBidAmount;
   }
 
   payNow(): void {

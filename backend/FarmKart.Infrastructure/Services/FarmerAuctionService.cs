@@ -1,6 +1,7 @@
 using FarmKart.Application.Abstractions.Farmer;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
@@ -149,7 +150,8 @@ public sealed class FarmerAuctionService(FarmKartDbContext dbContext) : IFarmerA
         var now = DateTime.UtcNow;
         var reserved = await dbContext.Auctions.Include(a => a.CropListing).Where(a => a.CropListing.CropId == auction.CropListing.CropId && ReservingStatuses.Contains(a.AuctionStatus) && (a.AuctionStatus == AuctionStatus.Draft || a.EndTimeUtc > now)).SumAsync(a => (decimal?)a.CropListing.QuantityForSale * (a.CropListing.Unit == MeasurementUnit.Ton ? 1000m : a.CropListing.Unit == MeasurementUnit.Quintal ? 100m : 1m), ct) ?? 0m;
         var kg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var man = AuctionPricingConstants.ConvertKgToMan(kg);
         var status = GetEffectiveStatus(auction, now).ToString();
-        return new(auction.Id, auction.CropListing.CropId, auction.CropListing.Crop.CropName, auction.CropListing.QuantityForSale, CropStockUnitConverter.Format(auction.CropListing.Unit), kg, total, reserved, total - reserved, auction.StartingPrice, auction.MinimumBidIncrement, auction.StartTimeUtc, auction.EndTimeUtc, status, auction.CropListing.Description, auction.CreatedAtUtc, auction.UpdatedAtUtc, now);
+        return new(auction.Id, auction.CropListing.CropId, auction.CropListing.Crop.CropName, auction.CropListing.QuantityForSale, CropStockUnitConverter.Format(auction.CropListing.Unit), kg, man, total, reserved, total - reserved, auction.StartingPrice, auction.MinimumBidIncrement, auction.StartTimeUtc, auction.EndTimeUtc, status, auction.CropListing.Description, auction.CreatedAtUtc, auction.UpdatedAtUtc, now);
     }
 }

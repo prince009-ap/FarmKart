@@ -37,7 +37,7 @@ export class CustomerDashboardComponent implements OnInit {
       description: 'Track your active and previous auction bids.',
       route: '/customer/bids',
       icon: 'local_offer',
-      status: 'COMING SOON'
+      status: 'ACTIVE'
     },
     {
       title: 'My Orders',
@@ -51,7 +51,7 @@ export class CustomerDashboardComponent implements OnInit {
       description: 'Manage payments for successful auction purchases.',
       route: '/customer/payments',
       icon: 'payments',
-      status: 'COMING SOON'
+      status: 'ACTIVE'
     },
     {
       title: 'Notifications',

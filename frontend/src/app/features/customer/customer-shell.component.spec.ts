@@ -46,9 +46,7 @@ describe('CustomerShellComponent', () => {
     );
 
     expect(placeholderItems.map((item) => item.label)).toEqual([
-      'My Bids',
       'My Orders',
-      'Payments',
       'Notifications',
       'My Profile'
     ]);

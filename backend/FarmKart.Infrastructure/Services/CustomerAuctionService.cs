@@ -2,6 +2,7 @@ using System.Data;
 using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
@@ -273,6 +274,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             var primaryImage = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? images.FirstOrDefault();
 
             var customerBidStatus = bid.Amount == auction.CurrentHighestBid ? "HIGHEST BID" : "OUTBID";
+            var kgForBid = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+            var manForBid = AuctionPricingConstants.ConvertKgToMan(kgForBid);
 
             result.Add(new CustomerMyBidResponse(
                 BidId: bid.Id,
@@ -283,6 +286,7 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 CropType: crop.CropType,
                 Quantity: auction.CropListing.QuantityForSale,
                 Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
+                QuantityMan: manForBid,
                 CustomerBidAmount: bid.Amount,
                 CurrentHighestBid: auction.CurrentHighestBid,
                 MinimumBidIncrement: auction.MinimumBidIncrement,
@@ -304,23 +308,28 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
         var farmer = crop.FarmerProfile ?? auction.FarmerProfile;
 
         string computedStatus;
-        if (now < auction.StartTimeUtc)
+        if (auction.AuctionStatus == AuctionStatus.Cancelled)
+        {
+            computedStatus = "CANCELLED";
+        }
+        else if (now < auction.StartTimeUtc)
         {
             computedStatus = "UPCOMING";
         }
-        else if (now <= auction.EndTimeUtc)
+        else if (now >= auction.EndTimeUtc)
         {
-            computedStatus = "LIVE";
+            computedStatus = "ENDED";
         }
         else
         {
-            computedStatus = "ENDED";
+            computedStatus = "LIVE";
         }
 
         var images = crop.Images.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToList();
         var primaryImage = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? images.FirstOrDefault();
 
         var kg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var man = AuctionPricingConstants.ConvertKgToMan(kg);
         var unitFormatted = CropStockUnitConverter.Format(auction.CropListing.Unit);
 
         return new CustomerAuctionResponse(
@@ -332,6 +341,7 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             Quantity: auction.CropListing.QuantityForSale,
             Unit: unitFormatted,
             QuantityKg: kg,
+            QuantityMan: man,
             StartingBidPrice: auction.StartingPrice,
             CurrentHighestBid: auction.CurrentHighestBid,
             MinimumBidIncrement: auction.MinimumBidIncrement,

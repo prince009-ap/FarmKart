@@ -2,6 +2,7 @@ using System.Data;
 using FarmKart.Application.Abstractions.Auctions;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
@@ -111,6 +112,9 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
         string effectiveStatus = now < auction.StartTimeUtc ? "UPCOMING" : (now <= auction.EndTimeUtc ? "LIVE" : "ENDED");
 
+        var kg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var man = AuctionPricingConstants.ConvertKgToMan(kg);
+
         return new AuctionResultResponse(
             AuctionId: auction.Id,
             CropId: crop.Id,
@@ -118,6 +122,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
             CropType: crop.CropType,
             Quantity: auction.CropListing.QuantityForSale,
             Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
+            QuantityMan: man,
             AuctionStatus: effectiveStatus,
             HasWinner: hasWinner,
             WinningBidAmount: auction.AuctionWinner?.FinalAmount,

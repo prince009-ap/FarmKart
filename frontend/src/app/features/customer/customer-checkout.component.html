@@ -119,12 +119,12 @@
         <div class="space-y-2.5 pt-2 text-xs">
           <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
             <span class="text-slate-500 font-semibold">Auction Reserved Quantity</span>
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }} <span class="text-sky-600">({{ auc.quantityMan }} Man)</span></span>
           </div>
 
           <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
             <span class="text-slate-500 font-semibold">Your Final Winning Bid</span>
-            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auctionResult()?.winningBidAmount }} / Man (20 Kg)</span>
           </div>
 
           <div class="flex justify-between py-3 text-base font-black text-slate-900 dark:text-white">

@@ -75,15 +75,15 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var (winnerClient, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay1@test.com", "Password123!", "Winning Customer");
         var (_, loserUserId) = await GetAuthenticatedCustomerClientAsync("loser_pay1@test.com", "Password123!", "Losing Customer");
 
-        // 300 Kg @ ₹31/Kg = ₹9,300
-        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 31m);
+        // 300 Kg (15 Man) @ ₹600/Man = ₹9,000
+        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 600m);
 
         var res = await winnerClient.PostAsJsonAsync($"/api/customer/auctions/{auctionId}/payments", new ProcessPaymentRequest("UPI"));
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
         var payment = await res.Content.ReadFromJsonAsync<AuctionPaymentResponse>();
         Assert.NotNull(payment);
-        Assert.Equal(9300m, payment.TotalPayableAmount);
+        Assert.Equal(9000m, payment.TotalPayableAmount);
         Assert.Equal("PAID", payment.PaymentStatus);
         Assert.StartsWith("FK-TEST-", payment.TransactionReference);
     }
@@ -94,7 +94,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var (_, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay2@test.com", "Password123!", "Winner 2");
         var (loserClient, loserUserId) = await GetAuthenticatedCustomerClientAsync("loser_pay2@test.com", "Password123!", "Loser 2");
 
-        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 31m);
+        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 600m);
 
         var res = await loserClient.PostAsJsonAsync($"/api/customer/auctions/{auctionId}/payments", new ProcessPaymentRequest("UPI"));
         Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
@@ -104,7 +104,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
     public async Task Test03_Payment_On_Live_Auction_Is_Rejected()
     {
         var (winnerClient, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay3@test.com", "Password123!", "Winner 3");
-        var auctionId = await SeedLiveAuctionAsync(winnerUserId, 300m, 25m);
+        var auctionId = await SeedLiveAuctionAsync(winnerUserId, 300m, 500m);
 
         var res = await winnerClient.PostAsJsonAsync($"/api/customer/auctions/{auctionId}/payments", new ProcessPaymentRequest("UPI"));
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -116,7 +116,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var (winnerClient, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay4@test.com", "Password123!", "Winner 4");
         var (_, loserUserId) = await GetAuthenticatedCustomerClientAsync("loser_pay4@test.com", "Password123!", "Loser 4");
 
-        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 31m);
+        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 600m);
 
         var res1 = await winnerClient.PostAsJsonAsync($"/api/customer/auctions/{auctionId}/payments", new ProcessPaymentRequest("UPI"));
         Assert.Equal(HttpStatusCode.OK, res1.StatusCode);
@@ -143,7 +143,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var (winnerClient, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay5@test.com", "Password123!", "Winner 5");
         var (_, loserUserId) = await GetAuthenticatedCustomerClientAsync("loser_pay5@test.com", "Password123!", "Loser 5");
 
-        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 31m);
+        var auctionId = await SeedEndedAuctionWithWinnerAsync(winnerUserId, loserUserId, 300m, 600m);
         await winnerClient.PostAsJsonAsync($"/api/customer/auctions/{auctionId}/payments", new ProcessPaymentRequest("UPI"));
 
         var historyRes = await winnerClient.GetAsync("/api/customer/payments");
@@ -152,7 +152,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var history = await historyRes.Content.ReadFromJsonAsync<List<CustomerPaymentHistoryResponse>>();
         Assert.NotNull(history);
         Assert.Single(history);
-        Assert.Equal(9300m, history[0].TotalPayableAmount);
+        Assert.Equal(9000m, history[0].TotalPayableAmount);
         Assert.Equal("PAID", history[0].PaymentStatus);
     }
 
@@ -162,7 +162,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var (farmerClient, farmerUserId) = await GetAuthenticatedFarmerClientAsync("farmer_pay6@test.com", "Password123!", "Farmer 6");
         var (winnerClient, winnerUserId) = await GetAuthenticatedCustomerClientAsync("winner_pay6@test.com", "Password123!", "Winner 6");
 
-        var auctionId = await SeedEndedAuctionForFarmerAsync(farmerUserId, winnerUserId, 300m, 31m);
+        var auctionId = await SeedEndedAuctionForFarmerAsync(farmerUserId, winnerUserId, 300m, 600m);
 
         // Before payment -> PENDING
         var check1 = await farmerClient.GetAsync($"/api/farmer/auctions/{auctionId}/payment");
@@ -177,7 +177,7 @@ public class CustomerPaymentTests : IClassFixture<WebApplicationFactory<Program>
         var p = await check2.Content.ReadFromJsonAsync<AuctionPaymentResponse>();
         Assert.NotNull(p);
         Assert.Equal("PAID", p.PaymentStatus);
-        Assert.Equal(9300m, p.TotalPayableAmount);
+        Assert.Equal(9000m, p.TotalPayableAmount);
     }
 
     // ──────────────────────────────────────────────

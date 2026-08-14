@@ -157,19 +157,19 @@
         <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
           <div>
             <span class="text-slate-400 block text-[10px] font-bold uppercase">Quantity</span>
-            <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ auction.quantity }} {{ auction.unit }}</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ auction.quantity }} {{ auction.unit }} <span class="text-[10px] text-sky-600 font-bold">({{ auction.quantityMan }} Man)</span></span>
           </div>
           <div>
             <span class="text-slate-400 block text-[10px] font-bold uppercase">Starting Price</span>
-            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auction.startingBidPrice }}</span>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ auction.startingBidPrice }} / Man</span>
           </div>
           <div>
             <span class="text-slate-400 block text-[10px] font-bold uppercase">Highest Bid</span>
-            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.currentHighestBid }}</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.currentHighestBid }} / Man</span>
           </div>
           <div>
             <span class="text-slate-400 block text-[10px] font-bold uppercase">Min Increment</span>
-            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.minimumBidIncrement }}</span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">₹{{ auction.minimumBidIncrement }} / Man</span>
           </div>
         </div>
 

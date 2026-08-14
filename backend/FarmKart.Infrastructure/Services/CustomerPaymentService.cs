@@ -4,6 +4,7 @@ using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.Abstractions.Payments;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using FarmKart.Domain.Entities;
 using FarmKart.Domain.Enums;
 using FarmKart.Infrastructure.Persistence;
@@ -77,9 +78,10 @@ public sealed class CustomerPaymentService(
                 return MapToResponse(auction.AuctionPayment, auction, customerProfile.FullName);
             }
 
-            var quantity = auction.CropListing.QuantityForSale;
+            var quantityInKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+            var quantityInMan = AuctionPricingConstants.ConvertKgToMan(quantityInKg);
             var winningBidRate = auction.AuctionWinner.FinalAmount;
-            var totalPayableAmount = Math.Round(quantity * winningBidRate, 2);
+            var totalPayableAmount = Math.Round(quantityInMan * winningBidRate, 2);
 
             var method = ParsePaymentMethod(request.PaymentMethod);
 
@@ -182,6 +184,7 @@ public sealed class CustomerPaymentService(
                 CropType: crop.CropType,
                 Quantity: p.Auction.CropListing.QuantityForSale,
                 Unit: CropStockUnitConverter.Format(p.Auction.CropListing.Unit),
+                QuantityMan: AuctionPricingConstants.ConvertKgToMan(CropStockUnitConverter.ToKilograms(p.Auction.CropListing.QuantityForSale, p.Auction.CropListing.Unit)),
                 WinningBidAmount: winningBidRate,
                 TotalPayableAmount: p.Amount,
                 Currency: p.Currency,
@@ -233,6 +236,8 @@ public sealed class CustomerPaymentService(
     {
         var crop = auction.CropListing.Crop;
         var winningBidRate = auction.AuctionWinner?.FinalAmount ?? payment.Amount;
+        var qtyKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var qtyMan = AuctionPricingConstants.ConvertKgToMan(qtyKg);
 
         return new AuctionPaymentResponse(
             PaymentId: payment.Id,
@@ -242,6 +247,7 @@ public sealed class CustomerPaymentService(
             CropType: crop.CropType,
             Quantity: auction.CropListing.QuantityForSale,
             Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
+            QuantityMan: qtyMan,
             WinningBidAmount: winningBidRate,
             TotalPayableAmount: payment.Amount,
             Currency: payment.Currency,

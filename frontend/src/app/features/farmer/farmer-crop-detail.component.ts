@@ -134,7 +134,14 @@ export class FarmerCropDetailComponent implements OnInit {
     });
   }
 
-  loadAuctions(): void { this.auctionService.getAuctions().subscribe({ next: auctions => this.auctions.set(auctions.filter(a => a.cropId === this.crop()?.id)), error: () => this.auctions.set([]) }); }
+  loadAuctions(): void { 
+    const currentCropId = this.crop()?.id;
+    if (!currentCropId) return;
+    this.auctionService.getAuctions().subscribe({ 
+      next: auctions => this.auctions.set(auctions.filter(a => a.cropId && a.cropId.toLowerCase() === currentCropId.toLowerCase())), 
+      error: () => this.auctions.set([]) 
+    }); 
+  }
   openAuctionModal(): void { this.auctionError.set(null); this.auctionQuantity.set(null); this.startingBidPrice.set(null); this.minimumBidIncrement.set(null); this.auctionDuration.set('1 Day'); this.customDurationHours.set(null); this.auctionStart.set(''); this.showAuctionModal.set(true); }
   closeAuctionModal(): void { this.showAuctionModal.set(false); }
   createAuction(): void {
@@ -147,7 +154,19 @@ export class FarmerCropDetailComponent implements OnInit {
     }
     if (!crop || !quantity || !price || !increment || !this.auctionStart()) { this.auctionError.set('Complete all auction fields with values greater than zero.'); return; }
     const request: CreateFarmerAuctionRequest = { cropId: crop.id, quantity, unit: this.auctionUnit(), startingBidPrice: price, minimumBidIncrement: increment, startTimeUtc: new Date(this.auctionStart()).toISOString(), duration, description: null };
-    this.savingAuction.set(true); this.auctionService.createAuction(request).subscribe({ next: auction => { this.auctions.update(items => [auction, ...items]); this.savingAuction.set(false); this.closeAuctionModal(); }, error: err => { this.auctionError.set(err?.status === 404 ? 'Auction API is unavailable. Restart the backend and try again.' : err?.error?.message || 'Unable to create auction.'); this.savingAuction.set(false); } });
+    this.savingAuction.set(true); 
+    this.auctionService.createAuction(request).subscribe({ 
+      next: auction => { 
+        this.loadAuctions();
+        this.loadStockSummary(crop.id);
+        this.savingAuction.set(false); 
+        this.closeAuctionModal(); 
+      }, 
+      error: err => { 
+        this.auctionError.set(err?.status === 404 ? 'Auction API is unavailable. Restart the backend and try again.' : err?.error?.message || 'Unable to create auction.'); 
+        this.savingAuction.set(false); 
+      } 
+    });
   }
   cancelAuction(id: string): void { this.auctionService.cancelAuction(id).subscribe({ next: () => this.loadAuctions(), error: err => this.auctionError.set(err?.error?.message || 'Unable to cancel auction.') }); }
 

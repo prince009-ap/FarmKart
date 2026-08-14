@@ -18,9 +18,10 @@ describe('CustomerAuctionDetailComponent', () => {
     quantity: 500,
     unit: 'Kg',
     quantityKg: 500,
-    startingBidPrice: 40,
-    currentHighestBid: 45,
-    minimumBidIncrement: 5,
+    quantityMan: 25,
+    startingBidPrice: 800,
+    currentHighestBid: 900,
+    minimumBidIncrement: 50,
     farmerName: 'Ramesh Patel',
     farmLocation: 'Surat, Gujarat',
     startTimeUtc: new Date(Date.now() - 3600000).toISOString(),
@@ -40,9 +41,10 @@ describe('CustomerAuctionDetailComponent', () => {
     cropType: 'Grain',
     quantity: 500,
     unit: 'Kg',
+    quantityMan: 25,
     auctionStatus: 'ENDED',
     hasWinner: true,
-    winningBidAmount: 55,
+    winningBidAmount: 950,
     winnerCustomerName: 'Winning Customer',
     winnerCustomerProfileId: 'cust-1',
     totalBids: 3,
@@ -56,7 +58,9 @@ describe('CustomerAuctionDetailComponent', () => {
   beforeEach(async () => {
     auctionServiceMock = {
       getAuctionById: (id: string) => id === 'auc-1' ? of(mockAuction) : throwError(() => new Error('Not found')),
-      getAuctionResult: (id: string) => of(mockResult)
+      getAuctionResult: (id: string) => of(mockResult),
+      getAuctionBids: () => of([]),
+      placeBid: () => of({ id: 'b-1', auctionId: 'auc-1', customerProfileId: 'cust-1', customerName: 'Test Customer', amount: 950, bidTimeUtc: new Date().toISOString(), bidStatus: 'Active' })
     };
 
     await TestBed.configureTestingModule({

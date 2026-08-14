@@ -75,7 +75,7 @@
               {{ item.cropName }}
             </h3>
             <p class="text-xs font-semibold text-slate-500">
-              Quantity: {{ item.quantity }} {{ item.unit }}
+              Quantity: {{ item.quantity }} {{ item.unit }} <span class="text-sky-600 font-bold">({{ item.quantityMan }} Man)</span>
             </p>
           </div>
         </div>
@@ -84,12 +84,12 @@
         <div class="grid grid-cols-2 gap-2.5 pt-2">
           <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
             <span class="text-[10px] font-bold text-slate-400 uppercase block">Your Bid</span>
-            <span class="text-sm font-extrabold text-sky-600 dark:text-sky-400">₹{{ item.customerBidAmount }} / {{ item.unit }}</span>
+            <span class="text-sm font-extrabold text-sky-600 dark:text-sky-400">₹{{ item.customerBidAmount }} / Man</span>
           </div>
 
           <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
             <span class="text-[10px] font-bold text-slate-400 uppercase block">{{ item.auctionStatus === 'ENDED' ? 'Final Winning' : 'Highest Bid' }}</span>
-            <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ item.currentHighestBid }} / {{ item.unit }}</span>
+            <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ item.currentHighestBid }} / Man</span>
           </div>
         </div>
 

@@ -18,9 +18,10 @@ describe('CustomerCheckoutComponent', () => {
     quantity: 300,
     unit: 'Kg',
     quantityKg: 300,
-    startingBidPrice: 25,
-    currentHighestBid: 31,
-    minimumBidIncrement: 2,
+    quantityMan: 15,
+    startingBidPrice: 500,
+    currentHighestBid: 600,
+    minimumBidIncrement: 20,
     farmerName: 'Prince Patel',
     farmLocation: 'Surat',
     startTimeUtc: '2026-08-14T00:00:00Z',
@@ -39,9 +40,10 @@ describe('CustomerCheckoutComponent', () => {
     cropType: 'Grain',
     quantity: 300,
     unit: 'Kg',
+    quantityMan: 15,
     auctionStatus: 'ENDED',
     hasWinner: true,
-    winningBidAmount: 31,
+    winningBidAmount: 600,
     winnerCustomerName: 'Winning Customer',
     totalBids: 5,
     startTimeUtc: '2026-08-14T00:00:00Z',
@@ -58,8 +60,9 @@ describe('CustomerCheckoutComponent', () => {
     cropType: 'Grain',
     quantity: 300,
     unit: 'Kg',
-    winningBidAmount: 31,
-    totalPayableAmount: 9300,
+    quantityMan: 15,
+    winningBidAmount: 600,
+    totalPayableAmount: 9000,
     currency: 'INR',
     paymentMethod: 'UPI',
     paymentStatus: 'PAID',
@@ -105,7 +108,7 @@ describe('CustomerCheckoutComponent', () => {
     expect(component).toBeTruthy();
     expect(component.auction()).toEqual(mockAuction);
     expect(component.auctionResult()).toEqual(mockResult);
-    expect(component.calculateTotalPayable()).toBe(9300);
+    expect(component.calculateTotalPayable()).toBe(9000);
   });
 
   it('should process payment and set completedPayment signal', () => {
