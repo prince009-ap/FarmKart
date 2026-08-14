@@ -29,7 +29,8 @@ describe('CustomerAuctionDetailComponent', () => {
     primaryImageUrl: 'http://example.com/rice.jpg',
     images: ['http://example.com/rice.jpg', 'http://example.com/rice2.jpg'],
     description: 'Premium quality organic rice harvest',
-    createdAtUtc: new Date().toISOString()
+    createdAtUtc: new Date().toISOString(),
+    serverTimeUtc: new Date().toISOString()
   };
 
   beforeEach(async () => {

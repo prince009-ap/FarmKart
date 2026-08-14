@@ -421,5 +421,28 @@
 - [x] Added Angular unit specs for `CustomerAuctionsComponent` and `CustomerAuctionDetailComponent` (**196 / 196 total frontend unit tests passing**).
 - [x] Verified solution build (`dotnet build backend/FarmKart.API`), backend tests (`dotnet test`), frontend build (`npx ng build`), and frontend tests (`npm test`).
 
+## Phase 6.5 Extension — Auction Durations & Real-Time Countdown Timer
+
+- [x] **Predefined & Custom Auction Durations**:
+  - Refactored `CreateFarmerAuctionRequest` and `UpdateFarmerAuctionRequest` DTOs to replace `EndTimeUtc` with `Duration` string parameter.
+  - Implemented `FarmerAuctionService.ParseDurationToHours` supporting predefined options (`5 Hours`, `12 Hours`, `1 Day` (24h, default), `3 Days` (72h), `7 Days` (168h)) and custom manual hours entry (e.g. `"8 Hours"` or `"36"`).
+  - Server automatically calculates `EndTimeUtc = StartTimeUtc + DurationHours`.
+- [x] **Authoritative UTC & Server Time Offset Sync**:
+  - Added `ServerTimeUtc` to `FarmerAuctionResponse` and `CustomerAuctionResponse` DTOs.
+  - Clients compute server time offset (`serverTimeUtc - clientUtcNow`) to ensure all user clocks align seamlessly across devices regardless of local clock drift.
+- [x] **Dynamic Auction Lifecycle & Reusable Countdown Timer Component**:
+  - Built standalone `AuctionCountdownComponent` (`app-auction-countdown`) emitting real-time tick-by-tick countdowns (`DD:HH:MM:SS` or `HH:MM:SS`).
+  - Automatically handles status transitions (`SCHEDULED` -> `LIVE` -> `ENDED` / `CANCELLED`) derived directly from server-authoritative UTC end times.
+  - Guarantees countdowns stop at `00:00:00` without displaying negative numbers.
+  - Cleans up `setInterval` handle on component destroy to eliminate memory leaks.
+- [x] **Farmer & Customer Workspace UI Refactoring**:
+  - Updated Farmer Create Auction Modal with Duration select dropdown, custom hours field, and live End Date & Time preview label (`Auction ends on: {date}`).
+  - Fixed input field styling (`.app-input`) and card contrast in light and dark modes for high visibility.
+  - Updated Farmer crop auction list and Customer marketplace auction cards to feature live countdown timers.
+- [x] **Unit & Integration Tests**:
+  - Added 26 backend tests in `FarmerAuctionDurationTests.cs` verifying duration parsing, end-time calculation, dynamic status checks, and API integration.
+  - Added 12 frontend unit tests in `auction-countdown.component.spec.ts` covering status transitions, formatting, server offset sync, and lifecycle cleanup (**208 / 208 total frontend unit tests passing**).
+
+
 
 

@@ -96,9 +96,10 @@ export interface FarmerAuction {
   availableStockKg: number; reservedStockKg: number; remainingUnreservedStockKg: number;
   startingBidPrice: number; minimumBidIncrement: number; startTimeUtc: string; endTimeUtc: string;
   status: string; description?: string | null; createdAtUtc: string; updatedAtUtc: string;
+  serverTimeUtc: string;
 }
 
 export interface CreateFarmerAuctionRequest {
   cropId: string; quantity: number; unit: string; startingBidPrice: number; minimumBidIncrement: number;
-  startTimeUtc: string; endTimeUtc: string; description?: string | null;
+  startTimeUtc: string; duration: string; description?: string | null;
 }

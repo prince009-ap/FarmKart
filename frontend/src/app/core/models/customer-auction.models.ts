@@ -19,6 +19,7 @@ export interface CustomerAuction {
   images: string[];
   description?: string | null;
   createdAtUtc: string;
+  serverTimeUtc: string;
 }
 
 export interface CustomerAuctionFilter {

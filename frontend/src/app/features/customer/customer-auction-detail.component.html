@@ -41,10 +41,15 @@
             <span class="text-xs font-semibold">No crop image available</span>
           </div>
 
-          <!-- Status Overlay -->
-          <span [class]="'absolute top-4 right-4 px-3.5 py-1 rounded-full text-xs font-black tracking-wide shadow-md ' + getStatusBadgeClass(auc.status)">
-            {{ auc.status }}
-          </span>
+          <!-- Status Countdown Overlay -->
+          <div class="absolute top-4 right-4">
+            <app-auction-countdown
+              [startTimeUtc]="auc.startTimeUtc"
+              [endTimeUtc]="auc.endTimeUtc"
+              [serverTimeUtc]="auc.serverTimeUtc"
+              [hideCountdown]="true">
+            </app-auction-countdown>
+          </div>
         </div>
 
         <!-- Thumbnails Row -->
@@ -68,6 +73,15 @@
             <span class="inline-block px-3 py-1 rounded-lg text-xs font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase tracking-wider">
               {{ auc.cropType }}
             </span>
+            <!-- Live Countdown in detail view header -->
+            <div class="mt-1">
+              <app-auction-countdown
+                [startTimeUtc]="auc.startTimeUtc"
+                [endTimeUtc]="auc.endTimeUtc"
+                [serverTimeUtc]="auc.serverTimeUtc"
+                [hideCountdown]="false">
+              </app-auction-countdown>
+            </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
               {{ auc.cropName }}
             </h1>

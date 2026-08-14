@@ -159,7 +159,10 @@ These are application profiles only. They store business-facing profile data and
 ## Auction Data Model
 
 - `CropListing` optionally owns one `Auction`
-- `Auction` belongs to a farmer and tracks starting price, current highest bid, increment, time window, and status
+- `Auction` belongs to a farmer and tracks starting price, current highest bid, increment, start/end UTC time window, and status
+- **Auction Durations**: Farmers choose predefined duration options (`5 Hours`, `12 Hours`, `1 Day`, `3 Days`, `7 Days`) or custom manual hours. The backend authoritatively calculates `EndDateTimeUtc = StartDateTimeUtc + DurationHours`.
+- **Server Time Offset Sync**: DTO responses (`FarmerAuctionResponse`, `CustomerAuctionResponse`) deliver server UTC timestamp (`ServerTimeUtc`) enabling clients to compute clock offsets (`serverTimeUtc - clientUtcNow`) to ensure consistent timing across all user devices regardless of client system clock drift.
+- **Real-time Countdown Timer**: Reusable `AuctionCountdownComponent` renders dynamic badges (`UPCOMING`, `LIVE`, `ENDED`, `CANCELLED`) and a tick-by-tick countdown timer (`DD:HH:MM:SS` or `HH:MM:SS`) derived strictly from authoritative UTC timestamps and server offset.
 - `Bid` belongs to an auction and a customer
 - `AuctionWinner` finalizes the winning bid and customer after auction completion
 - The schema is ready for future real-time bidding without implementing SignalR yet

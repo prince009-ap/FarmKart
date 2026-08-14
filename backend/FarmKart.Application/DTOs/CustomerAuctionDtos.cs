@@ -20,7 +20,8 @@ public sealed record CustomerAuctionResponse(
     string? PrimaryImageUrl,
     IReadOnlyList<string> Images,
     string? Description,
-    DateTime CreatedAtUtc
+    DateTime CreatedAtUtc,
+    DateTime ServerTimeUtc
 );
 
 public sealed record CustomerAuctionFilterRequest(

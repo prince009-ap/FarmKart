@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CustomerAuctionService } from './customer-auction.service';
 import { CustomerAuction, CustomerAuctionFilter } from '../../core/models/customer-auction.models';
+import { AuctionCountdownComponent } from '../../shared/auction-countdown.component';
 
 @Component({
   selector: 'app-customer-auctions',
@@ -21,7 +22,8 @@ import { CustomerAuction, CustomerAuctionFilter } from '../../core/models/custom
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    AuctionCountdownComponent
   ],
   templateUrl: './customer-auctions.component.html'
 })

@@ -30,7 +30,8 @@ describe('CustomerAuctionsComponent', () => {
       primaryImageUrl: 'http://example.com/rice.jpg',
       images: ['http://example.com/rice.jpg'],
       description: 'Organic premium rice',
-      createdAtUtc: new Date().toISOString()
+      createdAtUtc: new Date().toISOString(),
+      serverTimeUtc: new Date().toISOString()
     },
     {
       id: 'auc-2',
@@ -52,7 +53,8 @@ describe('CustomerAuctionsComponent', () => {
       primaryImageUrl: null,
       images: [],
       description: 'Juicy red tomatoes',
-      createdAtUtc: new Date().toISOString()
+      createdAtUtc: new Date().toISOString(),
+      serverTimeUtc: new Date().toISOString()
     }
   ];
 

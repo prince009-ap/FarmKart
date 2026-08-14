@@ -216,11 +216,30 @@
           <button mat-flat-button class="app-primary-btn !text-xs" (click)="openAuctionModal()"><mat-icon>add</mat-icon> Create Auction</button>
         </div>
         <p *ngIf="auctions().length === 0" class="text-xs text-slate-500">No auctions created for this crop.</p>
-        <div *ngFor="let auction of auctions()" class="rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 text-xs space-y-1">
-          <div class="flex justify-between font-bold text-slate-900"><span>{{ auction.quantity }} {{ auction.unit }}</span><span class="text-emerald-700">{{ auction.status }}</span></div>
-          <p>Starting bid: Rs. {{ auction.startingBidPrice }} / {{ auction.unit }} | Minimum increment: Rs. {{ auction.minimumBidIncrement }}</p>
-          <p class="text-slate-500">Remaining unreserved: {{ auction.remainingUnreservedStockKg }} Kg</p>
-          <button *ngIf="auction.status === 'Scheduled' || auction.status === 'Live'" mat-button class="!text-rose-700 !text-xs" (click)="cancelAuction(auction.id)">Cancel auction</button>
+        <div *ngFor="let auction of auctions()" class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-xs space-y-3 shadow-xs">
+          <div class="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <p class="font-extrabold text-slate-900 dark:text-white text-base">{{ auction.quantity }} {{ auction.unit }}</p>
+              <p class="text-slate-600 dark:text-slate-300 mt-0.5 font-medium">Starting: <strong class="text-emerald-600 dark:text-emerald-400">₹{{ auction.startingBidPrice }}</strong> | Min. inc: <strong class="text-slate-700 dark:text-slate-200">₹{{ auction.minimumBidIncrement }}</strong></p>
+            </div>
+            <app-auction-countdown
+              [startTimeUtc]="auction.startTimeUtc"
+              [endTimeUtc]="auction.endTimeUtc"
+              [serverTimeUtc]="auction.serverTimeUtc"
+              [hideCountdown]="false">
+            </app-auction-countdown>
+          </div>
+          <div class="space-y-1">
+            <p class="text-slate-600 dark:text-slate-300 font-medium">Unreserved stock: <strong class="text-slate-900 dark:text-white">{{ auction.remainingUnreservedStockKg }} Kg</strong></p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              Starts: {{ auction.startTimeUtc | date:'short' }} &nbsp;|&nbsp; Ends: {{ auction.endTimeUtc | date:'short' }}
+            </p>
+          </div>
+          <div *ngIf="auction.status === 'Scheduled' || auction.status === 'Live'" class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+            <button mat-button class="!text-rose-600 dark:!text-rose-400 !text-xs font-bold" (click)="cancelAuction(auction.id)">
+              <mat-icon class="!w-4 !h-4 text-base">cancel</mat-icon> Cancel auction
+            </button>
+          </div>
         </div>
       </article>
     </div>
@@ -251,18 +270,76 @@
 </div>
 
 <div *ngIf="showAuctionModal()" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-    <div class="p-5 border-b border-slate-100"><h3 class="font-bold text-slate-900">Create Auction</h3><p class="text-xs text-slate-500">Available physical stock: {{ stockSummary()?.availableQuantityKg || 0 }} Kg</p></div>
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <p *ngIf="auctionError()" class="sm:col-span-2 text-xs text-rose-700 bg-rose-50 p-2 rounded">{{ auctionError() }}</p>
-      <input class="app-input" type="number" min="0.01" placeholder="Quantity for auction" [ngModel]="auctionQuantity()" (ngModelChange)="auctionQuantity.set($event)">
-      <select class="app-input" [ngModel]="auctionUnit()" (ngModelChange)="auctionUnit.set($event)"><option value="Kilogram">Kilogram</option><option value="Quintal">Quintal</option><option value="Ton">Ton</option></select>
-      <input class="app-input" type="number" min="0.01" placeholder="Starting bid / unit" [ngModel]="startingBidPrice()" (ngModelChange)="startingBidPrice.set($event)">
-      <input class="app-input" type="number" min="0.01" placeholder="Minimum increment" [ngModel]="minimumBidIncrement()" (ngModelChange)="minimumBidIncrement.set($event)">
-      <label class="text-xs text-slate-600">Start<input class="app-input mt-1" type="datetime-local" [ngModel]="auctionStart()" (ngModelChange)="auctionStart.set($event)"></label>
-      <label class="text-xs text-slate-600">End<input class="app-input mt-1" type="datetime-local" [ngModel]="auctionEnd()" (ngModelChange)="auctionEnd.set($event)"></label>
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden">
+    <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div>
+        <h3 class="font-bold text-slate-900 dark:text-white text-base">Create Auction</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Available physical stock: <strong class="text-emerald-600 dark:text-emerald-400">{{ stockSummary()?.availableQuantityKg || 0 }} Kg</strong></p>
+      </div>
+      <button mat-icon-button (click)="closeAuctionModal()" class="!text-slate-400">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-    <div class="p-4 bg-slate-50 flex justify-end gap-2"><button mat-stroked-button (click)="closeAuctionModal()">Cancel</button><button mat-flat-button class="app-primary-btn" [disabled]="savingAuction()" (click)="createAuction()">{{ savingAuction() ? 'Creating...' : 'Create Auction' }}</button></div>
+
+    <div class="p-5 space-y-4">
+      <p *ngIf="auctionError()" class="text-xs font-bold text-rose-700 bg-rose-50 dark:bg-rose-950/60 p-3 rounded-xl border border-rose-200 dark:border-rose-900">{{ auctionError() }}</p>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Quantity <span class="text-rose-500">*</span></label>
+          <input class="app-input" type="number" min="0.01" step="0.01" placeholder="Quantity for auction" [ngModel]="auctionQuantity()" (ngModelChange)="auctionQuantity.set($event)">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Unit <span class="text-rose-500">*</span></label>
+          <select class="app-input" [ngModel]="auctionUnit()" (ngModelChange)="auctionUnit.set($event)">
+            <option value="Kilogram">Kilogram</option>
+            <option value="Quintal">Quintal</option>
+            <option value="Ton">Ton</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Starting Price (₹) <span class="text-rose-500">*</span></label>
+          <input class="app-input" type="number" min="0.01" step="0.01" placeholder="Starting bid / unit (₹)" [ngModel]="startingBidPrice()" (ngModelChange)="startingBidPrice.set($event)">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Min Increment (₹) <span class="text-rose-500">*</span></label>
+          <input class="app-input" type="number" min="0.01" step="0.01" placeholder="Minimum increment (₹)" [ngModel]="minimumBidIncrement()" (ngModelChange)="minimumBidIncrement.set($event)">
+        </div>
+      </div>
+
+      <!-- Auction Start Date/Time -->
+      <div class="space-y-1">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Auction Start Date & Time <span class="text-rose-500">*</span></label>
+        <input class="app-input w-full" type="datetime-local" [ngModel]="auctionStart()" (ngModelChange)="auctionStart.set($event)">
+      </div>
+
+      <!-- Auction Duration -->
+      <div class="space-y-1">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Auction Duration <span class="text-rose-500">*</span></label>
+        <select class="app-input w-full" [ngModel]="auctionDuration()" (ngModelChange)="auctionDuration.set($event)">
+          <option *ngFor="let opt of DURATION_OPTIONS" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+
+      <!-- Custom Hours Input (shown only when Custom selected) -->
+      <div *ngIf="isCustomDuration()" class="space-y-1">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-200">Custom Duration (Hours) <span class="text-rose-500">*</span></label>
+        <input class="app-input w-full" type="number" min="1" max="720" placeholder="e.g. 48" [ngModel]="customDurationHours()" (ngModelChange)="customDurationHours.set($event)">
+      </div>
+
+      <!-- End Time Preview -->
+      <div *ngIf="previewEndTime()" class="flex items-center gap-2 p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/40 text-xs">
+        <mat-icon class="!w-4 !h-4 text-sky-600 dark:text-sky-400">event_available</mat-icon>
+        <span class="text-slate-700 dark:text-slate-300">Auction ends on: <strong class="text-sky-700 dark:text-sky-300 font-bold">{{ previewEndTime() | date:'medium' }}</strong></span>
+      </div>
+    </div>
+    <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+      <button mat-stroked-button (click)="closeAuctionModal()" class="!rounded-xl text-xs">Cancel</button>
+      <button mat-flat-button class="app-primary-btn !rounded-xl text-xs" [disabled]="savingAuction()" (click)="createAuction()">{{ savingAuction() ? 'Creating...' : 'Create Auction' }}</button>
+    </div>
   </div>
 </div>
 

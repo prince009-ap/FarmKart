@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FarmerCropService } from './farmer-crop.service';
 import { FarmerAuctionService } from './farmer-auction.service';
 import { CreateFarmerAuctionRequest, CropImage, CropStockSummary, CropStockTransaction, FarmerAuction, FarmerCrop } from '../../core/models/farmer-crop.models';
+import { AuctionCountdownComponent } from '../../shared/auction-countdown.component';
 
 @Component({
   selector: 'app-farmer-crop-detail',
@@ -18,7 +19,8 @@ import { CreateFarmerAuctionRequest, CropImage, CropStockSummary, CropStockTrans
     FormsModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    AuctionCountdownComponent
   ],
   templateUrl: './farmer-crop-detail.component.html'
 })
@@ -60,7 +62,35 @@ export class FarmerCropDetailComponent implements OnInit {
   startingBidPrice = signal<number | null>(null);
   minimumBidIncrement = signal<number | null>(null);
   auctionStart = signal('');
-  auctionEnd = signal('');
+  auctionDuration = signal('1 Day');
+
+  readonly DURATION_OPTIONS = [
+    { label: '5 Hours', value: '5 Hours' },
+    { label: '12 Hours', value: '12 Hours' },
+    { label: '1 Day (24 Hours)', value: '1 Day' },
+    { label: '3 Days', value: '3 Days' },
+    { label: '7 Days', value: '7 Days' },
+    { label: 'Custom Hours...', value: 'Custom' }
+  ];
+  customDurationHours = signal<number | null>(null);
+  isCustomDuration = computed(() => this.auctionDuration() === 'Custom');
+
+  previewEndTime = computed(() => {
+    const start = this.auctionStart();
+    if (!start) return null;
+    const d = this.auctionDuration();
+    let hours: number;
+    if (d === 'Custom') {
+      hours = this.customDurationHours() ?? 0;
+      if (hours <= 0) return null;
+    } else {
+      const map: Record<string, number> = { '5 Hours': 5, '12 Hours': 12, '1 Day': 24, '3 Days': 72, '7 Days': 168 };
+      hours = map[d] ?? 0;
+    }
+    const dt = new Date(start);
+    dt.setTime(dt.getTime() + hours * 3600 * 1000);
+    return dt;
+  });
 
   readonly availableStockUnits = [
     { label: 'Kilogram (Kg)', value: 'Kilogram' },
@@ -105,12 +135,18 @@ export class FarmerCropDetailComponent implements OnInit {
   }
 
   loadAuctions(): void { this.auctionService.getAuctions().subscribe({ next: auctions => this.auctions.set(auctions.filter(a => a.cropId === this.crop()?.id)), error: () => this.auctions.set([]) }); }
-  openAuctionModal(): void { this.auctionError.set(null); this.auctionQuantity.set(null); this.startingBidPrice.set(null); this.minimumBidIncrement.set(null); this.showAuctionModal.set(true); }
+  openAuctionModal(): void { this.auctionError.set(null); this.auctionQuantity.set(null); this.startingBidPrice.set(null); this.minimumBidIncrement.set(null); this.auctionDuration.set('1 Day'); this.customDurationHours.set(null); this.auctionStart.set(''); this.showAuctionModal.set(true); }
   closeAuctionModal(): void { this.showAuctionModal.set(false); }
   createAuction(): void {
     const crop = this.crop(); const quantity = this.auctionQuantity(); const price = this.startingBidPrice(); const increment = this.minimumBidIncrement();
-    if (!crop || !quantity || !price || !increment || !this.auctionStart() || !this.auctionEnd()) { this.auctionError.set('Complete all auction fields with values greater than zero.'); return; }
-    const request: CreateFarmerAuctionRequest = { cropId: crop.id, quantity, unit: this.auctionUnit(), startingBidPrice: price, minimumBidIncrement: increment, startTimeUtc: new Date(this.auctionStart()).toISOString(), endTimeUtc: new Date(this.auctionEnd()).toISOString(), description: null };
+    let duration = this.auctionDuration();
+    if (duration === 'Custom') {
+      const h = this.customDurationHours();
+      if (!h || h <= 0) { this.auctionError.set('Enter a valid custom duration in hours.'); return; }
+      duration = `${h} Hours`;
+    }
+    if (!crop || !quantity || !price || !increment || !this.auctionStart()) { this.auctionError.set('Complete all auction fields with values greater than zero.'); return; }
+    const request: CreateFarmerAuctionRequest = { cropId: crop.id, quantity, unit: this.auctionUnit(), startingBidPrice: price, minimumBidIncrement: increment, startTimeUtc: new Date(this.auctionStart()).toISOString(), duration, description: null };
     this.savingAuction.set(true); this.auctionService.createAuction(request).subscribe({ next: auction => { this.auctions.update(items => [auction, ...items]); this.savingAuction.set(false); this.closeAuctionModal(); }, error: err => { this.auctionError.set(err?.status === 404 ? 'Auction API is unavailable. Restart the backend and try again.' : err?.error?.message || 'Unable to create auction.'); this.savingAuction.set(false); } });
   }
   cancelAuction(id: string): void { this.auctionService.cancelAuction(id).subscribe({ next: () => this.loadAuctions(), error: err => this.auctionError.set(err?.error?.message || 'Unable to cancel auction.') }); }

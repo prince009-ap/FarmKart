@@ -145,7 +145,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             PrimaryImageUrl: primaryImage,
             Images: images,
             Description: auction.CropListing.Description ?? crop.Description,
-            CreatedAtUtc: auction.CreatedAtUtc
+            CreatedAtUtc: auction.CreatedAtUtc,
+            ServerTimeUtc: now
         );
     }
 }

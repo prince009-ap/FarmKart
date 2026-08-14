@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CustomerAuctionService } from './customer-auction.service';
 import { CustomerAuction } from '../../core/models/customer-auction.models';
+import { AuctionCountdownComponent } from '../../shared/auction-countdown.component';
 
 @Component({
   selector: 'app-customer-auction-detail',
@@ -13,7 +14,8 @@ import { CustomerAuction } from '../../core/models/customer-auction.models';
     CommonModule,
     RouterLink,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    AuctionCountdownComponent
   ],
   templateUrl: './customer-auction-detail.component.html'
 })
