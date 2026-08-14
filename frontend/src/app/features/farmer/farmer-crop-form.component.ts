@@ -151,8 +151,8 @@ export class FarmerCropFormComponent implements OnInit {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage.set(`File '${file.name}' exceeds the maximum allowed size of 5 MB.`);
+      if (file.size > 20 * 1024 * 1024) {
+        this.errorMessage.set(`File '${file.name}' exceeds the maximum allowed size of 20 MB.`);
         return;
       }
 

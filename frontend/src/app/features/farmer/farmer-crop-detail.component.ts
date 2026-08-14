@@ -6,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FarmerCropService } from './farmer-crop.service';
-import { CropImage, CropStockSummary, CropStockTransaction, FarmerCrop } from '../../core/models/farmer-crop.models';
+import { FarmerAuctionService } from './farmer-auction.service';
+import { CreateFarmerAuctionRequest, CropImage, CropStockSummary, CropStockTransaction, FarmerAuction, FarmerCrop } from '../../core/models/farmer-crop.models';
 
 @Component({
   selector: 'app-farmer-crop-detail',
@@ -23,6 +24,7 @@ import { CropImage, CropStockSummary, CropStockTransaction, FarmerCrop } from '.
 })
 export class FarmerCropDetailComponent implements OnInit {
   private readonly cropService = inject(FarmerCropService);
+  private readonly auctionService = inject(FarmerAuctionService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -49,6 +51,16 @@ export class FarmerCropDetailComponent implements OnInit {
   stockUnit = signal<string>('Kilogram');
   stockTransactionType = signal<string>('Harvest');
   stockNotes = signal<string>('');
+  auctions = signal<FarmerAuction[]>([]);
+  showAuctionModal = signal(false);
+  savingAuction = signal(false);
+  auctionError = signal<string | null>(null);
+  auctionQuantity = signal<number | null>(null);
+  auctionUnit = signal('Kilogram');
+  startingBidPrice = signal<number | null>(null);
+  minimumBidIncrement = signal<number | null>(null);
+  auctionStart = signal('');
+  auctionEnd = signal('');
 
   readonly availableStockUnits = [
     { label: 'Kilogram (Kg)', value: 'Kilogram' },
@@ -83,6 +95,7 @@ export class FarmerCropDetailComponent implements OnInit {
 
         // Load Stock Summary if harvest eligible
         this.loadStockSummary(data.id);
+        this.loadAuctions();
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Unable to load crop details.');
@@ -90,6 +103,17 @@ export class FarmerCropDetailComponent implements OnInit {
       }
     });
   }
+
+  loadAuctions(): void { this.auctionService.getAuctions().subscribe({ next: auctions => this.auctions.set(auctions.filter(a => a.cropId === this.crop()?.id)), error: () => this.auctions.set([]) }); }
+  openAuctionModal(): void { this.auctionError.set(null); this.auctionQuantity.set(null); this.startingBidPrice.set(null); this.minimumBidIncrement.set(null); this.showAuctionModal.set(true); }
+  closeAuctionModal(): void { this.showAuctionModal.set(false); }
+  createAuction(): void {
+    const crop = this.crop(); const quantity = this.auctionQuantity(); const price = this.startingBidPrice(); const increment = this.minimumBidIncrement();
+    if (!crop || !quantity || !price || !increment || !this.auctionStart() || !this.auctionEnd()) { this.auctionError.set('Complete all auction fields with values greater than zero.'); return; }
+    const request: CreateFarmerAuctionRequest = { cropId: crop.id, quantity, unit: this.auctionUnit(), startingBidPrice: price, minimumBidIncrement: increment, startTimeUtc: new Date(this.auctionStart()).toISOString(), endTimeUtc: new Date(this.auctionEnd()).toISOString(), description: null };
+    this.savingAuction.set(true); this.auctionService.createAuction(request).subscribe({ next: auction => { this.auctions.update(items => [auction, ...items]); this.savingAuction.set(false); this.closeAuctionModal(); }, error: err => { this.auctionError.set(err?.status === 404 ? 'Auction API is unavailable. Restart the backend and try again.' : err?.error?.message || 'Unable to create auction.'); this.savingAuction.set(false); } });
+  }
+  cancelAuction(id: string): void { this.auctionService.cancelAuction(id).subscribe({ next: () => this.loadAuctions(), error: err => this.auctionError.set(err?.error?.message || 'Unable to cancel auction.') }); }
 
   loadStockSummary(cropId: string): void {
     this.cropService.getCropStock(cropId).subscribe({

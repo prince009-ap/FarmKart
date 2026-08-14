@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFarmerAttendanceService, FarmerAttendanceService>();
         services.AddScoped<IFarmerCropService, FarmerCropService>();
         services.AddScoped<IFarmerCropStockService, FarmerCropStockService>();
+        services.AddScoped<IFarmerAuctionService, FarmerAuctionService>();
         services.AddScoped<IWorkerJobService, WorkerJobService>();
         services.AddScoped<IWorkerAssignmentService, WorkerAssignmentService>();
         services.AddScoped<IWorkerAttendanceService, WorkerAttendanceService>();

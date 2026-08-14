@@ -1,4 +1,5 @@
 using FarmKart.Application.Abstractions.Farmer;
+using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Entities;
 using FarmKart.Domain.Enums;
@@ -42,9 +43,8 @@ public sealed class FarmerCropStockService : IFarmerCropStockService
             throw new ArgumentException("Notes cannot exceed 500 characters.");
         }
 
-        var unit = ParseMeasurementUnit(request.Unit);
-        var baseFactor = GetBaseUnitMultiplier(unit);
-        var quantityInBaseUnit = request.Quantity * baseFactor;
+        var unit = CropStockUnitConverter.Parse(request.Unit);
+        var quantityInBaseUnit = CropStockUnitConverter.ToKilograms(request.Quantity, unit);
 
         var transactionType = ParseTransactionType(request.TransactionType);
 
@@ -100,9 +100,8 @@ public sealed class FarmerCropStockService : IFarmerCropStockService
             throw new ArgumentException("Notes cannot exceed 500 characters.");
         }
 
-        var unit = ParseMeasurementUnit(request.Unit);
-        var baseFactor = GetBaseUnitMultiplier(unit);
-        var quantityInBaseUnit = request.Quantity * baseFactor;
+        var unit = CropStockUnitConverter.Parse(request.Unit);
+        var quantityInBaseUnit = CropStockUnitConverter.ToKilograms(request.Quantity, unit);
 
         // Use crop.Quantity (the authoritative running total) directly —
         // same reason as AddCropStockAsync: avoid EF Core fixup double-counting.

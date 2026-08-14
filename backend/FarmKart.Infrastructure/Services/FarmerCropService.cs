@@ -159,10 +159,10 @@ public sealed class FarmerCropService : IFarmerCropService
             throw new ArgumentException("Uploaded file is empty.");
         }
 
-        const long maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+        const long maxSizeBytes = 20 * 1024 * 1024; // 20 MB
         if (fileLength > maxSizeBytes)
         {
-            throw new ArgumentException("Uploaded file size exceeds maximum allowed limit of 5 MB.");
+            throw new ArgumentException("Uploaded file size exceeds maximum allowed limit of 20 MB.");
         }
 
         // Validate File Extension

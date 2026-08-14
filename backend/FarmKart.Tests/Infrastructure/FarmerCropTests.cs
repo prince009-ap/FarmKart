@@ -420,7 +420,7 @@ public class FarmerCropTests : IClassFixture<WebApplicationFactory<Program>>, ID
         var crop = await cropRes.Content.ReadFromJsonAsync<CropResponse>();
         Assert.NotNull(crop);
 
-        var oversizedBytes = new byte[6 * 1024 * 1024]; // 6 MB (limit is 5 MB)
+        var oversizedBytes = new byte[21 * 1024 * 1024]; // 21 MB (limit is 20 MB)
         var content = CreateImageContent(oversizedBytes, "huge.jpg", "image/jpeg");
 
         var uploadRes = await client.PostAsync($"/api/farmer/crops/{crop.Id}/images", content);
