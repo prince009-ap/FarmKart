@@ -25,6 +25,7 @@ public sealed class FarmerProfile : ProfileBase
 public sealed class WorkerProfile : ProfileBase
 {
     public int ExperienceYears { get; set; }
+    public string? ExperienceDescription { get; set; }
     public decimal ExpectedDailyWage { get; set; }
     public bool IsAvailable { get; set; } = true;
     public DateOnly? AvailableFrom { get; set; }

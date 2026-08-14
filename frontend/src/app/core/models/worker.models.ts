@@ -88,6 +88,8 @@ export interface WorkerProfile {
   isAvailable: boolean;
   availableFrom?: string | null;
   availabilityNotes?: string | null;
+  experienceDescription?: string | null;
+  skills?: string[];
 }
 
 export interface WorkerProfileUpdateRequest {
@@ -100,4 +102,6 @@ export interface WorkerProfileUpdateRequest {
   isAvailable?: boolean;
   availableFrom?: string | null;
   availabilityNotes?: string | null;
+  experienceDescription?: string | null;
+  skills?: string[];
 }

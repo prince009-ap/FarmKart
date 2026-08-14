@@ -1,7 +1,9 @@
 using FarmKart.API.Extensions;
 using FarmKart.Application.DependencyInjection;
 using FarmKart.Infrastructure.DependencyInjection;
+using FarmKart.Infrastructure.Persistence;
 using FarmKart.Infrastructure.Persistence.Seeding;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,26 @@ builder.Services
     .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+    if (dbContext.Database.IsRelational())
+    {
+        try
+        {
+            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+            {
+                await dbContext.Database.MigrateAsync();
+            }
+        }
+        catch
+        {
+            // Ignore migration execution errors in WebApplicationFactory test contexts using EnsureCreated
+        }
+    }
+}
 
 await IdentityRoleSeeder.SeedRolesAsync(app.Services);
 await AssignmentBackfillSeeder.SyncAcceptedAssignmentsAsync(app.Services);

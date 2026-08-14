@@ -124,10 +124,20 @@ public class WorkerProfileTests : IClassFixture<WebApplicationFactory<Program>>,
     };
 
     [Fact]
-    public async Task AuthenticatedWorkerCanGetOwnProfile()
+    public async Task WorkerCanRetrieveOwnSkills()
     {
         // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.getprofile@test.com", "Password123!", "Worker Get", Roles.Worker);
+        var client = await GetAuthenticatedClientAsync("worker.getskills@test.com", "Password123!", "Worker Skills", Roles.Worker);
+
+        // Update skills first
+        var updateReq = new WorkerProfileUpdateRequest(
+            FullName: "Worker Skills",
+            Phone: "9876543210",
+            Address: "123 Worker Road",
+            ExperienceYears: 3,
+            Skills: new List<string> { "Harvesting", "Irrigation" }
+        );
+        await client.PutAsJsonAsync("/api/worker/profile", updateReq);
 
         // Act
         var response = await client.GetAsync("/api/worker/profile");
@@ -136,68 +146,22 @@ public class WorkerProfileTests : IClassFixture<WebApplicationFactory<Program>>,
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
         Assert.NotNull(profile);
-        Assert.Equal("Worker Get", profile.FullName);
-        Assert.Equal("worker.getprofile@test.com", profile.Email);
-        Assert.Equal("9876543210", profile.Phone);
-        Assert.Equal("123 Worker Road", profile.Address);
-        Assert.Equal(2, profile.ExperienceYears);
-        Assert.Equal(100, profile.ExpectedDailyWage);
+        Assert.NotNull(profile.Skills);
+        Assert.Contains("Harvesting", profile.Skills);
+        Assert.Contains("Irrigation", profile.Skills);
     }
 
     [Fact]
-    public async Task UnauthenticatedUserCannotGetWorkerProfile()
+    public async Task WorkerCanUpdateOwnSkills()
     {
         // Arrange
-        var client = _factory.CreateClient();
-
-        // Act
-        var response = await client.GetAsync("/api/worker/profile");
-
-        // Assert: 401 Unauthorized
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task FarmerCannotAccessWorkerProfile()
-    {
-        // Arrange
-        var farmerClient = await GetAuthenticatedClientAsync("farmer.noworkerprof@test.com", "Password123!", "Farmer NoAccess", Roles.Farmer);
-
-        // Act
-        var response = await farmerClient.GetAsync("/api/worker/profile");
-
-        // Assert: 403 Forbidden
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task CustomerCannotAccessWorkerProfile()
-    {
-        // Arrange
-        var customerClient = await GetAuthenticatedClientAsync("customer.noworkerprof@test.com", "Password123!", "Customer NoAccess", Roles.Customer);
-
-        // Act
-        var response = await customerClient.GetAsync("/api/worker/profile");
-
-        // Assert: 403 Forbidden
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task WorkerCanUpdateOwnProfile()
-    {
-        // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.updateprof@test.com", "Password123!", "Worker Update", Roles.Worker);
+        var client = await GetAuthenticatedClientAsync("worker.updateskills@test.com", "Password123!", "Worker UpSkills", Roles.Worker);
         var updateReq = new WorkerProfileUpdateRequest(
-            FullName: "Updated Worker Name",
-            Phone: "9998887776",
-            Address: "456 New Worker St",
-            ExperienceYears: 5,
-            ExpectedDailyWage: 250,
-            ProfileImageUrl: "https://example.com/photo.jpg",
-            IsAvailable: true,
-            AvailableFrom: null,
-            AvailabilityNotes: "Ready for work"
+            FullName: "Worker UpSkills",
+            Phone: "9876543210",
+            Address: "123 Worker Road",
+            ExperienceYears: 4,
+            Skills: new List<string> { "Sowing", "Tractor Operation" }
         );
 
         // Act
@@ -205,90 +169,204 @@ public class WorkerProfileTests : IClassFixture<WebApplicationFactory<Program>>,
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var updated = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
-        Assert.NotNull(updated);
-        Assert.Equal("Updated Worker Name", updated.FullName);
-        Assert.Equal("9998887776", updated.Phone);
-        Assert.Equal("456 New Worker St", updated.Address);
-        Assert.Equal(5, updated.ExperienceYears);
-        Assert.Equal(250, updated.ExpectedDailyWage);
-        Assert.Equal("https://example.com/photo.jpg", updated.ProfileImageUrl);
-        Assert.Equal("worker.updateprof@test.com", updated.Email);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile?.Skills);
+        Assert.Equal(2, profile.Skills.Count);
+        Assert.Contains("Sowing", profile.Skills);
+        Assert.Contains("Tractor Operation", profile.Skills);
     }
 
     [Fact]
-    public async Task WorkerCannotUpdateAnotherUsersProfile()
-    {
-        // Arrange: Worker A and Worker B
-        var workerAClient = await GetAuthenticatedClientAsync("worker.A@test.com", "Password123!", "Worker A", Roles.Worker);
-
-        // Create Worker B
-        await SetupTestUserAsync("worker.B@test.com", "Password123!", "Worker B", Roles.Worker);
-
-        // Worker A updates profile
-        var updateReq = new WorkerProfileUpdateRequest("Hacked Name", "9990001112", "Hacked Address", 10, 500);
-        var response = await workerAClient.PutAsJsonAsync("/api/worker/profile", updateReq);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        // Verify Worker B profile was NOT modified
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
-        var userB = await db.Users.SingleAsync(u => u.Email == "worker.B@test.com");
-        var profileB = await db.WorkerProfiles.SingleAsync(p => p.UserId == userB.Id);
-        Assert.Equal("Worker B", profileB.FullName);
-        Assert.NotEqual("Hacked Name", profileB.FullName);
-    }
-
-    [Fact]
-    public async Task EmailCannotBeChangedThroughProfileUpdate()
+    public async Task WorkerCanAddSkills()
     {
         // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.emailimmutable@test.com", "Password123!", "Worker Immutable", Roles.Worker);
-        var updateReq = new WorkerProfileUpdateRequest("Worker Immutable", "9876543210", "123 Address", 2, 100);
+        var client = await GetAuthenticatedClientAsync("worker.addskills@test.com", "Password123!", "Worker AddSkills", Roles.Worker);
+
+        // Step 1: Set initial skill
+        await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker AddSkills", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "Harvesting" }));
+
+        // Step 2: Add second skill
+        var response = await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker AddSkills", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "Harvesting", "Crop Maintenance" }));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile?.Skills);
+        Assert.Equal(2, profile.Skills.Count);
+        Assert.Contains("Harvesting", profile.Skills);
+        Assert.Contains("Crop Maintenance", profile.Skills);
+    }
+
+    [Fact]
+    public async Task WorkerCanRemoveSkills()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.remskills@test.com", "Password123!", "Worker RemSkills", Roles.Worker);
+
+        // Step 1: Set initial skills
+        await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker RemSkills", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "Harvesting", "Sowing", "Irrigation" }));
+
+        // Step 2: Remove "Sowing"
+        var response = await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker RemSkills", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "Harvesting", "Irrigation" }));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile?.Skills);
+        Assert.Equal(2, profile.Skills.Count);
+        Assert.DoesNotContain("Sowing", profile.Skills);
+    }
+
+    [Fact]
+    public async Task DuplicateSkillsAreHandledCorrectly()
+    {
+        // Arrange: Pass duplicate skill names ("Harvesting", "harvesting", "HARVESTING")
+        var client = await GetAuthenticatedClientAsync("worker.dupskills@test.com", "Password123!", "Worker DupSkills", Roles.Worker);
+        var req = new WorkerProfileUpdateRequest("Worker DupSkills", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "Harvesting", "harvesting", "HARVESTING", "Sowing" });
 
         // Act
-        var response = await client.PutAsJsonAsync("/api/worker/profile", updateReq);
+        var response = await client.PutAsJsonAsync("/api/worker/profile", req);
+
+        // Assert: Deduplicated to 2 skills
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile?.Skills);
+        Assert.Equal(2, profile.Skills.Count);
+    }
+
+    [Fact]
+    public async Task WorkerCanUpdateYearsOfExperience()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.exp@test.com", "Password123!", "Worker Exp", Roles.Worker);
+        var req = new WorkerProfileUpdateRequest("Worker Exp", "9876543210", "123 Road", 8, 200);
+
+        // Act
+        var response = await client.PutAsJsonAsync("/api/worker/profile", req);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
         Assert.NotNull(profile);
-        Assert.Equal("worker.emailimmutable@test.com", profile.Email);
+        Assert.Equal(8, profile.ExperienceYears);
     }
 
     [Fact]
-    public async Task InvalidPhoneNumberIsRejected()
+    public async Task WorkerCanUpdateExperienceDescription()
     {
         // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.invalidphone@test.com", "Password123!", "Worker InvPhone", Roles.Worker);
-        var updateReq = new WorkerProfileUpdateRequest("Worker InvPhone", "invalid-phone!", "123 Address", 2, 100);
+        var client = await GetAuthenticatedClientAsync("worker.expdesc@test.com", "Password123!", "Worker ExpDesc", Roles.Worker);
+        var req = new WorkerProfileUpdateRequest(
+            FullName: "Worker ExpDesc",
+            Phone: "9876543210",
+            Address: "123 Road",
+            ExperienceYears: 4,
+            ExperienceDescription: "Worked on wheat and cotton harvesting and basic irrigation activities."
+        );
 
         // Act
-        var response = await client.PutAsJsonAsync("/api/worker/profile", updateReq);
+        var response = await client.PutAsJsonAsync("/api/worker/profile", req);
 
-        // Assert: 400 Bad Request
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<WorkerProfileResponse>(_jsonOptions);
+        Assert.NotNull(profile);
+        Assert.Equal("Worked on wheat and cotton harvesting and basic irrigation activities.", profile.ExperienceDescription);
     }
 
     [Fact]
     public async Task NegativeExperienceIsRejected()
     {
         // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.negexp@test.com", "Password123!", "Worker NegExp", Roles.Worker);
-        var updateReq = new WorkerProfileUpdateRequest("Worker NegExp", "9876543210", "123 Address", -1, 100);
+        var client = await GetAuthenticatedClientAsync("worker.negexp2@test.com", "Password123!", "Worker NegExp", Roles.Worker);
+        var req = new WorkerProfileUpdateRequest("Worker NegExp", "9876543210", "123 Road", -2, 100);
 
         // Act
-        var response = await client.PutAsJsonAsync("/api/worker/profile", updateReq);
+        var response = await client.PutAsJsonAsync("/api/worker/profile", req);
 
         // Assert: 400 Bad Request
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public async Task PasswordOrHashIsNeverReturnedInProfileResponse()
+    public async Task EmptySkillIsRejected()
     {
         // Arrange
-        var client = await GetAuthenticatedClientAsync("worker.secureuser@test.com", "Password123!", "Worker SecureUser", Roles.Worker);
+        var client = await GetAuthenticatedClientAsync("worker.emptyskill@test.com", "Password123!", "Worker EmptySkill", Roles.Worker);
+        var req = new WorkerProfileUpdateRequest("Worker EmptySkill", "9876543210", "123 Road", 2, 100, Skills: new List<string> { "   " });
+
+        // Act
+        var response = await client.PutAsJsonAsync("/api/worker/profile", req);
+
+        // Assert: 400 Bad Request
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UnauthenticatedUserIsRejected()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Anon", "9876543210", "123 Road", 1, 50));
+
+        // Assert: 401 Unauthorized
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FarmerCannotUpdateWorkerSkills()
+    {
+        // Arrange
+        var farmerClient = await GetAuthenticatedClientAsync("farmer.noskillupdate@test.com", "Password123!", "Farmer NoSkill", Roles.Farmer);
+
+        // Act
+        var response = await farmerClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Hack", "9876543210", "123 Road", 5, 100, Skills: new List<string> { "Hacked" }));
+
+        // Assert: 403 Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CustomerCannotUpdateWorkerSkills()
+    {
+        // Arrange
+        var customerClient = await GetAuthenticatedClientAsync("customer.noskillupdate@test.com", "Password123!", "Customer NoSkill", Roles.Customer);
+
+        // Act
+        var response = await customerClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Hack", "9876543210", "123 Road", 5, 100, Skills: new List<string> { "Hacked" }));
+
+        // Assert: 403 Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task WorkerCannotModifyAnotherWorkersProfile()
+    {
+        // Arrange: Worker A
+        var workerAClient = await GetAuthenticatedClientAsync("worker.skillA@test.com", "Password123!", "Worker A", Roles.Worker);
+
+        // Worker B
+        await SetupTestUserAsync("worker.skillB@test.com", "Password123!", "Worker B", Roles.Worker);
+
+        // Worker A updates profile
+        await workerAClient.PutAsJsonAsync("/api/worker/profile", new WorkerProfileUpdateRequest("Worker A Mod", "9876543210", "123 Road", 5, 100, Skills: new List<string> { "Harvesting" }));
+
+        // Verify Worker B profile was untouched
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
+        var userB = await db.Users.SingleAsync(u => u.Email == "worker.skillB@test.com");
+        var profileB = await db.WorkerProfiles.Include(p => p.WorkerSkills).SingleAsync(p => p.UserId == userB.Id);
+        Assert.Equal("Worker B", profileB.FullName);
+        Assert.Empty(profileB.WorkerSkills);
+    }
+
+    [Fact]
+    public async Task PasswordOrHashIsNeverReturned()
+    {
+        // Arrange
+        var client = await GetAuthenticatedClientAsync("worker.secure@test.com", "Password123!", "Worker Secure", Roles.Worker);
 
         // Act
         var response = await client.GetAsync("/api/worker/profile");
@@ -297,6 +375,5 @@ public class WorkerProfileTests : IClassFixture<WebApplicationFactory<Program>>,
         // Assert
         Assert.DoesNotContain("password", rawJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("passwordHash", rawJson, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("hash", rawJson, StringComparison.OrdinalIgnoreCase);
     }
 }

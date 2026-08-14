@@ -56,6 +56,7 @@ public sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Worker
         builder.Property(profile => profile.ProfileImageUrl).HasMaxLength(500);
         builder.Property(profile => profile.ExpectedDailyWage).HasPrecision(18, 2);
         builder.Property(profile => profile.AvailabilityNotes).HasMaxLength(500);
+        builder.Property(profile => profile.ExperienceDescription).HasMaxLength(2000);
 
         builder.HasIndex(profile => profile.UserId).IsUnique();
         builder.ConfigureAddressInfo(profile => profile.AddressInfo);

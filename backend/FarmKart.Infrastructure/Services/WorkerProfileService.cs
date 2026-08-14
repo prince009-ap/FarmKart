@@ -1,12 +1,15 @@
 using FarmKart.Application.Abstractions.Worker;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
+using FarmKart.Domain.Entities;
 using FarmKart.Domain.ValueObjects;
 using FarmKart.Infrastructure.Identity;
 using FarmKart.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -26,6 +29,8 @@ public class WorkerProfileService : IWorkerProfileService
     public async Task<WorkerProfileResponse> GetProfileAsync(Guid userId)
     {
         var profile = await _dbContext.WorkerProfiles
+            .Include(p => p.WorkerSkills)
+                .ThenInclude(ws => ws.Skill)
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.UserId == userId);
 
@@ -36,6 +41,11 @@ public class WorkerProfileService : IWorkerProfileService
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
         var email = user?.Email ?? string.Empty;
+
+        var skills = profile.WorkerSkills
+            .Select(ws => ws.Skill.Name)
+            .OrderBy(name => name)
+            .ToList();
 
         return new WorkerProfileResponse(
             UserId: profile.UserId,
@@ -48,7 +58,9 @@ public class WorkerProfileService : IWorkerProfileService
             ExpectedDailyWage: profile.ExpectedDailyWage,
             IsAvailable: profile.IsAvailable,
             AvailableFrom: profile.AvailableFrom,
-            AvailabilityNotes: profile.AvailabilityNotes
+            AvailabilityNotes: profile.AvailabilityNotes,
+            ExperienceDescription: profile.ExperienceDescription,
+            Skills: skills
         );
     }
 
@@ -71,11 +83,65 @@ public class WorkerProfileService : IWorkerProfileService
         }
 
         var profile = await _dbContext.WorkerProfiles
+            .Include(p => p.WorkerSkills)
+                .ThenInclude(ws => ws.Skill)
             .SingleOrDefaultAsync(p => p.UserId == userId);
 
         if (profile is null)
         {
             throw new ProfileNotFoundException();
+        }
+
+        // Process skills if provided
+        if (request.Skills != null)
+        {
+            // Validate empty/whitespace skills
+            foreach (var s in request.Skills)
+            {
+                if (string.IsNullOrWhiteSpace(s))
+                {
+                    throw new ArgumentException("Skill name cannot be empty.");
+                }
+            }
+
+            // Deduplicate and trim skill names
+            var cleanedSkillNames = request.Skills
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // Remove existing worker skills for this profile
+            var existingWorkerSkills = await _dbContext.WorkerSkills
+                .Where(ws => ws.WorkerProfileId == profile.Id)
+                .ToListAsync();
+
+            if (existingWorkerSkills.Count > 0)
+            {
+                _dbContext.WorkerSkills.RemoveRange(existingWorkerSkills);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // Add new worker skills
+            foreach (var skillName in cleanedSkillNames)
+            {
+                var lowerName = skillName.ToLower();
+                var dbSkill = await _dbContext.Skills
+                    .FirstOrDefaultAsync(s => s.Name.ToLower() == lowerName);
+
+                if (dbSkill == null)
+                {
+                    dbSkill = new Skill { Name = skillName };
+                    _dbContext.Skills.Add(dbSkill);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                _dbContext.WorkerSkills.Add(new WorkerSkill
+                {
+                    WorkerProfileId = profile.Id,
+                    SkillId = dbSkill.Id
+                });
+            }
         }
 
         profile.FullName = request.FullName.Trim();
@@ -86,6 +152,7 @@ public class WorkerProfileService : IWorkerProfileService
             AddressLine = request.Address.Trim()
         };
         profile.ExperienceYears = request.ExperienceYears;
+        profile.ExperienceDescription = string.IsNullOrWhiteSpace(request.ExperienceDescription) ? null : request.ExperienceDescription.Trim();
         profile.ExpectedDailyWage = request.ExpectedDailyWage;
         profile.IsAvailable = request.IsAvailable;
         profile.AvailableFrom = request.AvailableFrom;
@@ -95,6 +162,12 @@ public class WorkerProfileService : IWorkerProfileService
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
         var email = user?.Email ?? string.Empty;
+
+        var updatedSkills = await _dbContext.WorkerSkills
+            .Where(ws => ws.WorkerProfileId == profile.Id)
+            .Select(ws => ws.Skill.Name)
+            .OrderBy(name => name)
+            .ToListAsync();
 
         return new WorkerProfileResponse(
             UserId: profile.UserId,
@@ -107,7 +180,9 @@ public class WorkerProfileService : IWorkerProfileService
             ExpectedDailyWage: profile.ExpectedDailyWage,
             IsAvailable: profile.IsAvailable,
             AvailableFrom: profile.AvailableFrom,
-            AvailabilityNotes: profile.AvailabilityNotes
+            AvailabilityNotes: profile.AvailabilityNotes,
+            ExperienceDescription: profile.ExperienceDescription,
+            Skills: updatedSkills
         );
     }
 }

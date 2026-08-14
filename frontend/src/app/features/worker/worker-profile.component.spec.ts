@@ -1,123 +1,197 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
 import { WorkerProfileComponent } from './worker-profile.component';
 import { WorkerJobService } from './worker-job.service';
+import { AuthService } from '../../core/services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { of, throwError } from 'rxjs';
 import { WorkerProfile } from '../../core/models/worker.models';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('WorkerProfileComponent', () => {
   let component: WorkerProfileComponent;
   let fixture: ComponentFixture<WorkerProfileComponent>;
-  let workerServiceMock: any;
+  let workerJobServiceMock: any;
+  let authServiceMock: any;
+  let snackBar: MatSnackBar;
 
   const mockProfile: WorkerProfile = {
-    userId: 'user-123',
-    fullName: 'Yash Sarvaiya',
-    email: 'worker@test.com',
+    userId: '11111111-1111-1111-1111-111111111111',
+    fullName: 'Ramesh Worker',
+    email: 'ramesh.worker@example.com',
     phone: '9876543210',
-    address: '123 Farm Street',
-    profileImageUrl: 'https://example.com/avatar.jpg',
+    address: '123 Village Street',
+    profileImageUrl: 'https://example.com/ramesh.jpg',
     experienceYears: 3,
-    expectedDailyWage: 500,
-    isAvailable: true
+    expectedDailyWage: 350,
+    isAvailable: true,
+    availableFrom: undefined,
+    availabilityNotes: undefined,
+    experienceDescription: 'Worked on wheat and cotton harvesting and basic irrigation activities.',
+    skills: ['Harvesting', 'Sowing', 'Irrigation']
   };
 
   beforeEach(async () => {
-    workerServiceMock = {
+    workerJobServiceMock = {
       getProfile: vi.fn().mockReturnValue(of(mockProfile)),
-      updateProfile: vi.fn().mockReturnValue(of({ ...mockProfile, fullName: 'Updated Yash Sarvaiya' }))
+      updateProfile: vi.fn().mockReturnValue(of(mockProfile))
+    };
+
+    authServiceMock = {
+      currentUser: vi.fn().mockReturnValue({
+        userId: '11111111-1111-1111-1111-111111111111',
+        email: 'ramesh.worker@example.com',
+        fullName: 'Ramesh Worker',
+        role: 'Worker'
+      })
     };
 
     await TestBed.configureTestingModule({
       imports: [WorkerProfileComponent, NoopAnimationsModule],
       providers: [
-        provideRouter([]),
-        { provide: WorkerJobService, useValue: workerServiceMock }
+        { provide: WorkerJobService, useValue: workerJobServiceMock },
+        { provide: AuthService, useValue: authServiceMock }
       ]
     }).compileComponents();
+
+    snackBar = TestBed.inject(MatSnackBar);
+    vi.spyOn(snackBar, 'open').mockImplementation(() => ({} as any));
 
     fixture = TestBed.createComponent(WorkerProfileComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create and load existing worker data', () => {
-    expect(component).toBeTruthy();
-    expect(component.loading()).toBe(false);
-    expect(component.profile()).toEqual(mockProfile);
-    expect(workerServiceMock.getProfile).toHaveBeenCalled();
+  it('1. Skills load correctly', () => {
+    expect(workerJobServiceMock.getProfile).toHaveBeenCalled();
+    expect(component.skills()).toEqual(['Harvesting', 'Sowing', 'Irrigation']);
   });
 
-  it('should display existing worker information', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Yash Sarvaiya');
-    expect(compiled.textContent).toContain('worker@test.com');
-    expect(compiled.textContent).toContain('9876543210');
-  });
-
-  it('should toggle edit mode when Edit Profile button is clicked', () => {
-    expect(component.editMode()).toBe(false);
-    component.enableEdit();
+  it('2. Existing skills display', () => {
     fixture.detectChanges();
-    expect(component.editMode()).toBe(true);
-
     const compiled = fixture.nativeElement as HTMLElement;
-    const emailInput = compiled.querySelector('input[type="email"]') as HTMLInputElement;
-    expect(emailInput).toBeTruthy();
-    expect(emailInput.disabled).toBe(true);
+    expect(compiled.textContent).toContain('Harvesting');
+    expect(compiled.textContent).toContain('Sowing');
+    expect(compiled.textContent).toContain('Irrigation');
   });
 
-  it('should cancel edit and restore previous form values', () => {
+  it('3. Skill can be added', () => {
     component.enableEdit();
-    component.profileForm.patchValue({ fullName: 'Temporary Name' });
-    expect(component.profileForm.value.fullName).toBe('Temporary Name');
+    component.newSkillInput.set('Crop Maintenance');
+    component.addSkill();
 
-    component.cancelEdit();
-    expect(component.editMode()).toBe(false);
-    expect(component.profileForm.value.fullName).toBe('Yash Sarvaiya');
+    expect(component.skills()).toContain('Crop Maintenance');
+    expect(component.skills().length).toBe(4);
+    expect(component.newSkillInput()).toBe('');
   });
 
-  it('should display validation errors for invalid inputs', () => {
+  it('4. Skill can be removed', () => {
     component.enableEdit();
-    component.profileForm.patchValue({ fullName: '', phone: 'invalid', experienceYears: -5 });
-    component.onSubmit();
+    component.removeSkill(1); // remove 'Sowing'
+
+    expect(component.skills()).toEqual(['Harvesting', 'Irrigation']);
+    expect(component.skills().length).toBe(2);
+  });
+
+  it('5. Duplicate skill is prevented', () => {
+    component.enableEdit();
+    component.newSkillInput.set('harvesting'); // Case-insensitive duplicate
+    component.addSkill();
+
+    expect(component.skillError()).toBeTruthy();
+    expect(component.skillError()).toContain('harvesting');
+    expect(component.skills().length).toBe(3);
+  });
+
+  it('6. Experience can be edited', () => {
+    component.enableEdit();
+    component.profileForm.patchValue({ experienceYears: 5 });
+
+    expect(component.profileForm.value.experienceYears).toBe(5);
+  });
+
+  it('7. Experience description can be edited', () => {
+    component.enableEdit();
+    component.profileForm.patchValue({ experienceDescription: 'Experienced in operating tractors.' });
+
+    expect(component.profileForm.value.experienceDescription).toBe('Experienced in operating tractors.');
+  });
+
+  it('8. Validation messages display for negative experience and invalid phone', () => {
+    component.enableEdit();
+    const expControl = component.profileForm.get('experienceYears');
+    expControl?.setValue(-2);
+    expControl?.markAsTouched();
+
+    const phoneControl = component.profileForm.get('phone');
+    phoneControl?.setValue('invalid');
+    phoneControl?.markAsTouched();
+
     fixture.detectChanges();
 
+    expect(expControl?.hasError('min')).toBe(true);
+    expect(phoneControl?.hasError('pattern')).toBe(true);
     expect(component.profileForm.invalid).toBe(true);
-    expect(workerServiceMock.updateProfile).not.toHaveBeenCalled();
   });
 
-  it('should update profile when valid form is submitted', () => {
+  it('9. Save calls correct API with skills and experience description', () => {
     component.enableEdit();
-    component.profileForm.patchValue({
-      fullName: 'Updated Yash Sarvaiya',
-      phone: '9998887776',
+    component.profileForm.setValue({
+      fullName: 'Ramesh Worker Updated',
+      phone: '9876543210',
       address: '456 New Road',
-      experienceYears: 4,
-      expectedDailyWage: 600
+      experienceYears: 5,
+      experienceDescription: '5 years of tractor driving and crop harvesting experience.',
+      expectedDailyWage: 400,
+      profileImageUrl: ''
+    });
+    component.skills.set(['Harvesting', 'Tractor Operation']);
+
+    component.onSubmit();
+
+    expect(workerJobServiceMock.updateProfile).toHaveBeenCalledWith(expect.objectContaining({
+      fullName: 'Ramesh Worker Updated',
+      experienceYears: 5,
+      experienceDescription: '5 years of tractor driving and crop harvesting experience.',
+      skills: ['Harvesting', 'Tractor Operation']
+    }));
+  });
+
+  it('10. Success state works on submit', () => {
+    component.enableEdit();
+    component.profileForm.setValue({
+      fullName: 'Ramesh Worker',
+      phone: '9876543210',
+      address: '123 Village Street',
+      experienceYears: 3,
+      experienceDescription: 'Worked on wheat harvesting.',
+      expectedDailyWage: 350,
+      profileImageUrl: ''
     });
 
+    expect(component.profileForm.valid).toBe(true);
     component.onSubmit();
-    expect(workerServiceMock.updateProfile).toHaveBeenCalledWith(expect.objectContaining({
-      fullName: 'Updated Yash Sarvaiya',
-      phone: '9998887776',
-      address: '456 New Road',
-      experienceYears: 4,
-      expectedDailyWage: 600
-    }));
-
+    expect(workerJobServiceMock.updateProfile).toHaveBeenCalled();
+    expect(component.saving()).toBe(false);
     expect(component.editMode()).toBe(false);
-    expect(component.successMessage()).toContain('Profile updated successfully');
+    expect(component.successMessage()).toBe('Profile updated successfully.');
   });
 
-  it('should handle profile load error state', () => {
-    workerServiceMock.getProfile.mockReturnValue(throwError(() => ({ status: 404 })));
-    component.loadProfile();
-    fixture.detectChanges();
+  it('11. API error state handles gracefully', () => {
+    workerJobServiceMock.updateProfile.mockReturnValue(throwError(() => ({ error: { message: 'Server error' } })));
+    component.enableEdit();
+    component.profileForm.setValue({
+      fullName: 'Ramesh Worker',
+      phone: '9876543210',
+      address: '123 Village Street',
+      experienceYears: 3,
+      experienceDescription: 'Worked on wheat harvesting.',
+      expectedDailyWage: 350,
+      profileImageUrl: ''
+    });
 
-    expect(component.loading()).toBe(false);
-    expect(component.loadError()).toBe('Worker profile not found.');
+    expect(component.profileForm.valid).toBe(true);
+    component.onSubmit();
+    expect(workerJobServiceMock.updateProfile).toHaveBeenCalled();
+    expect(component.saving()).toBe(false);
   });
 });

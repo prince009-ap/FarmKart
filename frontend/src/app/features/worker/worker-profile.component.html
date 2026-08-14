@@ -1,232 +1,405 @@
-<div class="space-y-6 max-w-4xl mx-auto pb-10">
-
-  <!-- Header Banner -->
-  <div class="bg-gradient-to-r from-amber-900 to-amber-950 text-white rounded-2xl p-6 sm:p-8 shadow-md border border-amber-800/40">
-    <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
-      
-      <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-        <!-- Avatar / Photo -->
-        <div class="relative group">
-          <div *ngIf="profile()?.profileImageUrl" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-amber-400/60 shadow-lg bg-amber-900">
-            <img [src]="profile()?.profileImageUrl" [alt]="profile()?.fullName" class="w-full h-full object-cover" />
-          </div>
-          <div *ngIf="!profile()?.profileImageUrl" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border-2 border-amber-400/60 shadow-lg flex items-center justify-center font-bold text-3xl sm:text-4xl text-white">
-            {{ (profile()?.fullName || 'W').substring(0, 1).toUpperCase() }}
-          </div>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">Worker Profile</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ profile()?.fullName || 'Worker Profile' }}</h1>
-          <p class="text-amber-200/90 text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1">
-            <mat-icon class="!w-4 !h-4 text-xs leading-none text-amber-400">email</mat-icon>
-            {{ profile()?.email || 'Loading...' }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Action Button -->
-      <div *ngIf="!loading() && !loadError() && !editMode()" class="flex-shrink-0">
-        <button (click)="enableEdit()" mat-raised-button class="!bg-amber-600 !text-white hover:!bg-amber-700 !px-6 !py-2 !rounded-xl shadow">
-          <mat-icon class="mr-1">edit</mat-icon>
-          Edit Profile
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Messages -->
-  <div *ngIf="loadError()" class="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm flex items-center gap-3">
-    <mat-icon class="text-rose-500">error</mat-icon>
-    <span>{{ loadError() }}</span>
-  </div>
-
-  <div *ngIf="successMessage()" class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm flex items-center gap-3">
-    <mat-icon class="text-emerald-600">check_circle</mat-icon>
-    <span>{{ successMessage() }}</span>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div *ngIf="loading()" class="flex justify-center py-16">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
-
-  <!-- Main Profile Content -->
-  <div *ngIf="!loading() && profile()" class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
-
-    <!-- View Mode -->
-    <div *ngIf="!editMode()" class="space-y-6">
-      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
-        <h2 class="text-lg font-bold text-stone-900 flex items-center gap-2">
-          <mat-icon class="text-amber-700">badge</mat-icon>
-          Personal & Professional Information
-        </h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Full Name</p>
-          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.fullName }}</p>
-        </div>
-
-        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Email Address (Read-Only)</p>
-          <p class="text-base font-bold text-stone-800 mt-1 flex items-center gap-2">
-            <span>{{ profile()?.email }}</span>
-            <span class="px-2 py-0.5 text-[11px] font-semibold bg-stone-200 text-stone-700 rounded">Read-only</span>
-          </p>
-        </div>
-
-        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Phone Number</p>
-          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.phone }}</p>
-        </div>
-
-        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Experience (Years)</p>
-          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.experienceYears }} Year(s)</p>
-        </div>
-
-        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 md:col-span-2">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Address</p>
-          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.address }}</p>
-        </div>
-
-        <div *ngIf="profile()?.profileImageUrl" class="p-4 bg-stone-50 rounded-xl border border-stone-100 md:col-span-2">
-          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Profile Photo URL</p>
-          <p class="text-xs text-stone-700 mt-1 break-all">{{ profile()?.profileImageUrl }}</p>
-        </div>
-
-      </div>
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+  <!-- Page Header -->
+  <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-emerald-600">badge</mat-icon>
+        My Worker Profile
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Manage your personal information, skills, and farming experience
+      </p>
     </div>
 
-    <!-- Edit Mode Form -->
-    <form *ngIf="editMode()" [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6">
-      
-      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
-        <h2 class="text-lg font-bold text-stone-900 flex items-center gap-2">
-          <mat-icon class="text-amber-700">edit_note</mat-icon>
-          Edit Profile Information
-        </h2>
-        <span class="text-xs text-stone-500">* Required fields</span>
-      </div>
+    @if (!loading() && profile() && !editMode()) {
+      <button
+        mat-flat-button
+        color="primary"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 font-medium flex items-center gap-2"
+        (click)="enableEdit()">
+        <mat-icon>edit</mat-icon>
+        Edit Profile
+      </button>
+    }
+  </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <mat-spinner diameter="40" color="primary"></mat-spinner>
+      <p class="mt-4 text-slate-600 dark:text-slate-400 text-sm font-medium">Loading profile...</p>
+    </div>
+  }
 
-        <!-- Full Name -->
-        <div>
-          <label for="fullName" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Full Name *</label>
-          <input
-            id="fullName"
-            type="text"
-            formControlName="fullName"
-            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
-            placeholder="Enter full name"
-          />
-          <p *ngIf="profileForm.get('fullName')?.touched && profileForm.get('fullName')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
-            Full name is required.
-          </p>
-        </div>
-
-        <!-- Read-Only Email -->
-        <div>
-          <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Email Address (Read-Only)</label>
-          <input
-            type="email"
-            [value]="profile()?.email"
-            disabled
-            class="w-full px-3.5 py-2.5 border border-stone-200 rounded-xl text-stone-500 bg-stone-100 text-sm font-medium cursor-not-allowed"
-          />
-          <p class="text-[11px] text-stone-400 mt-1">Email address cannot be modified.</p>
-        </div>
-
-        <!-- Phone Number -->
-        <div>
-          <label for="phone" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Phone Number *</label>
-          <input
-            id="phone"
-            type="text"
-            formControlName="phone"
-            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
-            placeholder="e.g. 9876543210"
-          />
-          <p *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
-            Phone number is required.
-          </p>
-          <p *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['pattern']" class="text-xs text-rose-600 mt-1">
-            Please enter a valid phone number.
-          </p>
-        </div>
-
-        <!-- Experience Years -->
-        <div>
-          <label for="experienceYears" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Experience (Years) *</label>
-          <input
-            id="experienceYears"
-            type="number"
-            min="0"
-            max="100"
-            formControlName="experienceYears"
-            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
-            placeholder="0"
-          />
-          <p *ngIf="profileForm.get('experienceYears')?.touched && profileForm.get('experienceYears')?.errors?.['min']" class="text-xs text-rose-600 mt-1">
-            Experience years must not be negative.
-          </p>
-        </div>
-
-        <!-- Address -->
-        <div class="md:col-span-2">
-          <label for="address" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Address *</label>
-          <input
-            id="address"
-            type="text"
-            formControlName="address"
-            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
-            placeholder="Enter address"
-          />
-          <p *ngIf="profileForm.get('address')?.touched && profileForm.get('address')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
-            Address is required.
-          </p>
-        </div>
-
-        <!-- Profile Image URL -->
-        <div class="md:col-span-2">
-          <label for="profileImageUrl" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Profile Photo URL (Optional)</label>
-          <input
-            id="profileImageUrl"
-            type="text"
-            formControlName="profileImageUrl"
-            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
-            placeholder="https://example.com/photo.jpg"
-          />
-        </div>
-
-      </div>
-
-      <!-- Form Action Buttons -->
-      <div class="pt-4 border-t border-stone-200 flex items-center justify-end gap-3">
-        <button type="button" (click)="cancelEdit()" mat-stroked-button class="!border-stone-300 !text-stone-700 hover:!bg-stone-100">
-          Cancel
-        </button>
+  <!-- Error State -->
+  @if (loadError()) {
+    <div class="p-4 mb-6 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-start gap-3">
+      <mat-icon class="text-rose-500 shrink-0">error</mat-icon>
+      <div>
+        <h3 class="font-semibold text-sm">Profile Load Error</h3>
+        <p class="text-xs mt-0.5">{{ loadError() }}</p>
         <button
-          type="submit"
-          [disabled]="saving()"
-          mat-raised-button
-          class="!bg-amber-700 !text-white hover:!bg-amber-800 disabled:!bg-stone-300"
-        >
-          <mat-spinner diameter="18" *ngIf="saving()" class="mr-2"></mat-spinner>
-          <mat-icon class="mr-1" *ngIf="!saving()">save</mat-icon>
-          Save Changes
+          mat-button
+          color="warn"
+          class="mt-2 text-xs font-semibold underline"
+          (click)="loadProfile()">
+          Try Again
         </button>
       </div>
+    </div>
+  }
 
-    </form>
+  <!-- Success Banner -->
+  @if (successMessage()) {
+    <div class="p-4 mb-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-sm font-medium">
+        <mat-icon class="text-emerald-600 dark:text-emerald-400">check_circle</mat-icon>
+        {{ successMessage() }}
+      </div>
+    </div>
+  }
 
-  </div>
+  <!-- Profile Content -->
+  @if (!loading() && profile()) {
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <!-- Profile Header / Banner -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white flex flex-col md:flex-row items-center gap-6">
+        <div class="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-white shrink-0 overflow-hidden">
+          @if (profile()?.profileImageUrl) {
+            <img [src]="profile()?.profileImageUrl" [alt]="profile()?.fullName" class="w-full h-full object-cover" />
+          } @else {
+            <mat-icon class="!w-10 !h-10 !text-[40px] flex items-center justify-center">person</mat-icon>
+          }
+        </div>
+        <div class="text-center md:text-left">
+          <h2 class="text-xl font-bold">{{ profile()?.fullName }}</h2>
+          <p class="text-emerald-100 text-sm flex items-center justify-center md:justify-start gap-1.5 mt-0.5">
+            <mat-icon class="!w-4 !h-4 !text-[16px]">email</mat-icon>
+            {{ profile()?.email }}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-800/60 text-emerald-100 border border-emerald-400/30 ml-2">
+              Read-Only
+            </span>
+          </p>
+          <div class="mt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-emerald-100">
+            <span class="flex items-center gap-1">
+              <mat-icon class="!w-4 !h-4 !text-[16px]">phone</mat-icon>
+              {{ profile()?.phone }}
+            </span>
+            <span>•</span>
+            <span class="flex items-center gap-1">
+              <mat-icon class="!w-4 !h-4 !text-[16px]">location_on</mat-icon>
+              {{ profile()?.address }}
+            </span>
+          </div>
+        </div>
+      </div>
 
+      <!-- VIEW MODE -->
+      @if (!editMode()) {
+        <div class="p-6 space-y-8">
+          <!-- Personal & Wage Details -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Full Name</span>
+              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.fullName }}</span>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Email (Identity)</span>
+              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.email }}</span>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Phone</span>
+              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.phone }}</span>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 md:col-span-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Address</span>
+              <span class="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 block">{{ profile()?.address }}</span>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Expected Daily Wage</span>
+              <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">
+                ₹{{ profile()?.expectedDailyWage }}/day
+              </span>
+            </div>
+          </div>
+
+          <!-- SKILLS & EXPERIENCE SECTION -->
+          <div class="pt-6 border-t border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
+              <mat-icon class="text-emerald-600">psychology</mat-icon>
+              Skills & Experience
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Skills Badge List -->
+              <div class="p-5 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-3">Skills</span>
+                @if (skills().length > 0) {
+                  <div class="flex flex-wrap gap-2">
+                    @for (skill of skills(); track skill) {
+                      <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800">
+                        {{ skill }}
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <p class="text-xs text-slate-400 italic">No skills listed yet. Click "Edit Profile" to add your skills.</p>
+                }
+              </div>
+
+              <!-- Years of Experience -->
+              <div class="p-5 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Years of Experience</span>
+                <div class="flex items-baseline gap-2 mt-1">
+                  <span class="text-3xl font-bold text-slate-800 dark:text-white">{{ profile()?.experienceYears }}</span>
+                  <span class="text-sm font-medium text-slate-500 dark:text-slate-400">years in agriculture</span>
+                </div>
+              </div>
+
+              <!-- Experience Description -->
+              <div class="p-5 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 md:col-span-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Experience Description</span>
+                @if (profile()?.experienceDescription) {
+                  <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                    {{ profile()?.experienceDescription }}
+                  </p>
+                } @else {
+                  <p class="text-xs text-slate-400 italic">No experience description provided. Click "Edit Profile" to detail your farm work experience.</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- EDIT MODE -->
+      @if (editMode()) {
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <mat-icon class="text-emerald-600">edit_note</mat-icon>
+              Edit Worker Profile
+            </h3>
+            <span class="text-xs text-slate-400">Modify your details below and click Save</span>
+          </div>
+
+          <!-- Email Banner (Read-Only Warning) -->
+          <div class="p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
+            <mat-icon class="text-amber-600 shrink-0 !w-5 !h-5 !text-[20px]">info</mat-icon>
+            <span>Your email address <strong>{{ profile()?.email }}</strong> is your login identity and cannot be edited.</span>
+          </div>
+
+          <!-- Form Fields Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Full Name -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Full Name <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="fullName"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="Enter full name" />
+              @if (profileForm.get('fullName')?.touched && profileForm.get('fullName')?.hasError('required')) {
+                <p class="text-xs text-rose-500 mt-1">Full Name is required.</p>
+              }
+              @if (profileForm.get('fullName')?.hasError('maxlength')) {
+                <p class="text-xs text-rose-500 mt-1">Full Name cannot exceed 150 characters.</p>
+              }
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Phone Number <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="phone"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="Enter phone number" />
+              @if (profileForm.get('phone')?.touched && profileForm.get('phone')?.hasError('required')) {
+                <p class="text-xs text-rose-500 mt-1">Phone number is required.</p>
+              }
+              @if (profileForm.get('phone')?.hasError('pattern')) {
+                <p class="text-xs text-rose-500 mt-1">Enter a valid 7-20 digit phone number.</p>
+              }
+            </div>
+
+            <!-- Address -->
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Address <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="address"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="Enter village / town address" />
+              @if (profileForm.get('address')?.touched && profileForm.get('address')?.hasError('required')) {
+                <p class="text-xs text-rose-500 mt-1">Address is required.</p>
+              }
+            </div>
+
+            <!-- Expected Daily Wage -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Expected Daily Wage (₹)
+              </label>
+              <input
+                type="number"
+                formControlName="expectedDailyWage"
+                min="0"
+                step="10"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="0" />
+              @if (profileForm.get('expectedDailyWage')?.hasError('min')) {
+                <p class="text-xs text-rose-500 mt-1">Daily wage cannot be negative.</p>
+              }
+            </div>
+
+            <!-- Profile Image URL -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Profile Image URL
+              </label>
+              <input
+                type="text"
+                formControlName="profileImageUrl"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="https://example.com/photo.jpg" />
+            </div>
+          </div>
+
+          <!-- SKILLS & EXPERIENCE EDIT SECTION -->
+          <div class="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-5">
+            <h4 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <mat-icon class="text-emerald-600">psychology</mat-icon>
+              Skills & Experience Details
+            </h4>
+
+            <!-- Skills Input & Chips -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Skills
+              </label>
+              
+              <!-- Add Skill Input bar -->
+              <div class="flex items-center gap-2 mb-3">
+                <input
+                  type="text"
+                  [value]="newSkillInput()"
+                  (input)="newSkillInput.set($any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); addSkill()"
+                  class="flex-1 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                  placeholder="Enter skill... (e.g. Harvesting, Sowing, Irrigation)" />
+                <button
+                  type="button"
+                  mat-flat-button
+                  class="bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-emerald-700 shrink-0"
+                  (click)="addSkill()">
+                  + Add Skill
+                </button>
+              </div>
+
+              @if (skillError()) {
+                <p class="text-xs text-rose-500 mb-2">{{ skillError() }}</p>
+              }
+
+              <!-- Skill Chips with Remove Buttons -->
+              <div class="flex flex-wrap gap-2 min-h-[38px] p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                @if (skills().length > 0) {
+                  @for (skill of skills(); track skill; let i = $index) {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800">
+                      {{ skill }}
+                      <button
+                        type="button"
+                        class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-emerald-200 dark:hover:bg-emerald-800 text-emerald-700 dark:text-emerald-300"
+                        (click)="removeSkill(i)"
+                        [attr.aria-label]="'Remove ' + skill">
+                        <mat-icon class="!w-3 !h-3 !text-[12px] flex items-center justify-center">close</mat-icon>
+                      </button>
+                    </span>
+                  }
+                } @else {
+                  <span class="text-xs text-slate-400 italic">No skills added yet. Type a skill above and click "+ Add Skill".</span>
+                }
+              </div>
+            </div>
+
+            <!-- Years of Experience -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Years of Experience <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="experienceYears"
+                min="0"
+                max="100"
+                class="w-full md:w-1/2 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="0" />
+              @if (profileForm.get('experienceYears')?.touched && profileForm.get('experienceYears')?.hasError('required')) {
+                <p class="text-xs text-rose-500 mt-1">Experience Years is required.</p>
+              }
+              @if (profileForm.get('experienceYears')?.hasError('min')) {
+                <p class="text-xs text-rose-500 mt-1">Experience cannot be negative.</p>
+              }
+              @if (profileForm.get('experienceYears')?.hasError('max')) {
+                <p class="text-xs text-rose-500 mt-1">Experience cannot exceed 100 years.</p>
+              }
+            </div>
+
+            <!-- Experience Description -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Experience Description
+              </label>
+              <textarea
+                rows="4"
+                formControlName="experienceDescription"
+                class="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                placeholder="Describe your agricultural work experience (e.g. Worked on wheat and cotton harvesting, operating tractors, and handling irrigation)."></textarea>
+              @if (profileForm.get('experienceDescription')?.hasError('maxlength')) {
+                <p class="text-xs text-rose-500 mt-1">Experience Description cannot exceed 2000 characters.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              mat-button
+              class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+              [disabled]="saving()"
+              (click)="cancelEdit()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              mat-flat-button
+              color="primary"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 disabled:opacity-50"
+              [disabled]="saving() || profileForm.invalid">
+              @if (saving()) {
+                <mat-spinner diameter="18" color="accent"></mat-spinner>
+                <span>Saving...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>save</mat-icon>
+                  <span>Save Changes</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
 </div>

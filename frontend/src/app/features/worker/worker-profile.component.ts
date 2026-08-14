@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
@@ -37,6 +38,10 @@ export class WorkerProfileComponent implements OnInit {
   loadError = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
+  skills = signal<string[]>([]);
+  newSkillInput = signal<string>('');
+  skillError = signal<string | null>(null);
+
   profileForm!: FormGroup;
 
   ngOnInit(): void {
@@ -50,6 +55,7 @@ export class WorkerProfileComponent implements OnInit {
       phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-]{7,20}$/)]],
       address: ['', [Validators.required]],
       experienceYears: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      experienceDescription: ['', [Validators.maxLength(2000)]],
       expectedDailyWage: [0, [Validators.min(0)]],
       profileImageUrl: ['']
     });
@@ -62,6 +68,7 @@ export class WorkerProfileComponent implements OnInit {
     this.workerService.getProfile().subscribe({
       next: (data) => {
         this.profile.set(data);
+        this.skills.set(data.skills || []);
         this.patchForm(data);
         this.loading.set(false);
       },
@@ -86,9 +93,13 @@ export class WorkerProfileComponent implements OnInit {
       phone: data.phone,
       address: data.address,
       experienceYears: data.experienceYears,
+      experienceDescription: data.experienceDescription || '',
       expectedDailyWage: data.expectedDailyWage,
       profileImageUrl: data.profileImageUrl || ''
     });
+    this.skills.set(data.skills || []);
+    this.newSkillInput.set('');
+    this.skillError.set(null);
   }
 
   enableEdit(): void {
@@ -109,6 +120,29 @@ export class WorkerProfileComponent implements OnInit {
     this.successMessage.set(null);
   }
 
+  addSkill(): void {
+    const name = this.newSkillInput().trim();
+    this.skillError.set(null);
+
+    if (!name) {
+      this.skillError.set('Skill name cannot be empty.');
+      return;
+    }
+
+    const current = this.skills();
+    if (current.some(s => s.toLowerCase() === name.toLowerCase())) {
+      this.skillError.set(`Skill "${name}" has already been added.`);
+      return;
+    }
+
+    this.skills.set([...current, name]);
+    this.newSkillInput.set('');
+  }
+
+  removeSkill(index: number): void {
+    this.skills.update(list => list.filter((_, i) => i !== index));
+  }
+
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
@@ -124,13 +158,16 @@ export class WorkerProfileComponent implements OnInit {
       phone: val.phone.trim(),
       address: val.address.trim(),
       experienceYears: Number(val.experienceYears),
+      experienceDescription: val.experienceDescription ? val.experienceDescription.trim() : null,
       expectedDailyWage: Number(val.expectedDailyWage || 0),
-      profileImageUrl: val.profileImageUrl ? val.profileImageUrl.trim() : null
+      profileImageUrl: val.profileImageUrl ? val.profileImageUrl.trim() : null,
+      skills: this.skills()
     };
 
     this.workerService.updateProfile(request).subscribe({
       next: (updatedProfile) => {
         this.profile.set(updatedProfile);
+        this.skills.set(updatedProfile.skills || []);
         this.saving.set(false);
         this.editMode.set(false);
         this.successMessage.set('Profile updated successfully.');

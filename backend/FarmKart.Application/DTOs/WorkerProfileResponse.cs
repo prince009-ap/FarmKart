@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace FarmKart.Application.DTOs;
 
@@ -13,5 +14,7 @@ public record WorkerProfileResponse(
     decimal ExpectedDailyWage,
     bool IsAvailable,
     DateOnly? AvailableFrom,
-    string? AvailabilityNotes
+    string? AvailabilityNotes,
+    string? ExperienceDescription = null,
+    IReadOnlyList<string>? Skills = null
 );

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace FarmKart.Application.DTOs;
@@ -25,5 +26,10 @@ public record WorkerProfileUpdateRequest(
     string? ProfileImageUrl = null,
     bool IsAvailable = true,
     DateOnly? AvailableFrom = null,
-    string? AvailabilityNotes = null
+    string? AvailabilityNotes = null,
+
+    [MaxLength(2000, ErrorMessage = "ExperienceDescription must not exceed 2000 characters.")]
+    string? ExperienceDescription = null,
+
+    List<string>? Skills = null
 );
