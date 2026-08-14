@@ -1,0 +1,232 @@
+<div class="space-y-6 max-w-4xl mx-auto pb-10">
+
+  <!-- Header Banner -->
+  <div class="bg-gradient-to-r from-amber-900 to-amber-950 text-white rounded-2xl p-6 sm:p-8 shadow-md border border-amber-800/40">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+      
+      <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+        <!-- Avatar / Photo -->
+        <div class="relative group">
+          <div *ngIf="profile()?.profileImageUrl" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-amber-400/60 shadow-lg bg-amber-900">
+            <img [src]="profile()?.profileImageUrl" [alt]="profile()?.fullName" class="w-full h-full object-cover" />
+          </div>
+          <div *ngIf="!profile()?.profileImageUrl" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border-2 border-amber-400/60 shadow-lg flex items-center justify-center font-bold text-3xl sm:text-4xl text-white">
+            {{ (profile()?.fullName || 'W').substring(0, 1).toUpperCase() }}
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">Worker Profile</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ profile()?.fullName || 'Worker Profile' }}</h1>
+          <p class="text-amber-200/90 text-sm mt-0.5 flex items-center justify-center sm:justify-start gap-1">
+            <mat-icon class="!w-4 !h-4 text-xs leading-none text-amber-400">email</mat-icon>
+            {{ profile()?.email || 'Loading...' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div *ngIf="!loading() && !loadError() && !editMode()" class="flex-shrink-0">
+        <button (click)="enableEdit()" mat-raised-button class="!bg-amber-600 !text-white hover:!bg-amber-700 !px-6 !py-2 !rounded-xl shadow">
+          <mat-icon class="mr-1">edit</mat-icon>
+          Edit Profile
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="loadError()" class="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm flex items-center gap-3">
+    <mat-icon class="text-rose-500">error</mat-icon>
+    <span>{{ loadError() }}</span>
+  </div>
+
+  <div *ngIf="successMessage()" class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm flex items-center gap-3">
+    <mat-icon class="text-emerald-600">check_circle</mat-icon>
+    <span>{{ successMessage() }}</span>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading()" class="flex justify-center py-16">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Main Profile Content -->
+  <div *ngIf="!loading() && profile()" class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
+
+    <!-- View Mode -->
+    <div *ngIf="!editMode()" class="space-y-6">
+      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
+        <h2 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+          <mat-icon class="text-amber-700">badge</mat-icon>
+          Personal & Professional Information
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Full Name</p>
+          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.fullName }}</p>
+        </div>
+
+        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Email Address (Read-Only)</p>
+          <p class="text-base font-bold text-stone-800 mt-1 flex items-center gap-2">
+            <span>{{ profile()?.email }}</span>
+            <span class="px-2 py-0.5 text-[11px] font-semibold bg-stone-200 text-stone-700 rounded">Read-only</span>
+          </p>
+        </div>
+
+        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Phone Number</p>
+          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.phone }}</p>
+        </div>
+
+        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Experience (Years)</p>
+          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.experienceYears }} Year(s)</p>
+        </div>
+
+        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 md:col-span-2">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Address</p>
+          <p class="text-base font-bold text-stone-900 mt-1">{{ profile()?.address }}</p>
+        </div>
+
+        <div *ngIf="profile()?.profileImageUrl" class="p-4 bg-stone-50 rounded-xl border border-stone-100 md:col-span-2">
+          <p class="text-xs font-semibold uppercase text-stone-500 tracking-wider">Profile Photo URL</p>
+          <p class="text-xs text-stone-700 mt-1 break-all">{{ profile()?.profileImageUrl }}</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Edit Mode Form -->
+    <form *ngIf="editMode()" [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      
+      <div class="flex items-center justify-between border-b border-stone-200 pb-4">
+        <h2 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+          <mat-icon class="text-amber-700">edit_note</mat-icon>
+          Edit Profile Information
+        </h2>
+        <span class="text-xs text-stone-500">* Required fields</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Full Name -->
+        <div>
+          <label for="fullName" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Full Name *</label>
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
+            placeholder="Enter full name"
+          />
+          <p *ngIf="profileForm.get('fullName')?.touched && profileForm.get('fullName')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
+            Full name is required.
+          </p>
+        </div>
+
+        <!-- Read-Only Email -->
+        <div>
+          <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Email Address (Read-Only)</label>
+          <input
+            type="email"
+            [value]="profile()?.email"
+            disabled
+            class="w-full px-3.5 py-2.5 border border-stone-200 rounded-xl text-stone-500 bg-stone-100 text-sm font-medium cursor-not-allowed"
+          />
+          <p class="text-[11px] text-stone-400 mt-1">Email address cannot be modified.</p>
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label for="phone" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Phone Number *</label>
+          <input
+            id="phone"
+            type="text"
+            formControlName="phone"
+            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
+            placeholder="e.g. 9876543210"
+          />
+          <p *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
+            Phone number is required.
+          </p>
+          <p *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['pattern']" class="text-xs text-rose-600 mt-1">
+            Please enter a valid phone number.
+          </p>
+        </div>
+
+        <!-- Experience Years -->
+        <div>
+          <label for="experienceYears" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Experience (Years) *</label>
+          <input
+            id="experienceYears"
+            type="number"
+            min="0"
+            max="100"
+            formControlName="experienceYears"
+            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
+            placeholder="0"
+          />
+          <p *ngIf="profileForm.get('experienceYears')?.touched && profileForm.get('experienceYears')?.errors?.['min']" class="text-xs text-rose-600 mt-1">
+            Experience years must not be negative.
+          </p>
+        </div>
+
+        <!-- Address -->
+        <div class="md:col-span-2">
+          <label for="address" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Address *</label>
+          <input
+            id="address"
+            type="text"
+            formControlName="address"
+            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
+            placeholder="Enter address"
+          />
+          <p *ngIf="profileForm.get('address')?.touched && profileForm.get('address')?.errors?.['required']" class="text-xs text-rose-600 mt-1">
+            Address is required.
+          </p>
+        </div>
+
+        <!-- Profile Image URL -->
+        <div class="md:col-span-2">
+          <label for="profileImageUrl" class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Profile Photo URL (Optional)</label>
+          <input
+            id="profileImageUrl"
+            type="text"
+            formControlName="profileImageUrl"
+            class="w-full px-3.5 py-2.5 border border-stone-300 rounded-xl text-stone-900 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm font-medium"
+            placeholder="https://example.com/photo.jpg"
+          />
+        </div>
+
+      </div>
+
+      <!-- Form Action Buttons -->
+      <div class="pt-4 border-t border-stone-200 flex items-center justify-end gap-3">
+        <button type="button" (click)="cancelEdit()" mat-stroked-button class="!border-stone-300 !text-stone-700 hover:!bg-stone-100">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="saving()"
+          mat-raised-button
+          class="!bg-amber-700 !text-white hover:!bg-amber-800 disabled:!bg-stone-300"
+        >
+          <mat-spinner diameter="18" *ngIf="saving()" class="mr-2"></mat-spinner>
+          <mat-icon class="mr-1" *ngIf="!saving()">save</mat-icon>
+          Save Changes
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

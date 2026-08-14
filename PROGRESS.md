@@ -14,6 +14,7 @@
   - [x] Phase 4.6: Worker Assignment
   - [x] Phase 4.7: Attendance Management
 - [ ] Phase 5: Worker module implementation
+  - [x] Phase 5.1: Worker Profile Management
 - [ ] Phase 6: Customer module implementation
 - [ ] Phase 7: Marketplace and crop selling flows
 - [ ] Phase 8: Auction and bidding flows

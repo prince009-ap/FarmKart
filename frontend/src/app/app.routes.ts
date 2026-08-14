@@ -192,6 +192,13 @@ export const routes: Routes = [
             (module) => module.WorkerAttendanceComponent,
           ),
       },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/worker/worker-profile.component').then(
+            (module) => module.WorkerProfileComponent,
+          ),
+      },
     ],
   },
   {

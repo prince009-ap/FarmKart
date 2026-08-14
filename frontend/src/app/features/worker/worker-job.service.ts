@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApplyJobRequest, WorkerAssignment, WorkerAttendanceSummary, WorkerAvailableJob, WorkerJobApplication } from '../../core/models/worker.models';
+import { ApplyJobRequest, WorkerAssignment, WorkerAttendanceSummary, WorkerAvailableJob, WorkerJobApplication, WorkerProfile, WorkerProfileUpdateRequest } from '../../core/models/worker.models';
 
 @Injectable({
   providedIn: 'root'
@@ -41,5 +41,13 @@ export class WorkerJobService {
 
   getAssignmentAttendance(assignmentId: string): Observable<WorkerAttendanceSummary> {
     return this.http.get<WorkerAttendanceSummary>(`${this.baseUrl}/assignments/${assignmentId}/attendance`, { withCredentials: true });
+  }
+
+  getProfile(): Observable<WorkerProfile> {
+    return this.http.get<WorkerProfile>(`${this.baseUrl}/profile`, { withCredentials: true });
+  }
+
+  updateProfile(request: WorkerProfileUpdateRequest): Observable<WorkerProfile> {
+    return this.http.put<WorkerProfile>(`${this.baseUrl}/profile`, request, { withCredentials: true });
   }
 }

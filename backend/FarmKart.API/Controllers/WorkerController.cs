@@ -20,15 +20,61 @@ public class WorkerController : ControllerBase
     private readonly IWorkerJobService _workerJobService;
     private readonly IWorkerAssignmentService _workerAssignmentService;
     private readonly IWorkerAttendanceService _workerAttendanceService;
+    private readonly IWorkerProfileService _workerProfileService;
 
     public WorkerController(
         IWorkerJobService workerJobService,
         IWorkerAssignmentService workerAssignmentService,
-        IWorkerAttendanceService workerAttendanceService)
+        IWorkerAttendanceService workerAttendanceService,
+        IWorkerProfileService workerProfileService)
     {
         _workerJobService = workerJobService;
         _workerAssignmentService = workerAssignmentService;
         _workerAttendanceService = workerAttendanceService;
+        _workerProfileService = workerProfileService;
+    }
+
+    [HttpGet("profile")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerProfileResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerProfileService.GetProfileAsync(userId.Value));
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("profile")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerProfileResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateProfile([FromBody] WorkerProfileUpdateRequest request)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+        try
+        {
+            return Ok(await _workerProfileService.UpdateProfileAsync(userId.Value, request));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpGet("jobs")]

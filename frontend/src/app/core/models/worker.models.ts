@@ -59,11 +59,11 @@ export interface WorkerAttendanceRecord {
   workerAssignmentId: string;
   jobId: string;
   jobTitle: string;
-  farmerName: string;
+  farmerName?: string;
   date: string;
   status: 'Present' | 'Absent' | 'HalfDay' | 'Leave';
   notes?: string | null;
-  totalHours: number;
+  totalHours?: number;
 }
 
 export interface WorkerAttendanceSummary {
@@ -74,4 +74,30 @@ export interface WorkerAttendanceSummary {
   leaveDays: number;
   attendancePercentage: number;
   history: WorkerAttendanceRecord[];
+}
+
+export interface WorkerProfile {
+  userId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  profileImageUrl?: string | null;
+  experienceYears: number;
+  expectedDailyWage: number;
+  isAvailable: boolean;
+  availableFrom?: string | null;
+  availabilityNotes?: string | null;
+}
+
+export interface WorkerProfileUpdateRequest {
+  fullName: string;
+  phone: string;
+  address: string;
+  experienceYears: number;
+  expectedDailyWage: number;
+  profileImageUrl?: string | null;
+  isAvailable?: boolean;
+  availableFrom?: string | null;
+  availabilityNotes?: string | null;
 }

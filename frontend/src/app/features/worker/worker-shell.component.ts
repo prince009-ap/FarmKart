@@ -39,7 +39,7 @@ export class WorkerShellComponent implements OnInit {
     { label: 'My Applications', route: '/worker/applications', icon: 'assignment' },
     { label: 'My Assignments', route: '/worker/assignments', icon: 'assignment_turned_in' },
     { label: 'My Attendance', route: '/worker/attendance', icon: 'event_available' },
-    { label: 'My Profile', route: '/worker/profile', icon: 'person', isPlaceholder: true }
+    { label: 'My Profile', route: '/worker/profile', icon: 'person' }
   ];
 
   ngOnInit(): void {
