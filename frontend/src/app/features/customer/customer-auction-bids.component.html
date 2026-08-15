@@ -1,0 +1,167 @@
+<div class="app-page animate-fk-rise space-y-6 max-w-6xl mx-auto">
+  <!-- Navigation Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div>
+      <a [routerLink]="['/customer/auctions', auctionId()]" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-800 transition-colors mb-1">
+        <mat-icon class="text-base">arrow_back</mat-icon>
+        <span>Back to Auction Details</span>
+      </a>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+        <mat-icon class="text-sky-600 dark:text-sky-400 !w-8 !h-8 text-3xl">gavel</mat-icon>
+        Bidding Activity — {{ auction()?.cropName || 'Auction' }}
+      </h1>
+      <p class="text-xs font-semibold text-slate-500 mt-0.5">
+        Monitor live bids and multi-quantity customer demand.
+      </p>
+    </div>
+
+    <!-- Sort Selector -->
+    <div class="flex items-center gap-2 self-start sm:self-auto bg-slate-50 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <mat-icon class="text-slate-400 text-lg">sort</mat-icon>
+      <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Sort by:</span>
+      <select [ngModel]="selectedSort()"
+              (ngModelChange)="onSortChange($event)"
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+        <option value="highest_bid">Highest Bid Price</option>
+        <option value="lowest_bid">Lowest Bid Price</option>
+        <option value="highest_qty">Highest Quantity</option>
+        <option value="latest_bid">Latest Bid</option>
+        <option value="earliest_bid">Earliest Bid</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Metric Banner Header -->
+  <div *ngIf="auction() as a" class="bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 rounded-3xl p-6 text-white shadow-md grid grid-cols-2 sm:grid-cols-4 gap-4 border border-sky-800/50">
+    <div>
+      <span class="text-xs text-sky-300 block font-bold uppercase tracking-wider">Auction Quantity</span>
+      <span class="text-xl font-black text-white mt-0.5 block">{{ a.quantityKg }} Kg ({{ a.quantityMan }} Man)</span>
+    </div>
+    <div>
+      <span class="text-xs text-sky-300 block font-bold uppercase tracking-wider">Current Highest Bid</span>
+      <span class="text-xl font-black text-amber-400 mt-0.5 block">₹{{ a.currentHighestBid }} / Man</span>
+    </div>
+    <div>
+      <span class="text-xs text-sky-300 block font-bold uppercase tracking-wider">Total Demand</span>
+      <span class="text-xl font-black text-white mt-0.5 block">{{ totalDemandKg() }} Kg</span>
+    </div>
+    <div>
+      <span class="text-xs text-sky-300 block font-bold uppercase tracking-wider">Demand %</span>
+      <span class="text-xl font-black text-emerald-400 mt-0.5 block">{{ demandPercentage() }}%</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-3">
+    <mat-spinner diameter="40" strokeWidth="3" class="text-sky-600"></mat-spinner>
+    <p class="text-xs font-semibold text-slate-500">Loading bidding history...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-3xl text-center space-y-4 max-w-md mx-auto">
+    <mat-icon class="text-red-500 text-3xl">error_outline</mat-icon>
+    <p class="text-xs font-bold text-red-800 dark:text-red-300">{{ errorMessage() }}</p>
+    <button (click)="loadData()" class="px-4 py-2 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition-colors">
+      Retry
+    </button>
+  </div>
+
+  <!-- Empty Bids State -->
+  <div *ngIf="!isLoading() && !errorMessage() && bids().length === 0" class="py-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center p-6 space-y-3">
+    <div class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+      <mat-icon class="text-3xl">gavel</mat-icon>
+    </div>
+    <h3 class="text-base font-bold text-slate-900 dark:text-white">No bids placed yet</h3>
+    <p class="text-xs text-slate-500 max-w-sm">
+      Customers have not submitted bids for this auction yet. Bids will update automatically in real-time.
+    </p>
+  </div>
+
+  <!-- Bids Table & Mobile Cards -->
+  <div *ngIf="!isLoading() && !errorMessage() && bids().length > 0" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <!-- Desktop Table -->
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+          <tr>
+            <th class="p-4">Customer</th>
+            <th class="p-4">Requested Quantity</th>
+            <th class="p-4">Bid Price / Man</th>
+            <th class="p-4">Bid Time</th>
+            <th class="p-4">Bid Status</th>
+            <th class="p-4">Allocation Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+          <tr *ngFor="let bid of bids()" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="p-4 font-bold text-slate-900 dark:text-white">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 flex items-center justify-center font-bold text-xs">
+                  {{ (bid.customerName || 'C').substring(0, 1).toUpperCase() }}
+                </div>
+                <span>{{ bid.customerName }}</span>
+              </div>
+            </td>
+            <td class="p-4 font-medium text-slate-700 dark:text-slate-300">
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ bid.requestedQuantityKg }} Kg</span>
+              <span class="text-slate-400 font-normal ml-1">({{ bid.requestedQuantityMan }} Man)</span>
+            </td>
+            <td class="p-4 font-black text-emerald-600 dark:text-emerald-400 text-sm">
+              ₹{{ bid.amount }} / Man
+            </td>
+            <td class="p-4 text-xs text-slate-500 dark:text-slate-400 font-mono">
+              {{ bid.bidTimeUtc | date:'mediumTime' }} <span class="text-[10px] text-slate-400">({{ bid.bidTimeUtc | date:'shortDate' }})</span>
+            </td>
+            <td class="p-4">
+              <span *ngIf="bid.bidStatus === 'HIGHEST BID' || bid.bidStatus === 'VALID' || bid.bidStatus === 'Active'" class="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-black text-[10px] uppercase">
+                VALID
+              </span>
+              <span *ngIf="bid.bidStatus !== 'HIGHEST BID' && bid.bidStatus !== 'VALID' && bid.bidStatus !== 'Active'" class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[10px] uppercase">
+                {{ bid.bidStatus }}
+              </span>
+            </td>
+            <td class="p-4">
+              <span *ngIf="bid.allocationStatus === 'WON'" class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-black text-[10px] uppercase shadow-sm">
+                WON
+              </span>
+              <span *ngIf="bid.allocationStatus === 'PARTIALLY_WON'" class="px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] uppercase shadow-sm">
+                PARTIALLY WON
+              </span>
+              <span *ngIf="bid.allocationStatus === 'LOST'" class="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-extrabold text-[10px] uppercase">
+                LOST
+              </span>
+              <span *ngIf="!bid.allocationStatus" class="text-slate-400 text-xs font-medium">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Responsive Cards -->
+    <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <div *ngFor="let bid of bids()" class="p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 flex items-center justify-center font-bold text-xs">
+              {{ (bid.customerName || 'C').substring(0, 1).toUpperCase() }}
+            </div>
+            <span class="font-extrabold text-sm text-slate-900 dark:text-white">{{ bid.customerName }}</span>
+          </div>
+          <span class="font-black text-emerald-600 dark:text-emerald-400 text-sm">₹{{ bid.amount }} / Man</span>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span>Requested: <strong class="text-slate-900 dark:text-white">{{ bid.requestedQuantityKg }} Kg</strong></span>
+          <span>Time: {{ bid.bidTimeUtc | date:'shortTime' }}</span>
+        </div>
+
+        <div *ngIf="bid.allocationStatus" class="pt-1 flex items-center justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Outcome:</span>
+          <span *ngIf="bid.allocationStatus === 'WON'" class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px]">WON</span>
+          <span *ngIf="bid.allocationStatus === 'PARTIALLY_WON'" class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[10px]">PARTIALLY WON</span>
+          <span *ngIf="bid.allocationStatus === 'LOST'" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[10px]">LOST</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

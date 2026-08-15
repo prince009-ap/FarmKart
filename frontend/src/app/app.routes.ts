@@ -302,6 +302,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'auctions/:id/bids',
+        loadComponent: () =>
+          import('./features/customer/customer-auction-bids.component').then(
+            (module) => module.CustomerAuctionBidsComponent,
+          ),
+      },
+      {
         path: 'auctions/:id/checkout',
         loadComponent: () =>
           import('./features/customer/customer-checkout.component').then(

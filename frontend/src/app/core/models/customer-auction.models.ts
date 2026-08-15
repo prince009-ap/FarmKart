@@ -41,6 +41,7 @@ export interface AuctionBid {
   requestedQuantityMan: number;
   bidTimeUtc: string;
   bidStatus: string;
+  allocationStatus?: 'WON' | 'PARTIALLY_WON' | 'LOST' | string | null;
 }
 
 export interface AuctionAllocation {

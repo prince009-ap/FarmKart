@@ -55,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FarmKart.Application.Abstractions.Payments.IPaymentProvider, MockPaymentProvider>();
         services.AddScoped<FarmKart.Application.Abstractions.Customer.ICustomerPaymentService, CustomerPaymentService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IPaymentOrderBackfillService, PaymentOrderBackfillService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

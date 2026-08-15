@@ -72,9 +72,9 @@ public sealed class CustomerAuctionsController(
     }
 
     [HttpGet("{id:guid}/bids")]
-    public async Task<IActionResult> GetAuctionBids(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAuctionBids(Guid id, [FromQuery] string? sortBy, CancellationToken cancellationToken)
     {
-        var bids = await customerAuctionService.GetAuctionBidsAsync(id, cancellationToken);
+        var bids = await customerAuctionService.GetAuctionBidsAsync(id, sortBy, cancellationToken);
         return Ok(bids);
     }
 

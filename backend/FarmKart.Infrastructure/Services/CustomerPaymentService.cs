@@ -61,7 +61,9 @@ public sealed class CustomerPaymentService(
                 throw new InvalidOperationException("Payment is available only after an auction has ended.");
             }
 
-            var custAllocation = auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && al.AllocatedQuantityKg > 0);
+            var custAllocation = auction.Allocations
+                .FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && al.AllocatedQuantityKg > 0 && (al.Status == AllocationStatus.Won || al.Status == AllocationStatus.PartiallyWon))
+                ?? auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && al.AllocatedQuantityKg > 0);
 
             if (custAllocation == null)
             {
@@ -161,7 +163,9 @@ public sealed class CustomerPaymentService(
             throw new UnauthorizedAccessException("You do not have permission to view this payment.");
         }
 
-        var custAlloc = payment.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
+        var custAlloc = payment.Auction.Allocations
+            .FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && (al.Status == AllocationStatus.Won || al.Status == AllocationStatus.PartiallyWon))
+            ?? payment.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
         var allocatedKg = payment.AllocatedQuantityKg > 0 ? payment.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
         var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (payment.Amount > 0 && allocatedKg > 0 ? Math.Round(payment.Amount / (allocatedKg / 20m), 2) : payment.Amount);
 
@@ -201,7 +205,9 @@ public sealed class CustomerPaymentService(
             var primaryImg = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
                 ?? crop.Images.FirstOrDefault()?.ImageUrl;
 
-            var custAlloc = p.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
+            var custAlloc = p.Auction.Allocations
+                .FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && (al.Status == AllocationStatus.Won || al.Status == AllocationStatus.PartiallyWon))
+                ?? p.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
             var allocKg = p.AllocatedQuantityKg > 0 ? p.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
             var allocMan = AuctionPricingConstants.ConvertKgToMan(allocKg);
             var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (p.Amount > 0 && allocKg > 0 ? Math.Round(p.Amount / (allocKg / 20m), 2) : p.Amount);

@@ -238,21 +238,51 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
         });
     }
 
-    public async Task<IReadOnlyList<AuctionBidResponse>> GetAuctionBidsAsync(Guid auctionId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<AuctionBidResponse>> GetAuctionBidsAsync(
+        Guid auctionId,
+        string? sortBy = null,
+        CancellationToken cancellationToken = default)
     {
-        var bids = await dbContext.Bids
+        var auction = await dbContext.Auctions
+            .AsNoTracking()
+            .Include(a => a.CropListing)
+            .Include(a => a.Allocations)
+            .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken);
+
+        var totalAuctionKg = auction?.CropListing != null
+            ? CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit)
+            : 0m;
+
+        var query = dbContext.Bids
             .AsNoTracking()
             .Include(b => b.CustomerProfile)
-            .Where(b => b.AuctionId == auctionId && b.BidStatus == BidStatus.Active)
-            .OrderByDescending(b => b.BidTimeUtc)
-            .ToListAsync(cancellationToken);
+            .Where(b => b.AuctionId == auctionId && b.BidStatus != BidStatus.Cancelled);
 
+        var sortedQuery = sortBy?.ToLowerInvariant() switch
+        {
+            "lowest_bid" => query.OrderBy(b => b.Amount).ThenBy(b => b.BidTimeUtc),
+            "highest_qty" => query.OrderByDescending(b => b.RequestedQuantityKg > 0 ? b.RequestedQuantityKg : totalAuctionKg).ThenByDescending(b => b.Amount),
+            "latest_bid" => query.OrderByDescending(b => b.BidTimeUtc),
+            "earliest_bid" => query.OrderBy(b => b.BidTimeUtc),
+            _ => query.OrderByDescending(b => b.Amount).ThenBy(b => b.BidTimeUtc)
+        };
+
+        var bids = await sortedQuery.ToListAsync(cancellationToken);
         var highestAmount = bids.Count > 0 ? bids.Max(b => b.Amount) : 0m;
+        var allocations = (auction?.Allocations ?? []).ToDictionary(a => a.BidId);
 
         return bids.Select(b =>
         {
-            var reqKg = b.RequestedQuantityKg > 0 ? b.RequestedQuantityKg : 0m;
+            var reqKg = b.RequestedQuantityKg > 0 ? b.RequestedQuantityKg : totalAuctionKg;
             var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
+            string? allocStatus = allocations.TryGetValue(b.Id, out var alloc)
+                ? (alloc.Status switch
+                {
+                    AllocationStatus.Won => "WON",
+                    AllocationStatus.PartiallyWon => "PARTIALLY_WON",
+                    _ => "LOST"
+                })
+                : null;
 
             return new AuctionBidResponse(
                 Id: b.Id,
@@ -263,7 +293,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 RequestedQuantityKg: reqKg,
                 RequestedQuantityMan: reqMan,
                 BidTimeUtc: b.BidTimeUtc,
-                BidStatus: b.Amount == highestAmount ? "HIGHEST BID" : "OUTBID"
+                BidStatus: b.Amount == highestAmount ? "HIGHEST BID" : "VALID",
+                AllocationStatus: allocStatus
             );
         }).ToList();
     }
@@ -292,9 +323,18 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             .OrderByDescending(b => b.BidTimeUtc)
             .ToListAsync(cancellationToken);
 
+        var groupedBids = bids
+            .GroupBy(b => b.AuctionId)
+            .Select(g =>
+            {
+                var winningBid = g.FirstOrDefault(b => b.Auction.Allocations.Any(a => a.BidId == b.Id && a.AllocatedQuantityKg > 0));
+                return winningBid ?? g.OrderByDescending(b => b.BidTimeUtc).First();
+            })
+            .OrderByDescending(b => b.BidTimeUtc);
+
         var result = new List<CustomerMyBidResponse>();
 
-        foreach (var bid in bids)
+        foreach (var bid in groupedBids)
         {
             var auction = bid.Auction;
             var crop = auction.CropListing.Crop;
@@ -327,10 +367,27 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             var reqKg = bid.RequestedQuantityKg > 0 ? bid.RequestedQuantityKg : kgForBid;
             var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
 
-            var allocation = auction.Allocations.FirstOrDefault(a => a.BidId == bid.Id);
+            var allocation = auction.Allocations.FirstOrDefault(a => a.BidId == bid.Id)
+                ?? auction.Allocations.FirstOrDefault(a => a.CustomerProfileId == customerProfile.Id && (a.Status == AllocationStatus.Won || a.Status == AllocationStatus.PartiallyWon));
+
             decimal? allocKg = allocation?.AllocatedQuantityKg;
             decimal? allocMan = allocKg.HasValue ? AuctionPricingConstants.ConvertKgToMan(allocKg.Value) : null;
-            string? allocStatus = allocation?.Status.ToString().ToUpper();
+            string? allocStatus = null;
+            if (allocation != null)
+            {
+                if (allocation.Status == AllocationStatus.Won || (allocKg.HasValue && allocKg.Value >= kgForBid))
+                {
+                    allocStatus = "WON";
+                }
+                else if (allocation.Status == AllocationStatus.PartiallyWon || (allocKg.HasValue && allocKg.Value > 0))
+                {
+                    allocStatus = "PARTIALLY_WON";
+                }
+                else
+                {
+                    allocStatus = "LOST";
+                }
+            }
 
             result.Add(new CustomerMyBidResponse(
                 BidId: bid.Id,

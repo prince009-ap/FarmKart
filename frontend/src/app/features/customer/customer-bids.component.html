@@ -111,10 +111,13 @@
         </div>
       </div>
 
-      <!-- Action Button -->
-      <div class="pt-2">
-        <a mat-stroked-button [routerLink]="['/customer/auctions', item.auctionId]" class="!w-full !rounded-xl text-xs font-bold">
-          View Auction Details
+      <!-- Action Buttons -->
+      <div class="pt-2 grid grid-cols-2 gap-2">
+        <a mat-stroked-button [routerLink]="['/customer/auctions', item.auctionId]" class="!rounded-xl text-[11px] font-bold">
+          Auction Details
+        </a>
+        <a mat-flat-button [routerLink]="['/customer/auctions', item.auctionId, 'bids']" class="!bg-sky-600 !rounded-xl text-[11px] font-bold !text-white">
+          <mat-icon class="!w-3.5 !h-3.5 text-xs">gavel</mat-icon> All Bids
         </a>
       </div>
     </div>

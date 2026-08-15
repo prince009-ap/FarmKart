@@ -52,7 +52,8 @@ public sealed record AuctionBidResponse(
     decimal RequestedQuantityKg,
     decimal RequestedQuantityMan,
     DateTime BidTimeUtc,
-    string BidStatus
+    string BidStatus,
+    string? AllocationStatus = null
 );
 
 public sealed record AuctionAllocationResponse(

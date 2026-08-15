@@ -20,6 +20,7 @@ public interface ICustomerAuctionService
 
     Task<IReadOnlyList<AuctionBidResponse>> GetAuctionBidsAsync(
         Guid auctionId,
+        string? sortBy = null,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CustomerMyBidResponse>> GetCustomerBidsAsync(

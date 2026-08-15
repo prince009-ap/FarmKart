@@ -338,9 +338,14 @@
 
     <!-- BID HISTORY TABLE -->
     <div *ngIf="bidsHistory().length > 0" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-      <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-        <mat-icon class="text-sky-600">history</mat-icon> Auction Bid History ({{ bidsHistory().length }})
-      </h3>
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-sky-600">history</mat-icon> Live Bidding Activity ({{ bidsHistory().length }})
+        </h3>
+        <a mat-stroked-button [routerLink]="['/customer/auctions', auc.id, 'bids']" class="!rounded-xl text-xs !font-bold !text-sky-600 dark:!text-sky-400">
+          <mat-icon class="!w-4 !h-4 text-sm">open_in_new</mat-icon> View Full Bidding Activity
+        </a>
+      </div>
 
       <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
         <div *ngFor="let b of bidsHistory(); let first = first" class="flex items-center justify-between p-3 rounded-2xl border text-xs"

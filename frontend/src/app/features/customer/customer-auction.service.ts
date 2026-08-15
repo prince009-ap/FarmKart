@@ -57,8 +57,10 @@ export class CustomerAuctionService {
     return this.http.post<AuctionBid>(`${this.apiUrl}/${auctionId}/bids`, { amount, requestedQuantityKg });
   }
 
-  getAuctionBids(auctionId: string): Observable<AuctionBid[]> {
-    return this.http.get<AuctionBid[]>(`${this.apiUrl}/${auctionId}/bids`);
+  getAuctionBids(auctionId: string, sortBy?: string): Observable<AuctionBid[]> {
+    let params = new HttpParams();
+    if (sortBy) params = params.set('sortBy', sortBy);
+    return this.http.get<AuctionBid[]>(`${this.apiUrl}/${auctionId}/bids`, { params });
   }
 
   getAuctionResult(id: string): Observable<AuctionResult> {

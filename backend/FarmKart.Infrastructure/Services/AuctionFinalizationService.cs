@@ -227,7 +227,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
                 if (remainingKg >= requestedKg)
                 {
                     allocatedKg = requestedKg;
-                    status = AllocationStatus.Won;
+                    status = (allocatedKg >= totalAuctionKg) ? AllocationStatus.Won : AllocationStatus.PartiallyWon;
                     remainingKg -= allocatedKg;
                     bid.BidStatus = BidStatus.Winning;
                 }
