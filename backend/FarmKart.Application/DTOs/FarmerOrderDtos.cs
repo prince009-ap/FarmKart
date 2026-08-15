@@ -36,6 +36,8 @@ public sealed record FarmerOrderListItemResponse(
     DateTime? PickupDate,
     DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
+    bool IsSettled,
+    string SettlementStatus,
     DateTime CreatedAtUtc
 );
 
@@ -75,6 +77,8 @@ public sealed record FarmerOrderDetailResponse(
     DateTime? PickupDate,
     DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
+    bool IsSettled,
+    string SettlementStatus,
     DateTime OrderDateUtc,
     Guid AuctionAllocationId,
     Guid AuctionPaymentId,
@@ -82,4 +86,18 @@ public sealed record FarmerOrderDetailResponse(
     string PaymentMethod,
     DateTime? PaidAtUtc,
     IReadOnlyList<OrderStatusHistoryResponse> Timeline
+);
+
+public sealed record OrderSettlementResponse(
+    Guid SettlementId,
+    Guid OrderId,
+    string OrderNumber,
+    Guid AuctionId,
+    Guid FarmerProfileId,
+    Guid CustomerProfileId,
+    decimal SettledQuantityKg,
+    decimal SettledQuantityMan,
+    decimal SettledAmount,
+    string SettlementStatus,
+    DateTime SettledAtUtc
 );

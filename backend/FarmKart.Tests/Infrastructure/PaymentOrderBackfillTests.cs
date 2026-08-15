@@ -731,7 +731,7 @@ public sealed class PaymentOrderBackfillTests : IAsyncLifetime
         var backfillService = CreateBackfillService();
         await backfillService.ExecuteBackfillAsync(dryRun: false);
 
-        var orderService = new OrderService(_dbContext);
+        var orderService = new OrderService(_dbContext, new NotificationService(_dbContext));
         var orders = await orderService.GetCustomerOrdersAsync(customer.UserId, new CustomerOrderFilterRequest());
 
         Assert.Single(orders);

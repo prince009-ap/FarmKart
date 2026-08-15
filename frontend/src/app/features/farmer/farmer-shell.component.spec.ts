@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { FarmerShellComponent } from './farmer-shell.component';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 describe('FarmerShellComponent', () => {
   let fixture: ComponentFixture<FarmerShellComponent>;
@@ -20,6 +21,12 @@ describe('FarmerShellComponent', () => {
             logout: () => undefined,
           },
         },
+        {
+          provide: NotificationService,
+          useValue: {
+            getUnreadCount: () => of({ unreadCount: 0 })
+          }
+        }
       ],
     }).compileComponents();
 
@@ -44,7 +51,6 @@ describe('FarmerShellComponent', () => {
     expect(futureItems.map((item) => item.label)).toEqual([
       'Machinery',
       'Marketplace',
-      'Notifications',
     ]);
     expect(fixture.nativeElement.textContent).toContain('Soon');
   });

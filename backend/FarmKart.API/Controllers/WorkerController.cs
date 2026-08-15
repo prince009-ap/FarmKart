@@ -251,6 +251,10 @@ public class WorkerController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPut("notifications/read-all")]

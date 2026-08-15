@@ -41,9 +41,10 @@
   - [x] Phase 7.3: Customer Order Details & Order Timeline Module (Full Breakdown, Purchase Summary, Payment & Seller Info, Visual Timeline, Security Authorization)
   - [x] Phase 7.4: Farmer Order Management & Farmer Order Details Module (Summary Metrics Cards, Orders List, Search & Status Filters, Detailed Breakdown, Separate Order Items for Multiple Winners, Security Authorization)
   - [x] Phase 7.5: Order Fulfillment Status Workflow Module (Lifecycle: CONFIRMED -> READY_FOR_PICKUP -> DISPATCHED/PICKED_UP -> DELIVERED -> COMPLETED, Status History Logging, Role Authorization, Validation Guardrails)
-  - [x] Phase 7.6: Pickup / Delivery Details Module (Delivery Address & Contact Snapshot, Farm Pickup Location & Future Date Validation, Dynamic Customer & Farmer UI Controls, 34 Backend Integration Tests & 232 Frontend Specs)
   - [x] Phase 7.7: Farmer Handover / Dispatch Module (Action buttons: MARK AS PICKED UP / DISPATCH ORDER for READY_FOR_PICKUP orders, Confirmation Modal Dialogs with optional notes, Farmer-only status transition backend authorization)
   - [x] Phase 7.8: Customer Order Tracking Module (Route /customer/orders/:id/track, Visual progress timeline with real timestamps, Friendly status messages, Pickup/Delivery information card, No fake live tracking, 416 Backend Integration Tests & 235 Frontend Specs)
+  - [x] Phase 7.9: Order Notifications System (Structured NotificationType enum, GET /api/notifications with claims user isolation, GET /api/notifications/unread-count, PUT/PATCH /api/notifications/{id}/read & read-all, Idempotency checks, Order creation & status transition notifications, Navbar notification bell badge with live unread counter)
+  - [x] Phase 7.10: Final Stock & Order Settlement Module (OrderSettlement domain entity & EF Core mapping, IsSettled flag on AuctionOrder, SettleOrderAsync service method, Automatic settlement on paid order creation & order completion, Non-negative stock deduction guardrails, Idempotent settlement, SETTLED badges in Farmer Order Details UI, 424 Backend Integration Tests & 235 Frontend Specs)
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
 - [ ] Phase 10: AI service integration and intelligent assistant features

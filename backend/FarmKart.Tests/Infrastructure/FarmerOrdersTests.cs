@@ -26,7 +26,7 @@ public sealed class FarmerOrdersTests : IAsyncLifetime
 
         _dbContext = new FarmKartDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-        _orderService = new OrderService(_dbContext);
+        _orderService = new OrderService(_dbContext, new NotificationService(_dbContext));
     }
 
     public async Task DisposeAsync()

@@ -38,6 +38,8 @@ public sealed class Notification : BaseEntity
     public NotificationType NotificationType { get; set; } = NotificationType.General;
     public bool IsRead { get; set; }
     public Guid? RelatedEntityId { get; set; }
+    public Guid? RelatedOrderId { get; set; }
+    public Guid? RelatedAuctionId { get; set; }
 }
 
 public sealed class Review : BaseEntity

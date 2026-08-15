@@ -199,7 +199,16 @@ public enum NotificationType
     Order = 8,
     Payment = 9,
     Chat = 10,
-    Review = 11
+    Review = 11,
+    OrderCreated = 12,
+    OrderConfirmed = 13,
+    OrderReadyForPickup = 14,
+    OrderPickedUp = 15,
+    OrderDispatched = 16,
+    OrderDelivered = 17,
+    OrderCompleted = 18,
+    AuctionOrderCreated = 19,
+    SettlementCompleted = 20
 }
 
 public enum ReviewEntityType

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FarmKart.Infrastructure.Services;
@@ -21,22 +22,63 @@ public class NotificationService : INotificationService
         _dbContext = dbContext;
     }
 
-    public async Task CreateNotificationAsync(string recipientUserId, string title, string message, NotificationType notificationType, Guid? relatedEntityId = null)
+    public async Task CreateNotificationAsync(
+        string recipientUserId,
+        string title,
+        string message,
+        NotificationType notificationType,
+        Guid? relatedEntityId = null,
+        Guid? relatedOrderId = null,
+        Guid? relatedAuctionId = null,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(recipientUserId)) return;
 
+        var cleanRecipient = recipientUserId.Trim();
+        var cleanTitle = title.Trim();
+        var cleanMessage = message.Trim();
+
+        // Idempotency / Duplicate check: prevent duplicate status update notifications for the same order
+        if (relatedOrderId.HasValue)
+        {
+            var exists = await _dbContext.Notifications.AnyAsync(n =>
+                n.RecipientUserId == cleanRecipient &&
+                n.NotificationType == notificationType &&
+                n.RelatedOrderId == relatedOrderId.Value,
+                cancellationToken);
+
+            if (exists)
+            {
+                return;
+            }
+        }
+
         var notification = new Notification
         {
-            RecipientUserId = recipientUserId,
-            Title = title.Trim(),
-            Message = message.Trim(),
+            RecipientUserId = cleanRecipient,
+            Title = cleanTitle,
+            Message = cleanMessage,
             NotificationType = notificationType,
             IsRead = false,
-            RelatedEntityId = relatedEntityId
+            RelatedEntityId = relatedEntityId,
+            RelatedOrderId = relatedOrderId,
+            RelatedAuctionId = relatedAuctionId
         };
 
         _dbContext.Notifications.Add(notification);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<NotificationResponse>> GetNotificationsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var recipientUserId = userId.ToString();
+        var notifications = await _dbContext.Notifications
+            .AsNoTracking()
+            .Where(n => n.RecipientUserId == recipientUserId)
+            .OrderByDescending(n => n.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return notifications.Select(ToResponse).ToList();
     }
 
     public async Task<IReadOnlyList<WorkerNotificationResponse>> GetWorkerNotificationsAsync(Guid userId)
@@ -48,7 +90,7 @@ public class NotificationService : INotificationService
             .OrderByDescending(n => n.CreatedAtUtc)
             .ToListAsync();
 
-        return notifications.Select(ToResponse).ToList();
+        return notifications.Select(ToWorkerResponse).ToList();
     }
 
     public async Task<UnreadNotificationCountResponse> GetUnreadCountAsync(Guid userId)
@@ -61,7 +103,7 @@ public class NotificationService : INotificationService
         return new UnreadNotificationCountResponse(count);
     }
 
-    public async Task<WorkerNotificationResponse> MarkAsReadAsync(Guid userId, Guid notificationId)
+    public async Task<NotificationResponse> MarkAsReadAsync(Guid userId, Guid notificationId)
     {
         var recipientUserId = userId.ToString();
         var notification = await _dbContext.Notifications
@@ -69,7 +111,7 @@ public class NotificationService : INotificationService
 
         if (notification is null)
         {
-            throw new JobNotFoundException("Notification not found.");
+            throw new KeyNotFoundException("Notification not found.");
         }
 
         if (!notification.IsRead)
@@ -98,7 +140,19 @@ public class NotificationService : INotificationService
         }
     }
 
-    private static WorkerNotificationResponse ToResponse(Notification n) => new(
+    private static NotificationResponse ToResponse(Notification n) => new(
+        Id: n.Id,
+        Title: n.Title,
+        Message: n.Message,
+        NotificationType: n.NotificationType.ToString(),
+        IsRead: n.IsRead,
+        RelatedEntityId: n.RelatedEntityId,
+        RelatedOrderId: n.RelatedOrderId,
+        RelatedAuctionId: n.RelatedAuctionId,
+        CreatedAtUtc: n.CreatedAtUtc
+    );
+
+    private static WorkerNotificationResponse ToWorkerResponse(Notification n) => new(
         Id: n.Id,
         Title: n.Title,
         Message: n.Message,

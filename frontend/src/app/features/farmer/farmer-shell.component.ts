@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface NavItem {
   label: string;
@@ -31,11 +32,13 @@ interface NavItem {
 })
 export class FarmerShellComponent implements OnInit {
   protected readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   isMobileMenuOpen = signal(false);
   userName = signal<string>('Farmer');
   userEmail = signal<string>('');
+  unreadNotificationsCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', route: '/farmer', icon: 'dashboard' },
@@ -46,7 +49,7 @@ export class FarmerShellComponent implements OnInit {
     { label: 'My Orders', route: '/farmer/orders', icon: 'shopping_bag' },
     { label: 'Machinery', route: '/farmer/machinery', icon: 'construction', isPlaceholder: true },
     { label: 'Marketplace', route: '/farmer/marketplace', icon: 'storefront', isPlaceholder: true },
-    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications', isPlaceholder: true }
+    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications' }
   ];
 
   ngOnInit(): void {
@@ -56,6 +59,11 @@ export class FarmerShellComponent implements OnInit {
         this.userName.set(user.fullName || 'Farmer');
         this.userEmail.set(user.email || '');
       }
+    });
+
+    this.notificationService.getUnreadCount().subscribe({
+      next: (res) => this.unreadNotificationsCount.set(res.unreadCount),
+      error: () => {}
     });
   }
 

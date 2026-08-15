@@ -238,6 +238,9 @@ namespace FarmKart.Infrastructure.Persistence.Migrations
                     b.Property<int>("FulfillmentMode")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsSettled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -253,6 +256,9 @@ namespace FarmKart.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("PricePerMan")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("SettledAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -1372,7 +1378,13 @@ namespace FarmKart.Infrastructure.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<Guid?>("RelatedAuctionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("RelatedOrderId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
@@ -1481,6 +1493,60 @@ namespace FarmKart.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_OrderItem_Values_NonNegative", "[Quantity] >= 0 AND [UnitPrice] >= 0 AND [TotalPrice] >= 0");
                         });
+                });
+
+            modelBuilder.Entity("FarmKart.Domain.Entities.OrderSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuctionOrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CustomerProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FarmerProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("SettledAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("SettledAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("SettledQuantityKg")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SettlementStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuctionId");
+
+                    b.HasIndex("AuctionOrderId")
+                        .IsUnique();
+
+                    b.HasIndex("CustomerProfileId");
+
+                    b.HasIndex("FarmerProfileId");
+
+                    b.ToTable("OrderSettlements");
                 });
 
             modelBuilder.Entity("FarmKart.Domain.Entities.OrderStatusHistory", b =>
@@ -2676,6 +2742,17 @@ namespace FarmKart.Infrastructure.Persistence.Migrations
                     b.Navigation("CropListing");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("FarmKart.Domain.Entities.OrderSettlement", b =>
+                {
+                    b.HasOne("FarmKart.Domain.Entities.AuctionOrder", "AuctionOrder")
+                        .WithMany()
+                        .HasForeignKey("AuctionOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AuctionOrder");
                 });
 
             modelBuilder.Entity("FarmKart.Domain.Entities.OrderStatusHistory", b =>

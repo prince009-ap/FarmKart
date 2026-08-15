@@ -242,4 +242,26 @@ public sealed class OrderStatusHistoryConfiguration : IEntityTypeConfiguration<O
     }
 }
 
+public sealed class OrderSettlementConfiguration : IEntityTypeConfiguration<OrderSettlement>
+{
+    public void Configure(EntityTypeBuilder<OrderSettlement> builder)
+    {
+        builder.ConfigureBaseEntity();
+
+        builder.Property(s => s.SettledQuantityKg).HasPrecision(18, 2);
+        builder.Property(s => s.SettledAmount).HasPrecision(18, 2);
+        builder.Property(s => s.SettlementStatus).HasMaxLength(50).IsRequired();
+
+        builder.HasIndex(s => s.AuctionOrderId).IsUnique();
+        builder.HasIndex(s => s.AuctionId);
+        builder.HasIndex(s => s.FarmerProfileId);
+        builder.HasIndex(s => s.CustomerProfileId);
+
+        builder.HasOne(s => s.AuctionOrder)
+            .WithMany()
+            .HasForeignKey(s => s.AuctionOrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 

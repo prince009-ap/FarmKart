@@ -108,7 +108,22 @@ public sealed class AuctionOrder : BaseEntity
     public string? PickupLocation { get; set; }
     public DateTime? PickupDate { get; set; }
     public DateTime? ExpectedDeliveryDate { get; set; }
+    public bool IsSettled { get; set; }
+    public DateTime? SettledAtUtc { get; set; }
 
     public ICollection<OrderStatusHistory> StatusHistories { get; set; } = [];
+}
+
+public sealed class OrderSettlement : BaseEntity
+{
+    public Guid AuctionOrderId { get; set; }
+    public AuctionOrder AuctionOrder { get; set; } = null!;
+    public Guid AuctionId { get; set; }
+    public Guid FarmerProfileId { get; set; }
+    public Guid CustomerProfileId { get; set; }
+    public decimal SettledQuantityKg { get; set; }
+    public decimal SettledAmount { get; set; }
+    public DateTime SettledAtUtc { get; set; } = DateTime.UtcNow;
+    public string SettlementStatus { get; set; } = "SETTLED";
 }
 

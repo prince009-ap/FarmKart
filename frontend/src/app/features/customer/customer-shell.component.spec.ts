@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { CustomerShellComponent } from './customer-shell.component';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 describe('CustomerShellComponent', () => {
   let fixture: ComponentFixture<CustomerShellComponent>;
@@ -20,6 +21,12 @@ describe('CustomerShellComponent', () => {
             logout: () => undefined,
           },
         },
+        {
+          provide: NotificationService,
+          useValue: {
+            getUnreadCount: () => of({ unreadCount: 0 })
+          }
+        }
       ],
     }).compileComponents();
 
@@ -46,7 +53,6 @@ describe('CustomerShellComponent', () => {
     );
 
     expect(placeholderItems.map((item) => item.label)).toEqual([
-      'Notifications',
       'My Profile'
     ]);
     expect(fixture.nativeElement.textContent).toContain('Soon');

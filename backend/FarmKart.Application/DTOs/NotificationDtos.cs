@@ -13,6 +13,18 @@ public record WorkerNotificationResponse(
     DateTime CreatedAtUtc
 );
 
+public record NotificationResponse(
+    Guid Id,
+    string Title,
+    string Message,
+    string NotificationType,
+    bool IsRead,
+    Guid? RelatedEntityId,
+    Guid? RelatedOrderId,
+    Guid? RelatedAuctionId,
+    DateTime CreatedAtUtc
+);
+
 public record UnreadNotificationCountResponse(
     int UnreadCount
 );

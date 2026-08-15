@@ -1,5 +1,6 @@
 using System.Data;
 using FarmKart.Application.Abstractions.Customer;
+using FarmKart.Application.Abstractions.Notification;
 using FarmKart.Application.Common;
 using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FarmKart.Infrastructure.Services;
 
-public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
+public sealed class OrderService(FarmKartDbContext dbContext, INotificationService notificationService) : IOrderService
 {
     public async Task<AuctionOrderResponse> CreateOrderFromPaidPaymentAsync(
         Guid paymentId,
@@ -146,6 +147,35 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             dbContext.OrderStatusHistories.Add(history);
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            // Create Order Notifications
+            var cropName = payment.Auction?.CropListing?.Crop?.CropName ?? "Crop";
+            if (customerProfile != null && customerProfile.UserId != Guid.Empty)
+            {
+                await notificationService.CreateNotificationAsync(
+                    recipientUserId: customerProfile.UserId.ToString(),
+                    title: "Order Confirmed",
+                    message: $"Your order #{orderNumber} for {cropName} has been confirmed.",
+                    notificationType: NotificationType.OrderCreated,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: payment.AuctionId,
+                    cancellationToken: cancellationToken);
+            }
+
+            if (farmerProfile != null && farmerProfile.UserId != Guid.Empty)
+            {
+                await notificationService.CreateNotificationAsync(
+                    recipientUserId: farmerProfile.UserId.ToString(),
+                    title: "Order Paid & Confirmed",
+                    message: $"Order #{orderNumber} has been paid and confirmed.",
+                    notificationType: NotificationType.AuctionOrderCreated,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: payment.AuctionId,
+                    cancellationToken: cancellationToken);
+            }
+
+            // Execute automatic settlement on paid order creation
+            await PerformSettlementLogicAsync(order.Id, cancellationToken);
+
             await transaction.CommitAsync(cancellationToken);
 
             return MapOrderToResponse(order, payment.Auction);
@@ -192,14 +222,13 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             query = query.Where(o =>
                 o.OrderNumber.ToLower().Contains(search) ||
                 o.Crop.CropName.ToLower().Contains(search) ||
-                (o.FarmerProfile.FullName != null && o.FarmerProfile.FullName.ToLower().Contains(search)) ||
-                (o.FarmerProfile.FarmName != null && o.FarmerProfile.FarmName.ToLower().Contains(search)));
+                (o.FarmerProfile.FullName != null && o.FarmerProfile.FullName.ToLower().Contains(search)));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var statusStr = filter.Status.Trim();
-            if (TryParseOrderStatus(statusStr, out var statusEnum))
+            if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
             {
                 query = query.Where(o => o.Status == statusEnum);
             }
@@ -324,6 +353,8 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             PickupDate: order.PickupDate,
             ExpectedDeliveryDate: order.ExpectedDeliveryDate,
             PaymentStatus: order.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
+            IsSettled: order.IsSettled,
+            SettlementStatus: order.IsSettled ? "SETTLED" : "NOT_SETTLED",
             OrderDateUtc: order.CreatedAtUtc,
             AuctionStartTimeUtc: order.Auction?.StartTimeUtc ?? order.CreatedAtUtc,
             AuctionEndDateUtc: order.Auction?.EndTimeUtc ?? order.CreatedAtUtc,
@@ -434,7 +465,9 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 FulfillmentMode: o.FulfillmentMode.ToString().ToUpperInvariant(),
                 PickupDate: o.PickupDate,
                 ExpectedDeliveryDate: o.ExpectedDeliveryDate,
-                PaymentStatus: o.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+                PaymentStatus: o.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
+                IsSettled: o.IsSettled,
+                SettlementStatus: o.IsSettled ? "SETTLED" : "NOT_SETTLED",
                 CreatedAtUtc: o.CreatedAtUtc
             );
         }).ToList();
@@ -501,10 +534,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             CropType: order.Crop.CropType,
             Variety: order.Crop.Variety,
             PrimaryImageUrl: primaryImg,
-            CustomerName: order.CustomerProfile?.FullName ?? "Customer",
-            CustomerPhone: order.CustomerProfile?.Phone,
-            CustomerCity: order.CustomerProfile?.AddressInfo?.City,
-            CustomerState: order.CustomerProfile?.AddressInfo?.State,
+            CustomerName: order.CustomerProfile.FullName,
+            CustomerPhone: order.CustomerProfile.Phone,
+            CustomerCity: order.CustomerProfile.AddressInfo?.City,
+            CustomerState: order.CustomerProfile.AddressInfo?.State,
             RequestedQuantityKg: reqKg,
             RequestedQuantityMan: reqMan,
             AllocatedQuantityKg: order.AllocatedQuantityKg,
@@ -528,6 +561,8 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             PickupDate: order.PickupDate,
             ExpectedDeliveryDate: order.ExpectedDeliveryDate,
             PaymentStatus: order.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
+            IsSettled: order.IsSettled,
+            SettlementStatus: order.IsSettled ? "SETTLED" : "NOT_SETTLED",
             OrderDateUtc: order.CreatedAtUtc,
             AuctionAllocationId: order.AuctionAllocationId,
             AuctionPaymentId: order.AuctionPaymentId,
@@ -570,7 +605,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             throw new ArgumentException($"Invalid status '{request.NewStatus}'.");
         }
 
-        // Rule 8: Customer CANNOT perform Farmer fulfillment actions (ReadyForPickup, Dispatched, PickedUp, Delivered)
         if (!isFarmer && nextStatus != OrderStatus.Completed)
         {
             throw new UnauthorizedAccessException("Customer is not authorized to perform farmer fulfillment actions.");
@@ -602,6 +636,100 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
 
         dbContext.OrderStatusHistories.Add(history);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Status Transition Notifications
+        var orderNumber = order.OrderNumber;
+        var custUserId = order.CustomerProfile.UserId.ToString();
+        var farmerUserIdStr = order.FarmerProfile.UserId.ToString();
+
+        switch (nextStatus)
+        {
+            case OrderStatus.Confirmed:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Confirmed",
+                    $"Your order #{orderNumber} has been confirmed.",
+                    NotificationType.OrderConfirmed,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case OrderStatus.ReadyForPickup:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Ready for Pickup",
+                    $"Your order #{orderNumber} is ready for pickup.",
+                    NotificationType.OrderReadyForPickup,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+
+                await notificationService.CreateNotificationAsync(
+                    farmerUserIdStr,
+                    "Order Ready for Fulfillment",
+                    $"Order #{orderNumber} is ready for fulfillment.",
+                    NotificationType.OrderReadyForPickup,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case OrderStatus.PickedUp:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Picked Up",
+                    $"Your order #{orderNumber} has been picked up.",
+                    NotificationType.OrderPickedUp,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case OrderStatus.Dispatched:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Dispatched",
+                    $"Your order #{orderNumber} has been dispatched.",
+                    NotificationType.OrderDispatched,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case OrderStatus.Delivered:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Delivered",
+                    $"Your order #{orderNumber} has been delivered.",
+                    NotificationType.OrderDelivered,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case OrderStatus.Completed:
+                await notificationService.CreateNotificationAsync(
+                    custUserId,
+                    "Order Completed",
+                    $"Your order #{orderNumber} has been completed.",
+                    NotificationType.OrderCompleted,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+
+                await notificationService.CreateNotificationAsync(
+                    farmerUserIdStr,
+                    "Order Completed",
+                    $"Order #{orderNumber} has been completed.",
+                    NotificationType.OrderCompleted,
+                    relatedOrderId: order.Id,
+                    relatedAuctionId: order.AuctionId,
+                    cancellationToken: cancellationToken);
+
+                await PerformSettlementLogicAsync(order.Id, cancellationToken);
+                break;
+        }
 
         return MapOrderToResponse(order, order.Auction);
     }
@@ -648,13 +776,15 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         var currentStatusStr = FormatStatusString(order.Status);
         var statusMessage = order.Status switch
         {
-            OrderStatus.Confirmed => "Your order has been confirmed.",
-            OrderStatus.ReadyForPickup => "Your order is ready for pickup/dispatch.",
-            OrderStatus.PickedUp => "Your order has been picked up.",
-            OrderStatus.Dispatched => "Your order is on its way.",
-            OrderStatus.Delivered => "Your order has been delivered.",
-            OrderStatus.Completed => "Your order is completed.",
-            _ => "Your order is being processed."
+            OrderStatus.Confirmed => "Your order has been placed and payment confirmed by FarmKart.",
+            OrderStatus.ReadyForPickup => order.FulfillmentMode == FulfillmentMode.Pickup
+                ? "Your order is ready for pickup at the farm location."
+                : "Your order is ready for pickup/dispatch.",
+            OrderStatus.Dispatched => "Your order has been dispatched and is on its way to your delivery address.",
+            OrderStatus.PickedUp => "Your order has been picked up successfully.",
+            OrderStatus.Delivered => "Your order has been delivered to your location. Please confirm completion.",
+            OrderStatus.Completed => "Order completed. Thank you for buying on FarmKart!",
+            _ => "Order status updated."
         };
 
         return new CustomerOrderTrackingResponse(
@@ -683,6 +813,163 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             ExpectedDeliveryDate: order.ExpectedDeliveryDate,
             OrderDateUtc: order.CreatedAtUtc,
             StatusHistory: timeline
+        );
+    }
+
+    public async Task<OrderSettlementResponse> SettleOrderAsync(
+        Guid authenticatedUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await dbContext.AuctionOrders
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.CustomerProfile)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        var isFarmer = order.FarmerProfile.UserId == authenticatedUserId;
+        var isCustomer = order.CustomerProfile.UserId == authenticatedUserId;
+
+        if (!isFarmer && !isCustomer)
+        {
+            throw new UnauthorizedAccessException("Only the order's farmer or customer can request order settlement.");
+        }
+
+        return await SettleOrderInternalCoreAsync(orderId, cancellationToken);
+    }
+
+    private async Task<OrderSettlementResponse> SettleOrderInternalCoreAsync(
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        if (dbContext.Database.CurrentTransaction != null)
+        {
+            return await PerformSettlementLogicAsync(orderId, cancellationToken);
+        }
+
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            var res = await PerformSettlementLogicAsync(orderId, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return res;
+        });
+    }
+
+    private async Task<OrderSettlementResponse> PerformSettlementLogicAsync(
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        var order = await dbContext.AuctionOrders
+            .Include(o => o.Crop)
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.CustomerProfile)
+            .Include(o => o.AuctionPayment)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+
+        // Idempotent check
+        var existingSettlement = await dbContext.OrderSettlements
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.AuctionOrderId == order.Id, cancellationToken);
+
+        if (existingSettlement != null || order.IsSettled)
+        {
+            var settId = existingSettlement?.Id ?? Guid.NewGuid();
+            var settKg = existingSettlement?.SettledQuantityKg ?? order.AllocatedQuantityKg;
+            var settAmt = existingSettlement?.SettledAmount ?? order.TotalAmount;
+            var settStatus = existingSettlement?.SettlementStatus ?? "SETTLED";
+            var settTime = existingSettlement?.SettledAtUtc ?? order.SettledAtUtc ?? DateTime.UtcNow;
+            var settMan = AuctionPricingConstants.ConvertKgToMan(settKg);
+
+            return new OrderSettlementResponse(
+                SettlementId: settId,
+                OrderId: order.Id,
+                OrderNumber: order.OrderNumber,
+                AuctionId: order.AuctionId,
+                FarmerProfileId: order.FarmerProfileId,
+                CustomerProfileId: order.CustomerProfileId,
+                SettledQuantityKg: settKg,
+                SettledQuantityMan: settMan,
+                SettledAmount: settAmt,
+                SettlementStatus: settStatus,
+                SettledAtUtc: settTime
+            );
+        }
+
+        if (order.AllocatedQuantityKg <= 0)
+        {
+            throw new InvalidOperationException("Cannot settle order with zero allocated quantity.");
+        }
+
+        var crop = order.Crop
+            ?? throw new InvalidOperationException("Crop reference not found for order.");
+
+        // Deduct stock safely (never result in negative stock)
+        var qtyToDeduct = Math.Min(crop.Quantity, order.AllocatedQuantityKg);
+        if (qtyToDeduct > 0)
+        {
+            crop.Quantity -= qtyToDeduct;
+            var stockTx = new CropStockTransaction
+            {
+                CropId = crop.Id,
+                Quantity = qtyToDeduct,
+                Unit = MeasurementUnit.Kilogram,
+                QuantityInBaseUnit = qtyToDeduct,
+                TransactionType = CropStockTransactionType.Correction,
+                Notes = $"Settlement for Order #{order.OrderNumber}"
+            };
+            dbContext.CropStockTransactions.Add(stockTx);
+        }
+
+        order.IsSettled = true;
+        order.SettledAtUtc = DateTime.UtcNow;
+
+        var settlement = new OrderSettlement
+        {
+            AuctionOrderId = order.Id,
+            AuctionId = order.AuctionId,
+            FarmerProfileId = order.FarmerProfileId,
+            CustomerProfileId = order.CustomerProfileId,
+            SettledQuantityKg = order.AllocatedQuantityKg,
+            SettledAmount = order.TotalAmount,
+            SettledAtUtc = DateTime.UtcNow,
+            SettlementStatus = "SETTLED"
+        };
+
+        dbContext.OrderSettlements.Add(settlement);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Create Settlement Notification for Farmer
+        await notificationService.CreateNotificationAsync(
+            recipientUserId: order.FarmerProfile.UserId.ToString(),
+            title: "Order Settled",
+            message: $"Order #{order.OrderNumber} has been settled.",
+            notificationType: NotificationType.SettlementCompleted,
+            relatedOrderId: order.Id,
+            relatedAuctionId: order.AuctionId,
+            cancellationToken: cancellationToken);
+
+        var settledMan = AuctionPricingConstants.ConvertKgToMan(settlement.SettledQuantityKg);
+
+        return new OrderSettlementResponse(
+            SettlementId: settlement.Id,
+            OrderId: order.Id,
+            OrderNumber: order.OrderNumber,
+            AuctionId: settlement.AuctionId,
+            FarmerProfileId: settlement.FarmerProfileId,
+            CustomerProfileId: settlement.CustomerProfileId,
+            SettledQuantityKg: settlement.SettledQuantityKg,
+            SettledQuantityMan: settledMan,
+            SettledAmount: settlement.SettledAmount,
+            SettlementStatus: settlement.SettlementStatus,
+            SettledAtUtc: settlement.SettledAtUtc
         );
     }
 

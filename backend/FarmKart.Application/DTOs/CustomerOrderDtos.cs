@@ -84,6 +84,8 @@ public sealed record CustomerOrderDetailResponse(
     DateTime? PickupDate,
     DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
+    bool IsSettled,
+    string SettlementStatus,
     DateTime OrderDateUtc,
     DateTime AuctionStartTimeUtc,
     DateTime AuctionEndDateUtc,

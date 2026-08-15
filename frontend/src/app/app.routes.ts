@@ -173,10 +173,9 @@ export const routes: Routes = [
       },
       {
         path: 'notifications',
-        data: { title: 'Notifications' },
         loadComponent: () =>
-          import('./features/farmer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/farmer/farmer-notifications.component').then(
+            (module) => module.FarmerNotificationsComponent,
           ),
       },
     ],
@@ -366,10 +365,9 @@ export const routes: Routes = [
       },
       {
         path: 'notifications',
-        data: { title: 'Notifications' },
         loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/customer/customer-notifications.component').then(
+            (module) => module.CustomerNotificationsComponent,
           ),
       },
       {

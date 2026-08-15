@@ -84,4 +84,12 @@ public interface IOrderService
         Guid customerUserId,
         Guid orderId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Settles stock and records final settlement for an order. Idempotent and thread-safe.
+    /// </summary>
+    Task<OrderSettlementResponse> SettleOrderAsync(
+        Guid authenticatedUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
 }
