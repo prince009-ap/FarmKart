@@ -17,7 +17,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
         var now = DateTime.UtcNow;
 
         var expiredAuctions = await dbContext.Auctions
-            .Include(a => a.AuctionWinner)
+            .Include(a => a.Allocations)
             .Include(a => a.Bids)
             .Where(a => a.EndTimeUtc <= now && a.AuctionStatus != AuctionStatus.Cancelled && a.AuctionStatus != AuctionStatus.Draft)
             .ToListAsync(cancellationToken);
@@ -47,8 +47,8 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
             .AsNoTracking()
             .Include(a => a.AuctionWinner)
                 .ThenInclude(w => w.CustomerProfile)
-            .Include(a => a.AuctionWinner)
-                .ThenInclude(w => w.WinningBid)
+            .Include(a => a.Allocations)
+                .ThenInclude(al => al.CustomerProfile)
             .Include(a => a.Bids)
             .Include(a => a.CropListing)
                 .ThenInclude(l => l.Crop)
@@ -59,18 +59,16 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
             throw new KeyNotFoundException($"Auction with ID '{auctionId}' was not found.");
         }
 
-        // On-demand finalization check if auction has expired but winner not finalized
-        if (now >= auction.EndTimeUtc && auction.AuctionWinner == null)
+        if (now >= auction.EndTimeUtc && auction.Allocations.Count == 0)
         {
             await FinalizeSingleAuctionInternalAsync(auctionId, now, cancellationToken);
 
-            // Re-fetch updated auction
             auction = await dbContext.Auctions
                 .AsNoTracking()
                 .Include(a => a.AuctionWinner)
                     .ThenInclude(w => w.CustomerProfile)
-                .Include(a => a.AuctionWinner)
-                    .ThenInclude(w => w.WinningBid)
+                .Include(a => a.Allocations)
+                    .ThenInclude(al => al.CustomerProfile)
                 .Include(a => a.Bids)
                 .Include(a => a.CropListing)
                     .ThenInclude(l => l.Crop)
@@ -78,9 +76,46 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
         }
 
         var crop = auction.CropListing.Crop;
-        var activeBids = auction.Bids.Where(b => b.BidStatus == BidStatus.Active).ToList();
-        var totalBids = activeBids.Count;
-        var hasWinner = auction.AuctionWinner != null;
+        var totalBids = auction.Bids.Count;
+        var totalAuctionKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var totalAuctionMan = AuctionPricingConstants.ConvertKgToMan(totalAuctionKg);
+
+        var allocationsList = auction.Allocations
+            .OrderByDescending(al => al.WinningBidAmountPerMan)
+            .ThenBy(al => al.FinalizedAtUtc)
+            .ToList();
+
+        var totalAllocatedKg = allocationsList.Sum(al => al.AllocatedQuantityKg);
+        var remainingKg = Math.Max(0m, totalAuctionKg - totalAllocatedKg);
+        var hasWinner = allocationsList.Any(al => al.AllocatedQuantityKg > 0);
+
+        var allocationDtos = allocationsList.Select(al =>
+        {
+            var reqMan = AuctionPricingConstants.ConvertKgToMan(al.RequestedQuantityKg);
+            var allocMan = AuctionPricingConstants.ConvertKgToMan(al.AllocatedQuantityKg);
+            var totalPayable = Math.Round(allocMan * al.WinningBidAmountPerMan, 2);
+
+            return new AuctionAllocationResponse(
+                AllocationId: al.Id,
+                AuctionId: al.AuctionId,
+                BidId: al.BidId,
+                CustomerProfileId: al.CustomerProfileId,
+                CustomerName: al.CustomerProfile?.FullName ?? "Customer",
+                RequestedQuantityKg: al.RequestedQuantityKg,
+                AllocatedQuantityKg: al.AllocatedQuantityKg,
+                RequestedQuantityMan: reqMan,
+                AllocatedQuantityMan: allocMan,
+                WinningBidAmountPerMan: al.WinningBidAmountPerMan,
+                TotalPayableAmount: totalPayable,
+                Status: al.Status switch
+                {
+                    AllocationStatus.Won => "WON",
+                    AllocationStatus.PartiallyWon => "PARTIALLY_WON",
+                    _ => "LOST"
+                },
+                FinalizedAtUtc: al.FinalizedAtUtc
+            );
+        }).ToList();
 
         string? customerResultStatus = null;
         if (requestingUserId.HasValue)
@@ -91,13 +126,15 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
             if (customerProfile != null)
             {
-                if (hasWinner && auction.AuctionWinner!.CustomerProfileId == customerProfile.Id)
+                var custAllocation = allocationsList.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
+                if (custAllocation != null)
                 {
-                    customerResultStatus = "WON";
-                }
-                else if (activeBids.Any(b => b.CustomerProfileId == customerProfile.Id))
-                {
-                    customerResultStatus = "LOST";
+                    customerResultStatus = custAllocation.Status switch
+                    {
+                        AllocationStatus.Won => "WON",
+                        AllocationStatus.PartiallyWon => "PARTIALLY_WON",
+                        _ => "LOST"
+                    };
                 }
                 else if (totalBids == 0)
                 {
@@ -112,8 +149,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
         string effectiveStatus = now < auction.StartTimeUtc ? "UPCOMING" : (now <= auction.EndTimeUtc ? "LIVE" : "ENDED");
 
-        var kg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
-        var man = AuctionPricingConstants.ConvertKgToMan(kg);
+        var topAllocation = allocationsList.FirstOrDefault(al => al.AllocatedQuantityKg > 0);
 
         return new AuctionResultResponse(
             AuctionId: auction.Id,
@@ -122,16 +158,20 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
             CropType: crop.CropType,
             Quantity: auction.CropListing.QuantityForSale,
             Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
-            QuantityMan: man,
+            QuantityMan: totalAuctionMan,
+            TotalAuctionQuantityKg: totalAuctionKg,
+            TotalAllocatedQuantityKg: totalAllocatedKg,
+            RemainingQuantityKg: remainingKg,
             AuctionStatus: effectiveStatus,
             HasWinner: hasWinner,
-            WinningBidAmount: auction.AuctionWinner?.FinalAmount,
-            WinnerCustomerName: auction.AuctionWinner?.CustomerProfile?.FullName,
-            WinnerCustomerProfileId: auction.AuctionWinner?.CustomerProfileId,
+            WinningBidAmount: topAllocation?.WinningBidAmountPerMan ?? auction.AuctionWinner?.FinalAmount,
+            WinnerCustomerName: topAllocation?.CustomerProfile?.FullName ?? auction.AuctionWinner?.CustomerProfile?.FullName,
+            WinnerCustomerProfileId: topAllocation?.CustomerProfileId ?? auction.AuctionWinner?.CustomerProfileId,
             TotalBids: totalBids,
+            Allocations: allocationDtos,
             StartTimeUtc: auction.StartTimeUtc,
             EndTimeUtc: auction.EndTimeUtc,
-            FinalizedAtUtc: auction.AuctionWinner?.SelectedAtUtc,
+            FinalizedAtUtc: allocationsList.FirstOrDefault()?.FinalizedAtUtc ?? auction.AuctionWinner?.SelectedAtUtc,
             CustomerResultStatus: customerResultStatus,
             ServerTimeUtc: now
         );
@@ -147,7 +187,9 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
             var auction = await dbContext.Auctions
                 .Include(a => a.AuctionWinner)
+                .Include(a => a.Allocations)
                 .Include(a => a.Bids)
+                .Include(a => a.CropListing)
                 .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken);
 
             if (auction == null)
@@ -155,41 +197,88 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
                 return false;
             }
 
-            // Always ensure status is set to Ended if EndTimeUtc has passed
             if (auction.AuctionStatus != AuctionStatus.Cancelled && auction.AuctionStatus != AuctionStatus.Draft)
             {
                 auction.AuctionStatus = AuctionStatus.Ended;
             }
 
-            // Idempotency check: if winner already finalized, skip duplicate creation
-            if (auction.AuctionWinner != null)
+            if (auction.Allocations.Count > 0)
             {
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return false;
             }
 
-            var activeBids = auction.Bids.Where(b => b.BidStatus == BidStatus.Active).ToList();
+            var totalAuctionKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+            var activeBids = auction.Bids
+                .Where(b => b.BidStatus == BidStatus.Active || b.BidStatus == BidStatus.Winning)
+                .OrderByDescending(b => b.Amount)
+                .ThenBy(b => b.BidTimeUtc)
+                .ToList();
 
-            if (activeBids.Count > 0)
+            decimal remainingKg = totalAuctionKg;
+
+            foreach (var bid in activeBids)
             {
-                // Tie-breaking rule: highest amount, then earliest BidTimeUtc
-                var winningBid = activeBids
-                    .OrderByDescending(b => b.Amount)
-                    .ThenBy(b => b.BidTimeUtc)
-                    .First();
+                var requestedKg = bid.RequestedQuantityKg > 0 ? bid.RequestedQuantityKg : totalAuctionKg;
+                decimal allocatedKg;
+                AllocationStatus status;
 
+                if (remainingKg >= requestedKg)
+                {
+                    allocatedKg = requestedKg;
+                    status = AllocationStatus.Won;
+                    remainingKg -= allocatedKg;
+                    bid.BidStatus = BidStatus.Winning;
+                }
+                else if (remainingKg > 0)
+                {
+                    allocatedKg = remainingKg;
+                    status = AllocationStatus.PartiallyWon;
+                    remainingKg = 0;
+                    bid.BidStatus = BidStatus.Winning;
+                }
+                else
+                {
+                    allocatedKg = 0;
+                    status = AllocationStatus.Lost;
+                    bid.BidStatus = BidStatus.Outbid;
+                }
+
+                var allocation = new AuctionAllocation
+                {
+                    AuctionId = auction.Id,
+                    BidId = bid.Id,
+                    CustomerProfileId = bid.CustomerProfileId,
+                    RequestedQuantityKg = requestedKg,
+                    AllocatedQuantityKg = allocatedKg,
+                    WinningBidAmountPerMan = bid.Amount,
+                    Status = status,
+                    FinalizedAtUtc = now
+                };
+
+                dbContext.AuctionAllocations.Add(allocation);
+            }
+
+            // Maintain legacy primary winner reference if allocations exist
+            var primaryWinningAllocation = dbContext.AuctionAllocations.Local
+                .Where(a => a.AuctionId == auction.Id && a.AllocatedQuantityKg > 0)
+                .OrderByDescending(a => a.WinningBidAmountPerMan)
+                .ThenBy(a => a.FinalizedAtUtc)
+                .FirstOrDefault();
+
+            if (primaryWinningAllocation != null && auction.AuctionWinner == null)
+            {
                 var winner = new AuctionWinner
                 {
                     AuctionId = auction.Id,
-                    CustomerProfileId = winningBid.CustomerProfileId,
-                    WinningBidId = winningBid.Id,
-                    FinalAmount = winningBid.Amount,
+                    CustomerProfileId = primaryWinningAllocation.CustomerProfileId,
+                    WinningBidId = primaryWinningAllocation.BidId,
+                    FinalAmount = primaryWinningAllocation.WinningBidAmountPerMan,
                     SelectedAtUtc = now
                 };
-
                 dbContext.AuctionWinners.Add(winner);
-                auction.CurrentHighestBid = winningBid.Amount;
+                auction.CurrentHighestBid = primaryWinningAllocation.WinningBidAmountPerMan;
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);

@@ -34,6 +34,7 @@ export class CustomerAuctionDetailComponent implements OnInit {
   errorMessage = signal<string | null>(null);
 
   bidAmountInput = signal<number | null>(null);
+  requestedQuantityInput = signal<number | null>(null);
   placingBid = signal<boolean>(false);
   bidError = signal<string | null>(null);
   bidSuccess = signal<string | null>(null);
@@ -45,6 +46,17 @@ export class CustomerAuctionDetailComponent implements OnInit {
       return auc.currentHighestBid + auc.minimumBidIncrement;
     }
     return auc.startingBidPrice;
+  });
+
+  requestedMan = computed(() => {
+    const kg = this.requestedQuantityInput() || 0;
+    return Math.round((kg / 20) * 100) / 100;
+  });
+
+  estimatedTotalPayable = computed(() => {
+    const rate = this.bidAmountInput() || 0;
+    const man = this.requestedMan();
+    return Math.round(rate * man * 100) / 100;
   });
 
   ngOnInit(): void {
@@ -64,6 +76,9 @@ export class CustomerAuctionDetailComponent implements OnInit {
     this.auctionService.getAuctionById(id).subscribe({
       next: (data) => {
         this.auction.set(data);
+        if (!this.requestedQuantityInput() && data.quantityKg) {
+          this.requestedQuantityInput.set(data.quantityKg);
+        }
         this.isLoading.set(false);
         this.loadBidHistory(id);
 
@@ -95,6 +110,7 @@ export class CustomerAuctionDetailComponent implements OnInit {
   placeBid(): void {
     const auc = this.auction();
     const amount = this.bidAmountInput();
+    const reqKg = this.requestedQuantityInput();
     this.bidError.set(null);
     this.bidSuccess.set(null);
 
@@ -104,16 +120,26 @@ export class CustomerAuctionDetailComponent implements OnInit {
       return;
     }
 
+    if (!reqKg || reqKg <= 0) {
+      this.bidError.set('Please enter a valid required quantity in Kg greater than zero.');
+      return;
+    }
+
+    if (reqKg > auc.quantityKg) {
+      this.bidError.set(`Requested quantity (${reqKg} Kg) cannot exceed total auction quantity (${auc.quantityKg} Kg).`);
+      return;
+    }
+
     const minNeeded = this.minNextBid();
     if (amount < minNeeded) {
-      this.bidError.set(`Minimum next bid must be at least ₹${minNeeded} / Man.`);
+      this.bidError.set(`Minimum next bid rate must be at least ₹${minNeeded} / Man.`);
       return;
     }
 
     this.placingBid.set(true);
-    this.auctionService.placeBid(auc.id, amount).subscribe({
+    this.auctionService.placeBid(auc.id, amount, reqKg).subscribe({
       next: (newBid) => {
-        this.bidSuccess.set(`Bid of ₹${newBid.amount} / Man placed successfully!`);
+        this.bidSuccess.set(`Bid of ₹${newBid.amount} / Man for ${newBid.requestedQuantityKg} Kg (${newBid.requestedQuantityMan} Man) placed successfully!`);
         this.bidAmountInput.set(null);
         this.placingBid.set(false);
         this.loadAuction(auc.id);

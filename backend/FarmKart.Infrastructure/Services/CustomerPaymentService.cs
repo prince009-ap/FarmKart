@@ -29,13 +29,12 @@ public sealed class CustomerPaymentService(
 
         var now = DateTime.UtcNow;
 
-        // Auto-finalize if expired but not finalized yet
         var auctionCheck = await dbContext.Auctions
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken)
             ?? throw new KeyNotFoundException($"Auction with ID '{auctionId}' was not found.");
 
-        if (now >= auctionCheck.EndTimeUtc && auctionCheck.AuctionWinner == null)
+        if (now >= auctionCheck.EndTimeUtc)
         {
             await finalizationService.FinalizeExpiredAuctionsAsync(cancellationToken);
         }
@@ -47,9 +46,9 @@ public sealed class CustomerPaymentService(
             using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
             var auction = await dbContext.Auctions
-                .Include(a => a.AuctionWinner)
-                    .ThenInclude(w => w.CustomerProfile)
-                .Include(a => a.AuctionPayment)
+                .Include(a => a.Allocations)
+                    .ThenInclude(al => al.CustomerProfile)
+                .Include(a => a.AuctionPayments)
                 .Include(a => a.CropListing)
                     .ThenInclude(l => l.Crop)
                 .Include(a => a.FarmerProfile)
@@ -61,40 +60,38 @@ public sealed class CustomerPaymentService(
                 throw new InvalidOperationException("Payment is available only after an auction has ended.");
             }
 
-            if (auction.AuctionWinner == null)
+            var custAllocation = auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id && al.AllocatedQuantityKg > 0);
+
+            if (custAllocation == null)
             {
-                throw new InvalidOperationException("This auction has no winner to accept payment.");
+                throw new UnauthorizedAccessException("Only winning customers with allocated quantity can pay for this auction.");
             }
 
-            if (auction.AuctionWinner.CustomerProfileId != customerProfile.Id)
-            {
-                throw new UnauthorizedAccessException("Only the winning customer can pay for this auction.");
-            }
+            var existingPayment = await dbContext.AuctionPayments
+                .FirstOrDefaultAsync(p => p.AuctionId == auctionId && p.CustomerProfileId == customerProfile.Id, cancellationToken);
 
-            // Check if already paid (Idempotency)
-            if (auction.AuctionPayment != null && auction.AuctionPayment.PaymentStatus == PaymentStatus.Paid)
+            if (existingPayment != null && existingPayment.PaymentStatus == PaymentStatus.Paid)
             {
                 await transaction.CommitAsync(cancellationToken);
-                return MapToResponse(auction.AuctionPayment, auction, customerProfile.FullName);
+                return MapToResponse(existingPayment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, custAllocation.WinningBidAmountPerMan);
             }
 
-            var quantityInKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
-            var quantityInMan = AuctionPricingConstants.ConvertKgToMan(quantityInKg);
-            var winningBidRate = auction.AuctionWinner.FinalAmount;
-            var totalPayableAmount = Math.Round(quantityInMan * winningBidRate, 2);
+            var allocatedMan = AuctionPricingConstants.ConvertKgToMan(custAllocation.AllocatedQuantityKg);
+            var winningBidRate = custAllocation.WinningBidAmountPerMan;
+            var totalPayableAmount = Math.Round(allocatedMan * winningBidRate, 2);
 
             var method = ParsePaymentMethod(request.PaymentMethod);
-
             var providerResult = await paymentProvider.ProcessPaymentAsync(totalPayableAmount, method, cancellationToken);
 
-            var payment = auction.AuctionPayment;
-            if (payment == null)
+            AuctionPayment payment;
+            if (existingPayment == null)
             {
                 payment = new AuctionPayment
                 {
                     AuctionId = auction.Id,
                     CustomerProfileId = customerProfile.Id,
                     Amount = totalPayableAmount,
+                    AllocatedQuantityKg = custAllocation.AllocatedQuantityKg,
                     Currency = "INR",
                     PaymentMethod = method,
                     PaymentStatus = providerResult.IsSuccess ? PaymentStatus.Paid : PaymentStatus.Failed,
@@ -102,11 +99,12 @@ public sealed class CustomerPaymentService(
                     PaidAtUtc = providerResult.IsSuccess ? now : null
                 };
                 dbContext.AuctionPayments.Add(payment);
-                auction.AuctionPayment = payment;
             }
             else
             {
+                payment = existingPayment;
                 payment.Amount = totalPayableAmount;
+                payment.AllocatedQuantityKg = custAllocation.AllocatedQuantityKg;
                 payment.PaymentMethod = method;
                 payment.PaymentStatus = providerResult.IsSuccess ? PaymentStatus.Paid : PaymentStatus.Failed;
                 payment.TransactionReference = providerResult.TransactionReference;
@@ -116,7 +114,7 @@ public sealed class CustomerPaymentService(
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return MapToResponse(payment, auction, customerProfile.FullName);
+            return MapToResponse(payment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, winningBidRate);
         });
     }
 
@@ -136,7 +134,7 @@ public sealed class CustomerPaymentService(
             .Include(p => p.Auction)
                 .ThenInclude(a => a.FarmerProfile)
             .Include(p => p.Auction)
-                .ThenInclude(a => a.AuctionWinner)
+                .ThenInclude(a => a.Allocations)
             .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken)
             ?? throw new KeyNotFoundException($"Payment with ID '{paymentId}' was not found.");
 
@@ -145,7 +143,11 @@ public sealed class CustomerPaymentService(
             throw new UnauthorizedAccessException("You do not have permission to view this payment.");
         }
 
-        return MapToResponse(payment, payment.Auction, customerProfile.FullName);
+        var custAlloc = payment.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
+        var allocatedKg = payment.AllocatedQuantityKg > 0 ? payment.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
+        var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (payment.Amount > 0 && allocatedKg > 0 ? Math.Round(payment.Amount / (allocatedKg / 20m), 2) : payment.Amount);
+
+        return MapToResponse(payment, payment.Auction, customerProfile.FullName, allocatedKg, winningBidRate);
     }
 
     public async Task<IReadOnlyList<CustomerPaymentHistoryResponse>> GetCustomerPaymentHistoryAsync(
@@ -163,7 +165,7 @@ public sealed class CustomerPaymentService(
                     .ThenInclude(l => l.Crop)
                         .ThenInclude(c => c.Images)
             .Include(p => p.Auction)
-                .ThenInclude(a => a.AuctionWinner)
+                .ThenInclude(a => a.Allocations)
             .Where(p => p.CustomerProfileId == customerProfile.Id)
             .OrderByDescending(p => p.CreatedAtUtc)
             .ToListAsync(cancellationToken);
@@ -173,7 +175,11 @@ public sealed class CustomerPaymentService(
             var crop = p.Auction.CropListing.Crop;
             var primaryImg = crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
                 ?? crop.Images.FirstOrDefault()?.ImageUrl;
-            var winningBidRate = p.Auction.AuctionWinner?.FinalAmount ?? p.Amount;
+
+            var custAlloc = p.Auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == customerProfile.Id);
+            var allocKg = p.AllocatedQuantityKg > 0 ? p.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
+            var allocMan = AuctionPricingConstants.ConvertKgToMan(allocKg);
+            var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (p.Amount > 0 && allocKg > 0 ? Math.Round(p.Amount / (allocKg / 20m), 2) : p.Amount);
 
             return new CustomerPaymentHistoryResponse(
                 PaymentId: p.Id,
@@ -185,6 +191,8 @@ public sealed class CustomerPaymentService(
                 Quantity: p.Auction.CropListing.QuantityForSale,
                 Unit: CropStockUnitConverter.Format(p.Auction.CropListing.Unit),
                 QuantityMan: AuctionPricingConstants.ConvertKgToMan(CropStockUnitConverter.ToKilograms(p.Auction.CropListing.QuantityForSale, p.Auction.CropListing.Unit)),
+                AllocatedQuantityKg: allocKg,
+                AllocatedQuantityMan: allocMan,
                 WinningBidAmount: winningBidRate,
                 TotalPayableAmount: p.Amount,
                 Currency: p.Currency,
@@ -208,9 +216,9 @@ public sealed class CustomerPaymentService(
 
         var auction = await dbContext.Auctions
             .AsNoTracking()
-            .Include(a => a.AuctionWinner)
-                .ThenInclude(w => w.CustomerProfile)
-            .Include(a => a.AuctionPayment)
+            .Include(a => a.Allocations)
+                .ThenInclude(al => al.CustomerProfile)
+            .Include(a => a.AuctionPayments)
             .Include(a => a.CropListing)
                 .ThenInclude(l => l.Crop)
             .Include(a => a.FarmerProfile)
@@ -222,22 +230,31 @@ public sealed class CustomerPaymentService(
             throw new UnauthorizedAccessException("Farmer does not own this auction.");
         }
 
-        if (auction.AuctionPayment == null)
+        var payment = auction.AuctionPayments.FirstOrDefault();
+        if (payment == null)
         {
             return null;
         }
 
-        var winnerName = auction.AuctionWinner?.CustomerProfile?.FullName ?? "Winning Customer";
+        var custAlloc = auction.Allocations.FirstOrDefault(al => al.CustomerProfileId == payment.CustomerProfileId);
+        var winnerName = custAlloc?.CustomerProfile?.FullName ?? "Winning Customer";
+        var allocKg = payment.AllocatedQuantityKg > 0 ? payment.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
+        var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (payment.Amount > 0 && allocKg > 0 ? Math.Round(payment.Amount / (allocKg / 20m), 2) : payment.Amount);
 
-        return MapToResponse(auction.AuctionPayment, auction, winnerName);
+        return MapToResponse(payment, auction, winnerName, allocKg, winningBidRate);
     }
 
-    private static AuctionPaymentResponse MapToResponse(AuctionPayment payment, Auction auction, string winnerCustomerName)
+    private static AuctionPaymentResponse MapToResponse(
+        AuctionPayment payment,
+        Auction auction,
+        string winnerCustomerName,
+        decimal allocatedKg,
+        decimal winningBidRate)
     {
         var crop = auction.CropListing.Crop;
-        var winningBidRate = auction.AuctionWinner?.FinalAmount ?? payment.Amount;
-        var qtyKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
-        var qtyMan = AuctionPricingConstants.ConvertKgToMan(qtyKg);
+        var totalQtyKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var totalQtyMan = AuctionPricingConstants.ConvertKgToMan(totalQtyKg);
+        var allocMan = AuctionPricingConstants.ConvertKgToMan(allocatedKg);
 
         return new AuctionPaymentResponse(
             PaymentId: payment.Id,
@@ -247,7 +264,9 @@ public sealed class CustomerPaymentService(
             CropType: crop.CropType,
             Quantity: auction.CropListing.QuantityForSale,
             Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
-            QuantityMan: qtyMan,
+            QuantityMan: totalQtyMan,
+            AllocatedQuantityKg: allocatedKg,
+            AllocatedQuantityMan: allocMan,
             WinningBidAmount: winningBidRate,
             TotalPayableAmount: payment.Amount,
             Currency: payment.Currency,

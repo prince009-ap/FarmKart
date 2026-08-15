@@ -91,15 +91,77 @@ export interface AddCropStockRequest {
   notes?: string | null;
 }
 
+export interface FarmerAuctionPaymentSummary {
+  totalWinningAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  totalPaidCount: number;
+  totalPendingCount: number;
+}
+
 export interface FarmerAuction {
-  id: string; cropId: string; cropName: string; quantity: number; unit: string; quantityKg: number; quantityMan: number;
-  availableStockKg: number; reservedStockKg: number; remainingUnreservedStockKg: number;
-  startingBidPrice: number; minimumBidIncrement: number; startTimeUtc: string; endTimeUtc: string;
-  status: string; description?: string | null; createdAtUtc: string; updatedAtUtc: string;
+  id: string;
+  cropId: string;
+  cropName: string;
+  variety?: string | null;
+  primaryImageUrl?: string | null;
+  quantity: number;
+  unit: string;
+  quantityKg: number;
+  quantityMan: number;
+  availableStockKg: number;
+  reservedStockKg: number;
+  remainingUnreservedStockKg: number;
+  startingBidPrice: number;
+  minimumBidIncrement: number;
+  startTimeUtc: string;
+  endTimeUtc: string;
+  status: string;
+  description?: string | null;
+  totalBids: number;
+  currentHighestBid: number;
+  totalRequestedQuantityKg: number;
+  totalRequestedQuantityMan: number;
+  demandPercentage: number;
+  totalAllocatedQuantityKg?: number;
+  totalAllocatedQuantityMan?: number;
+  remainingQuantityKg?: number;
+  winnersCount?: number;
+  winningBidAmount?: number | null;
+  paymentSummary?: FarmerAuctionPaymentSummary | null;
+  createdAtUtc: string;
+  updatedAtUtc?: string | null;
   serverTimeUtc: string;
 }
 
+export interface FarmerAuctionBid {
+  bidId: string;
+  auctionId: string;
+  customerProfileId: string;
+  customerName: string;
+  requestedQuantityKg: number;
+  requestedQuantityMan: number;
+  bidAmountPerMan: number;
+  bidTimeUtc: string;
+  bidStatus: string;
+  allocationStatus?: string | null;
+}
+
+export interface FarmerAuctionSummaryCounts {
+  totalAuctions: number;
+  upcomingCount: number;
+  liveCount: number;
+  endedCount: number;
+  cancelledCount: number;
+}
+
 export interface CreateFarmerAuctionRequest {
-  cropId: string; quantity: number; unit: string; startingBidPrice: number; minimumBidIncrement: number;
-  startTimeUtc: string; duration: string; description?: string | null;
+  cropId: string;
+  quantity: number;
+  unit: string;
+  startingBidPrice: number;
+  minimumBidIncrement: number;
+  startTimeUtc: string;
+  duration: string;
+  description?: string | null;
 }

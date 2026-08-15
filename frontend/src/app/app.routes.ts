@@ -121,6 +121,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'auctions',
+        loadComponent: () =>
+          import('./features/farmer/farmer-auctions.component').then(
+            (module) => module.FarmerAuctionsComponent,
+          ),
+      },
+      {
+        path: 'auctions/:id',
+        loadComponent: () =>
+          import('./features/farmer/farmer-auction-detail.component').then(
+            (module) => module.FarmerAuctionDetailComponent,
+          ),
+      },
+      {
+        path: 'auctions/:id/bids',
+        loadComponent: () =>
+          import('./features/farmer/farmer-auction-bids.component').then(
+            (module) => module.FarmerAuctionBidsComponent,
+          ),
+      },
+      {
         path: 'machinery',
         data: { title: 'Machinery' },
         loadComponent: () =>

@@ -24,42 +24,70 @@
   <!-- Auction Details Container -->
   <div *ngIf="!isLoading() && auction() as auc" class="space-y-6">
     
-    <!-- AUCTION RESULT BANNER (If Ended) -->
+    <!-- MULTI-WINNER AUCTION RESULT BANNER (If Ended) -->
     <div *ngIf="isAuctionEnded()" class="rounded-3xl p-6 md:p-8 text-white shadow-xl border overflow-hidden relative"
       [ngClass]="{
-        'bg-gradient-to-r from-emerald-700 to-teal-800 border-emerald-500': auctionResult()?.customerResultStatus === 'WON',
-        'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700': auctionResult()?.customerResultStatus !== 'WON'
+        'bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 border-emerald-500': auctionResult()?.customerResultStatus === 'WON' || auctionResult()?.customerResultStatus === 'PARTIALLY_WON',
+        'bg-gradient-to-r from-slate-800 to-slate-900 border-slate-700': auctionResult()?.customerResultStatus !== 'WON' && auctionResult()?.customerResultStatus !== 'PARTIALLY_WON'
       }">
 
-      <!-- WINNER STATE -->
-      <div *ngIf="auctionResult()?.customerResultStatus === 'WON'" class="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="space-y-2 text-center md:text-left">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-extrabold uppercase tracking-wider">
-            <mat-icon class="!w-4 !h-4 text-sm text-yellow-300">emoji_events</mat-icon>
-            Auction Winner
+      <!-- WINNER / PARTIAL WINNER STATE -->
+      <div *ngIf="auctionResult()?.customerResultStatus === 'WON' || auctionResult()?.customerResultStatus === 'PARTIALLY_WON'" class="space-y-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-2 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-extrabold uppercase tracking-wider">
+              <mat-icon class="!w-4 !h-4 text-sm text-yellow-300">emoji_events</mat-icon>
+              {{ auctionResult()?.customerResultStatus === 'WON' ? 'Auction Full Winner' : 'Auction Partial Winner' }}
+            </div>
+            <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+              🏆 {{ auctionResult()?.customerResultStatus === 'WON' ? 'YOU WON THIS AUCTION!' : 'YOU WON A PARTIAL ALLOCATION!' }}
+            </h2>
+            <p class="text-sm text-emerald-100 font-medium max-w-xl">
+              Auction Quantity: <span class="font-bold text-white">{{ auctionResult()?.totalAuctionQuantityKg }} Kg</span> | 
+              Total Allocated: <span class="font-bold text-white">{{ auctionResult()?.totalAllocatedQuantityKg }} Kg</span>
+            </p>
           </div>
-          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">
-            🏆 YOU WON THIS AUCTION!
-          </h2>
-          <p class="text-sm text-emerald-100 font-medium max-w-xl">
-            Winning Bid Rate: 
-            <span class="font-extrabold text-white text-base">₹{{ auctionResult()?.winningBidAmount }} / Man (20 Kg)</span> | 
-            Total Payable Amount: 
-            <span class="font-extrabold text-white text-base">₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
-          </p>
 
           <!-- PROCEED TO PAYMENT BUTTON -->
-          <div class="pt-2">
-            <button mat-flat-button (click)="goToCheckout()" class="!bg-yellow-400 !text-slate-950 hover:!bg-yellow-300 !rounded-xl text-sm !font-black !px-6 !py-2.5 shadow-lg flex items-center gap-2">
-              <mat-icon>payment</mat-icon> PROCEED TO PAYMENT (₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }})
+          <div class="shrink-0">
+            <button mat-flat-button (click)="goToCheckout()" class="!bg-yellow-400 !text-slate-950 hover:!bg-yellow-300 !rounded-xl text-sm !font-black !px-6 !py-3 shadow-lg flex items-center gap-2">
+              <mat-icon>payment</mat-icon> PROCEED TO CHECKOUT & PAYMENT
             </button>
           </div>
         </div>
 
-        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[220px]">
-          <span class="text-[10px] font-extrabold text-emerald-200 uppercase block">Total Payable Amount</span>
-          <span class="text-3xl font-black text-white">₹{{ ((auc.quantityMan || (auc.quantity / 20)) * (auctionResult()?.winningBidAmount || 0)) | number:'1.0-2' }}</span>
-          <span class="text-xs text-emerald-200 block">({{ auc.quantity }} {{ auc.unit }} [{{ auc.quantityMan }} Man] @ ₹{{ auctionResult()?.winningBidAmount }}/Man)</span>
+        <!-- ALLOCATION BREAKDOWN LIST -->
+        <div *ngIf="auctionResult()?.allocations && auctionResult()!.allocations.length > 0" class="pt-4 border-t border-white/10 space-y-3">
+          <span class="text-xs font-extrabold text-emerald-200 uppercase tracking-wider block">Winner Allocations Breakdown</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div *ngFor="let alloc of auctionResult()!.allocations" class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-white text-sm">{{ alloc.customerName }}</span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase"
+                  [ngClass]="{
+                    'bg-emerald-400 text-slate-950': alloc.status === 'WON',
+                    'bg-amber-400 text-slate-950': alloc.status === 'PARTIALLY_WON',
+                    'bg-rose-400 text-slate-950': alloc.status === 'LOST'
+                  }">
+                  {{ alloc.status }}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-slate-200">
+                <div>
+                  <span class="text-[10px] opacity-80 block">Allocated Kg</span>
+                  <span class="font-extrabold text-white">{{ alloc.allocatedQuantityKg }} Kg ({{ alloc.allocatedQuantityMan }} Man)</span>
+                </div>
+                <div>
+                  <span class="text-[10px] opacity-80 block">Rate / Man</span>
+                  <span class="font-extrabold text-white">₹{{ alloc.winningBidAmountPerMan }}</span>
+                </div>
+              </div>
+              <div class="pt-1 border-t border-white/10 text-right">
+                <span class="text-[10px] opacity-80 block">Total Payable</span>
+                <span class="font-black text-amber-300 text-base">₹{{ alloc.totalPayableAmount | number:'1.0-2' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -71,17 +99,12 @@
             Auction Ended
           </div>
           <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-            You did not win this auction.
+            You did not win an allocation for this auction.
           </h2>
           <p class="text-sm text-slate-300 font-medium max-w-xl">
-            Winning Bid: <span class="font-bold text-white">₹{{ auctionResult()?.winningBidAmount }} / {{ auc.unit }}</span>.
+            Auction Quantity: <span class="font-bold text-white">{{ auctionResult()?.totalAuctionQuantityKg }} Kg</span>.
             Thank you for participating!
           </p>
-        </div>
-        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center shrink-0 min-w-[200px]">
-          <span class="text-[10px] font-extrabold text-slate-300 uppercase block">Final Winning Bid</span>
-          <span class="text-2xl font-black text-white">₹{{ auctionResult()?.winningBidAmount || 'N/A' }}</span>
-          <span class="text-xs text-slate-300 block">per {{ auc.unit }}</span>
         </div>
       </div>
 
@@ -183,7 +206,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
               <span class="text-[10px] font-bold text-slate-400 uppercase block">Auction Quantity</span>
-              <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ auc.quantity }} {{ auc.unit }} <span class="text-xs text-sky-600 font-bold">({{ auc.quantityMan }} Man)</span></span>
+              <span class="text-sm font-extrabold text-slate-900 dark:text-white">{{ auc.quantityKg }} Kg <span class="text-xs text-sky-600 font-bold">({{ auc.quantityMan }} Man)</span></span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
@@ -212,17 +235,17 @@
       </div>
     </div>
 
-    <!-- LIVE BIDDING PANEL (Shown when Auction is LIVE) -->
+    <!-- LIVE MULTI-QUANTITY BIDDING PANEL (Shown when Auction is LIVE) -->
     <div *ngIf="isAuctionLive()" class="rounded-3xl bg-gradient-to-r from-sky-900 via-slate-900 to-sky-950 p-6 md:p-8 text-white shadow-xl space-y-6">
       <div class="flex items-center justify-between border-b border-sky-800/60 pb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2.5">
           <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
           <h2 class="text-xl font-extrabold flex items-center gap-2">
-            <mat-icon class="text-amber-400">gavel</mat-icon> Place Your Bid
+            <mat-icon class="text-amber-400">gavel</mat-icon> Place Multi-Quantity Bid
           </h2>
         </div>
         <span class="text-xs font-bold text-sky-200 bg-sky-800/60 px-3 py-1 rounded-full border border-sky-600/40">
-          Minimum Next Bid: ₹{{ minNextBid() }} / Man
+          Min Next Rate: ₹{{ minNextBid() }} / Man (20 Kg)
         </span>
       </div>
 
@@ -237,11 +260,35 @@
         <span>{{ bidSuccess() }}</span>
       </div>
 
-      <!-- Bid Form Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-        <div class="sm:col-span-2 space-y-1.5">
+      <!-- Bid Form Inputs (Requested Quantity & Bid Rate) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Input 1: Requested Quantity in Kg -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-extrabold text-sky-200 block flex items-center justify-between">
+            <span>Requested Quantity (Kg) <span class="text-rose-400">*</span></span>
+            <span class="text-[11px] text-sky-300 font-semibold">Max Available: {{ auc.quantityKg }} Kg</span>
+          </label>
+          <div class="relative">
+            <input
+              type="number"
+              min="1"
+              [max]="auc.quantityKg"
+              step="1"
+              placeholder="e.g. {{ auc.quantityKg }}"
+              [ngModel]="requestedQuantityInput()"
+              (ngModelChange)="requestedQuantityInput.set($event)"
+              class="w-full px-4 py-3 rounded-2xl border border-sky-700/60 bg-slate-900/80 text-white font-extrabold text-base focus:ring-2 focus:ring-amber-400 focus:outline-none placeholder:text-slate-500"
+            />
+          </div>
+          <p class="text-[11px] text-sky-300/80 font-medium">
+            ⚖️ Equivalent Man: <span class="font-extrabold text-amber-300 text-xs">{{ requestedMan() }} Man</span> (1 Man = 20 Kg)
+          </p>
+        </div>
+
+        <!-- Input 2: Bid Amount Rate (₹ per Man) -->
+        <div class="space-y-1.5">
           <label class="text-xs font-extrabold text-sky-200 block">
-            Your Bid Amount (₹ per 20 Kg / Man) <span class="text-rose-400">*</span>
+            Bid Rate (₹ per 20 Kg / Man) <span class="text-rose-400">*</span>
           </label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">₹</span>
@@ -256,34 +303,35 @@
             />
           </div>
           <p class="text-[11px] text-sky-300/80 font-medium">
-            💡 1 Man = 20 Kg. Enter bid rate per 20 Kg lot (must be at least ₹{{ minNextBid() }}/Man).
+            💰 Estimated Max Payable: <span class="font-extrabold text-amber-300 text-xs">₹{{ estimatedTotalPayable() | number:'1.0-2' }}</span>
           </p>
         </div>
+      </div>
 
-        <div>
-          <button
-            mat-flat-button
-            (click)="placeBid()"
-            [disabled]="placingBid()"
-            class="!bg-gradient-to-r !from-amber-400 !to-yellow-500 !text-slate-950 hover:!from-amber-300 hover:!to-yellow-400 !rounded-2xl text-sm !font-black w-full !py-3 shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95"
-          >
-            <mat-icon>gavel</mat-icon>
-            <span>{{ placingBid() ? 'Placing Bid...' : 'PLACE BID NOW' }}</span>
-          </button>
-        </div>
+      <!-- Submit Bid Button -->
+      <div class="pt-2">
+        <button
+          mat-flat-button
+          (click)="placeBid()"
+          [disabled]="placingBid()"
+          class="!bg-gradient-to-r !from-amber-400 !to-yellow-500 !text-slate-950 hover:!from-amber-300 hover:!to-yellow-400 !rounded-2xl text-sm !font-black w-full !py-3.5 shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95"
+        >
+          <mat-icon>gavel</mat-icon>
+          <span>{{ placingBid() ? 'Placing Bid...' : 'PLACE BID FOR ' + requestedMan() + ' MAN (₹' + estimatedTotalPayable() + ')' }}</span>
+        </button>
       </div>
 
       <!-- Quick Bid Suggestions -->
       <div class="flex items-center gap-2 pt-1 text-xs flex-wrap">
-        <span class="text-sky-300 font-semibold text-[11px]">Quick Bid:</span>
+        <span class="text-sky-300 font-semibold text-[11px]">Quick Bid Rates:</span>
         <button (click)="bidAmountInput.set(minNextBid())" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
-          ₹{{ minNextBid() }}
+          ₹{{ minNextBid() }} / Man
         </button>
         <button (click)="bidAmountInput.set(minNextBid() + (auc.minimumBidIncrement || 10))" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
-          ₹{{ minNextBid() + (auc.minimumBidIncrement || 10) }}
+          ₹{{ minNextBid() + (auc.minimumBidIncrement || 10) }} / Man
         </button>
         <button (click)="bidAmountInput.set(minNextBid() + ((auc.minimumBidIncrement * 2) || 20))" class="px-3 py-1 rounded-xl bg-sky-800/40 hover:bg-sky-800/80 border border-sky-600/30 text-white text-xs font-bold transition-colors">
-          ₹{{ minNextBid() + ((auc.minimumBidIncrement * 2) || 20) }}
+          ₹{{ minNextBid() + ((auc.minimumBidIncrement * 2) || 20) }} / Man
         </button>
       </div>
     </div>
@@ -304,7 +352,9 @@
             </div>
             <div>
               <span class="font-extrabold text-slate-900 dark:text-white block">{{ b.customerName }}</span>
-              <span class="text-[10px] text-slate-500 font-mono">{{ b.bidTimeUtc | date:'shortTime' }}</span>
+              <span class="text-[10px] text-slate-500 font-mono">
+                Requested: {{ b.requestedQuantityKg }} Kg ({{ b.requestedQuantityMan }} Man) | {{ b.bidTimeUtc | date:'shortTime' }}
+              </span>
             </div>
           </div>
 
@@ -313,7 +363,7 @@
               ₹{{ b.amount }} / Man
             </span>
             <span *ngIf="first" class="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase">
-              Highest Bid
+              Highest Rate
             </span>
           </div>
         </div>

@@ -18,23 +18,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
-    if (dbContext.Database.IsRelational())
+    try
     {
-        try
-        {
-            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
-            if (pendingMigrations.Any())
-            {
-                await dbContext.Database.MigrateAsync();
-            }
-        }
-        catch
-        {
-            // Ignore migration execution errors in WebApplicationFactory test contexts using EnsureCreated
-        }
+        dbContext.Database.EnsureCreated();
+    }
+    catch
+    {
+        // Fallback for custom environment configurations
     }
 }
 
+await DatabaseSchemaMigrationSeeder.EnsureSchemaUpdatedAsync(app.Services);
 await IdentityRoleSeeder.SeedRolesAsync(app.Services);
 await AssignmentBackfillSeeder.SyncAcceptedAssignmentsAsync(app.Services);
 

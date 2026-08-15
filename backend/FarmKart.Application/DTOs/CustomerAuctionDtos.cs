@@ -37,7 +37,10 @@ public sealed record CustomerAuctionFilterRequest(
 
 public sealed record PlaceBidRequest(
     [Range(0.01, 999999999999.99, ErrorMessage = "Bid amount must be greater than zero.")]
-    decimal Amount
+    decimal Amount,
+
+    [Range(0.01, 999999999999.99, ErrorMessage = "Requested quantity must be greater than zero.")]
+    decimal? RequestedQuantityKg = null
 );
 
 public sealed record AuctionBidResponse(
@@ -46,8 +49,26 @@ public sealed record AuctionBidResponse(
     Guid CustomerProfileId,
     string CustomerName,
     decimal Amount,
+    decimal RequestedQuantityKg,
+    decimal RequestedQuantityMan,
     DateTime BidTimeUtc,
     string BidStatus
+);
+
+public sealed record AuctionAllocationResponse(
+    Guid AllocationId,
+    Guid AuctionId,
+    Guid BidId,
+    Guid CustomerProfileId,
+    string CustomerName,
+    decimal RequestedQuantityKg,
+    decimal AllocatedQuantityKg,
+    decimal RequestedQuantityMan,
+    decimal AllocatedQuantityMan,
+    decimal WinningBidAmountPerMan,
+    decimal TotalPayableAmount,
+    string Status,
+    DateTime FinalizedAtUtc
 );
 
 public sealed record CustomerMyBidResponse(
@@ -60,11 +81,16 @@ public sealed record CustomerMyBidResponse(
     decimal Quantity,
     string Unit,
     decimal QuantityMan,
+    decimal RequestedQuantityKg,
+    decimal RequestedQuantityMan,
     decimal CustomerBidAmount,
     decimal CurrentHighestBid,
     decimal MinimumBidIncrement,
+    decimal? AllocatedQuantityKg,
+    decimal? AllocatedQuantityMan,
     string AuctionStatus,
     string CustomerBidStatus,
+    string? AllocationStatus,
     DateTime BidTimeUtc,
     DateTime StartTimeUtc,
     DateTime EndTimeUtc,
@@ -79,12 +105,16 @@ public sealed record AuctionResultResponse(
     decimal Quantity,
     string Unit,
     decimal QuantityMan,
+    decimal TotalAuctionQuantityKg,
+    decimal TotalAllocatedQuantityKg,
+    decimal RemainingQuantityKg,
     string AuctionStatus,
     bool HasWinner,
     decimal? WinningBidAmount,
     string? WinnerCustomerName,
     Guid? WinnerCustomerProfileId,
     int TotalBids,
+    IReadOnlyList<AuctionAllocationResponse> Allocations,
     DateTime StartTimeUtc,
     DateTime EndTimeUtc,
     DateTime? FinalizedAtUtc,

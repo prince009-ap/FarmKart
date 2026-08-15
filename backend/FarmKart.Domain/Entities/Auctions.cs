@@ -17,8 +17,10 @@ public sealed class Auction : BaseEntity
     public AuctionStatus AuctionStatus { get; set; } = AuctionStatus.Draft;
 
     public ICollection<Bid> Bids { get; set; } = [];
+    public ICollection<AuctionAllocation> Allocations { get; set; } = [];
     public AuctionWinner? AuctionWinner { get; set; }
-    public AuctionPayment? AuctionPayment { get; set; }
+    public ICollection<AuctionPayment> AuctionPayments { get; set; } = [];
+    public AuctionPayment? AuctionPayment => AuctionPayments.FirstOrDefault();
 }
 
 public sealed class Bid : BaseEntity
@@ -28,8 +30,24 @@ public sealed class Bid : BaseEntity
     public Guid CustomerProfileId { get; set; }
     public CustomerProfile CustomerProfile { get; set; } = null!;
     public decimal Amount { get; set; }
+    public decimal RequestedQuantityKg { get; set; }
     public DateTime BidTimeUtc { get; set; } = DateTime.UtcNow;
     public BidStatus BidStatus { get; set; } = BidStatus.Active;
+}
+
+public sealed class AuctionAllocation : BaseEntity
+{
+    public Guid AuctionId { get; set; }
+    public Auction Auction { get; set; } = null!;
+    public Guid BidId { get; set; }
+    public Bid Bid { get; set; } = null!;
+    public Guid CustomerProfileId { get; set; }
+    public CustomerProfile CustomerProfile { get; set; } = null!;
+    public decimal RequestedQuantityKg { get; set; }
+    public decimal AllocatedQuantityKg { get; set; }
+    public decimal WinningBidAmountPerMan { get; set; }
+    public AllocationStatus Status { get; set; } = AllocationStatus.Won;
+    public DateTime FinalizedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public sealed class AuctionWinner : BaseEntity
@@ -51,6 +69,7 @@ public sealed class AuctionPayment : BaseEntity
     public Guid CustomerProfileId { get; set; }
     public CustomerProfile CustomerProfile { get; set; } = null!;
     public decimal Amount { get; set; }
+    public decimal AllocatedQuantityKg { get; set; }
     public string Currency { get; set; } = "INR";
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Other;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;

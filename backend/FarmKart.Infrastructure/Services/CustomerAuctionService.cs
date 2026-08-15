@@ -12,91 +12,105 @@ namespace FarmKart.Infrastructure.Services;
 
 public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICustomerAuctionService
 {
+
     public async Task<IReadOnlyList<CustomerAuctionResponse>> GetMarketplaceAuctionsAsync(
-        CustomerAuctionFilterRequest filter,
+        CustomerAuctionFilterRequest? filter = null,
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
 
         var query = dbContext.Auctions
             .AsNoTracking()
-            .Include(a => a.FarmerProfile)
-            .Include(a => a.CropListing)
-                .ThenInclude(l => l.Crop)
-                    .ThenInclude(c => c.Images)
             .Include(a => a.CropListing)
                 .ThenInclude(l => l.Crop)
                     .ThenInclude(c => c.FarmerProfile)
+            .Include(a => a.CropListing)
+                .ThenInclude(l => l.Crop)
+                    .ThenInclude(c => c.Images)
+            .Include(a => a.FarmerProfile)
             .Where(a => a.AuctionStatus != AuctionStatus.Cancelled && a.AuctionStatus != AuctionStatus.Draft);
+
+        if (!string.IsNullOrWhiteSpace(filter?.Search))
+        {
+            var search = filter.Search.Trim().ToLower();
+            query = query.Where(a =>
+                a.CropListing.Crop.CropName.ToLower().Contains(search) ||
+                (a.CropListing.Crop.Variety != null && a.CropListing.Crop.Variety.ToLower().Contains(search)) ||
+                a.CropListing.Crop.CropType.ToLower().Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter?.Category))
+        {
+            var category = filter.Category.Trim().ToLower();
+            query = query.Where(a => a.CropListing.Crop.CropType.ToLower() == category);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter?.Location))
+        {
+            var location = filter.Location.Trim().ToLower();
+            query = query.Where(a =>
+                (a.FarmerProfile != null && a.FarmerProfile.FarmLocation.ToLower().Contains(location)) ||
+                (a.CropListing.Crop.FarmerProfile != null && a.CropListing.Crop.FarmerProfile.FarmLocation.ToLower().Contains(location)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter?.Status))
+        {
+            var status = filter.Status.Trim().ToUpper();
+            if (status == "LIVE")
+            {
+                query = query.Where(a => a.StartTimeUtc <= now && now <= a.EndTimeUtc);
+            }
+            else if (status == "UPCOMING")
+            {
+                query = query.Where(a => now < a.StartTimeUtc);
+            }
+            else if (status == "ENDED")
+            {
+                query = query.Where(a => now > a.EndTimeUtc);
+            }
+        }
 
         var auctions = await query.ToListAsync(cancellationToken);
 
-        var responseList = auctions.Select(a => MapToResponse(a, now)).ToList();
-
-        // Apply Search filter
-        if (!string.IsNullOrWhiteSpace(filter.Search))
+        if (!string.IsNullOrWhiteSpace(filter?.SortBy))
         {
-            var search = filter.Search.Trim().ToLower();
-            responseList = responseList.Where(a =>
-                a.CropName.ToLower().Contains(search) ||
-                (a.Variety != null && a.Variety.ToLower().Contains(search)) ||
-                a.CropType.ToLower().Contains(search) ||
-                a.FarmerName.ToLower().Contains(search) ||
-                a.FarmLocation.ToLower().Contains(search)
-            ).ToList();
+            var sortBy = filter.SortBy.Trim().ToLower();
+            auctions = sortBy switch
+            {
+                "ending_soon" => auctions.OrderBy(a => a.EndTimeUtc).ToList(),
+                "price_low" => auctions.OrderBy(a => a.StartingPrice).ToList(),
+                "price_high" => auctions.OrderByDescending(a => a.StartingPrice).ToList(),
+                "highest_bid" => auctions.OrderByDescending(a => a.CurrentHighestBid).ToList(),
+                "newest" => auctions.OrderByDescending(a => a.CreatedAtUtc).ToList(),
+                _ => auctions.OrderBy(a => a.EndTimeUtc).ToList()
+            };
+        }
+        else
+        {
+            auctions = auctions.OrderBy(a => a.EndTimeUtc).ToList();
         }
 
-        // Apply Category filter
-        if (!string.IsNullOrWhiteSpace(filter.Category) && !filter.Category.Equals("All", StringComparison.OrdinalIgnoreCase))
-        {
-            var category = filter.Category.Trim().ToLower();
-            responseList = responseList.Where(a => a.CropType.ToLower() == category).ToList();
-        }
-
-        // Apply Status filter (LIVE, UPCOMING, ENDED)
-        if (!string.IsNullOrWhiteSpace(filter.Status) && !filter.Status.Equals("All", StringComparison.OrdinalIgnoreCase))
-        {
-            var status = filter.Status.Trim().ToUpper();
-            responseList = responseList.Where(a => a.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-
-        // Apply Location filter
-        if (!string.IsNullOrWhiteSpace(filter.Location) && !filter.Location.Equals("All", StringComparison.OrdinalIgnoreCase))
-        {
-            var loc = filter.Location.Trim().ToLower();
-            responseList = responseList.Where(a => a.FarmLocation.ToLower().Contains(loc)).ToList();
-        }
-
-        // Apply Sorting
-        responseList = (filter.SortBy?.ToLower()) switch
-        {
-            "ending_soon" => responseList.OrderBy(a => a.EndTimeUtc).ToList(),
-            "price_asc" => responseList.OrderBy(a => a.StartingBidPrice).ToList(),
-            "price_desc" => responseList.OrderByDescending(a => a.StartingBidPrice).ToList(),
-            _ => responseList.OrderByDescending(a => a.CreatedAtUtc).ToList()
-        };
-
-        return responseList;
+        return auctions.Select(a => MapToResponse(a, now)).ToList();
     }
 
-    public async Task<CustomerAuctionResponse> GetAuctionByIdAsync(Guid auctionId, CancellationToken cancellationToken = default)
+    public async Task<CustomerAuctionResponse> GetAuctionByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
 
         var auction = await dbContext.Auctions
             .AsNoTracking()
-            .Include(a => a.FarmerProfile)
-            .Include(a => a.CropListing)
-                .ThenInclude(l => l.Crop)
-                    .ThenInclude(c => c.Images)
             .Include(a => a.CropListing)
                 .ThenInclude(l => l.Crop)
                     .ThenInclude(c => c.FarmerProfile)
-            .FirstOrDefaultAsync(a => a.Id == auctionId && a.AuctionStatus != AuctionStatus.Cancelled && a.AuctionStatus != AuctionStatus.Draft, cancellationToken);
+            .Include(a => a.CropListing)
+                .ThenInclude(l => l.Crop)
+                    .ThenInclude(c => c.Images)
+            .Include(a => a.FarmerProfile)
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
-        if (auction == null)
+        if (auction == null || auction.AuctionStatus == AuctionStatus.Cancelled || auction.AuctionStatus == AuctionStatus.Draft)
         {
-            throw new KeyNotFoundException($"Auction with ID '{auctionId}' was not found.");
+            throw new KeyNotFoundException($"Marketplace auction with ID '{id}' was not found.");
         }
 
         return MapToResponse(auction, now);
@@ -118,6 +132,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
 
         var auction = await dbContext.Auctions
             .Include(a => a.Bids)
+            .Include(a => a.CropListing)
+                .ThenInclude(l => l.Crop)
             .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken);
 
         if (auction == null || auction.AuctionStatus == AuctionStatus.Cancelled || auction.AuctionStatus == AuctionStatus.Draft)
@@ -136,7 +152,21 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             throw new InvalidOperationException("Auction has ended. Bids are no longer accepted.");
         }
 
-        // Concurrency-safe bid evaluation using database transaction
+        var availableKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
+        var requestedKg = request.RequestedQuantityKg.HasValue && request.RequestedQuantityKg.Value > 0
+            ? request.RequestedQuantityKg.Value
+            : availableKg;
+
+        if (requestedKg <= 0)
+        {
+            throw new InvalidOperationException("Requested quantity must be greater than zero.");
+        }
+
+        if (requestedKg > availableKg)
+        {
+            throw new InvalidOperationException($"Requested quantity exceeds the available auction quantity. Available: {availableKg:0.##} Kg, Requested: {requestedKg:0.##} Kg.");
+        }
+
         var executionStrategy = dbContext.Database.CreateExecutionStrategy();
 
         return await executionStrategy.ExecuteAsync(async () =>
@@ -165,7 +195,6 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 }
             }
 
-            // Verify minimum increment step requirement relative to starting price
             var delta = request.Amount - auction.StartingPrice;
             if (delta < 0 || (auction.MinimumBidIncrement > 0 && Math.Abs((delta % auction.MinimumBidIncrement)) > 0.0001m))
             {
@@ -177,13 +206,13 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 AuctionId = auctionId,
                 CustomerProfileId = customerProfile.Id,
                 Amount = request.Amount,
+                RequestedQuantityKg = requestedKg,
                 BidTimeUtc = now,
                 BidStatus = BidStatus.Active
             };
 
             dbContext.Bids.Add(newBid);
 
-            // Update current highest bid on auction entity
             auction.CurrentHighestBid = request.Amount;
             if (auction.AuctionStatus == AuctionStatus.Scheduled && now >= auction.StartTimeUtc)
             {
@@ -193,12 +222,16 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
+            var requestedMan = AuctionPricingConstants.ConvertKgToMan(requestedKg);
+
             return new AuctionBidResponse(
                 Id: newBid.Id,
                 AuctionId: auctionId,
                 CustomerProfileId: customerProfile.Id,
                 CustomerName: customerProfile.FullName,
                 Amount: newBid.Amount,
+                RequestedQuantityKg: requestedKg,
+                RequestedQuantityMan: requestedMan,
                 BidTimeUtc: newBid.BidTimeUtc,
                 BidStatus: "HIGHEST BID"
             );
@@ -216,15 +249,23 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
 
         var highestAmount = bids.Count > 0 ? bids.Max(b => b.Amount) : 0m;
 
-        return bids.Select(b => new AuctionBidResponse(
-            Id: b.Id,
-            AuctionId: b.AuctionId,
-            CustomerProfileId: b.CustomerProfileId,
-            CustomerName: b.CustomerProfile.FullName,
-            Amount: b.Amount,
-            BidTimeUtc: b.BidTimeUtc,
-            BidStatus: b.Amount == highestAmount ? "HIGHEST BID" : "OUTBID"
-        )).ToList();
+        return bids.Select(b =>
+        {
+            var reqKg = b.RequestedQuantityKg > 0 ? b.RequestedQuantityKg : 0m;
+            var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
+
+            return new AuctionBidResponse(
+                Id: b.Id,
+                AuctionId: b.AuctionId,
+                CustomerProfileId: b.CustomerProfileId,
+                CustomerName: b.CustomerProfile.FullName,
+                Amount: b.Amount,
+                RequestedQuantityKg: reqKg,
+                RequestedQuantityMan: reqMan,
+                BidTimeUtc: b.BidTimeUtc,
+                BidStatus: b.Amount == highestAmount ? "HIGHEST BID" : "OUTBID"
+            );
+        }).ToList();
     }
 
     public async Task<IReadOnlyList<CustomerMyBidResponse>> GetCustomerBidsAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -245,7 +286,9 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 .ThenInclude(a => a.CropListing)
                     .ThenInclude(l => l.Crop)
                         .ThenInclude(c => c.Images)
-            .Where(b => b.CustomerProfileId == customerProfile.Id && b.BidStatus == BidStatus.Active)
+            .Include(b => b.Auction)
+                .ThenInclude(a => a.Allocations)
+            .Where(b => b.CustomerProfileId == customerProfile.Id)
             .OrderByDescending(b => b.BidTimeUtc)
             .ToListAsync(cancellationToken);
 
@@ -257,7 +300,11 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             var crop = auction.CropListing.Crop;
 
             string auctionComputedStatus;
-            if (now < auction.StartTimeUtc)
+            if (auction.AuctionStatus == AuctionStatus.Cancelled)
+            {
+                auctionComputedStatus = "CANCELLED";
+            }
+            else if (now < auction.StartTimeUtc)
             {
                 auctionComputedStatus = "UPCOMING";
             }
@@ -277,6 +324,14 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             var kgForBid = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
             var manForBid = AuctionPricingConstants.ConvertKgToMan(kgForBid);
 
+            var reqKg = bid.RequestedQuantityKg > 0 ? bid.RequestedQuantityKg : kgForBid;
+            var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
+
+            var allocation = auction.Allocations.FirstOrDefault(a => a.BidId == bid.Id);
+            decimal? allocKg = allocation?.AllocatedQuantityKg;
+            decimal? allocMan = allocKg.HasValue ? AuctionPricingConstants.ConvertKgToMan(allocKg.Value) : null;
+            string? allocStatus = allocation?.Status.ToString().ToUpper();
+
             result.Add(new CustomerMyBidResponse(
                 BidId: bid.Id,
                 AuctionId: auction.Id,
@@ -287,11 +342,16 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 Quantity: auction.CropListing.QuantityForSale,
                 Unit: CropStockUnitConverter.Format(auction.CropListing.Unit),
                 QuantityMan: manForBid,
+                RequestedQuantityKg: reqKg,
+                RequestedQuantityMan: reqMan,
                 CustomerBidAmount: bid.Amount,
                 CurrentHighestBid: auction.CurrentHighestBid,
                 MinimumBidIncrement: auction.MinimumBidIncrement,
+                AllocatedQuantityKg: allocKg,
+                AllocatedQuantityMan: allocMan,
                 AuctionStatus: auctionComputedStatus,
                 CustomerBidStatus: customerBidStatus,
+                AllocationStatus: allocStatus,
                 BidTimeUtc: bid.BidTimeUtc,
                 StartTimeUtc: auction.StartTimeUtc,
                 EndTimeUtc: auction.EndTimeUtc,
@@ -345,8 +405,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             StartingBidPrice: auction.StartingPrice,
             CurrentHighestBid: auction.CurrentHighestBid,
             MinimumBidIncrement: auction.MinimumBidIncrement,
-            FarmerName: farmer.FullName,
-            FarmLocation: farmer.FarmLocation,
+            FarmerName: farmer?.FullName ?? "Farmer",
+            FarmLocation: farmer?.FarmLocation ?? "Location N/A",
             StartTimeUtc: auction.StartTimeUtc,
             EndTimeUtc: auction.EndTimeUtc,
             Status: computedStatus,

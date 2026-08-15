@@ -46,6 +46,7 @@ public sealed class BidConfiguration : IEntityTypeConfiguration<Bid>
         builder.ConfigureBaseEntity();
 
         builder.Property(bid => bid.Amount).HasPrecision(18, 2);
+        builder.Property(bid => bid.RequestedQuantityKg).HasPrecision(18, 2);
         builder.HasIndex(bid => bid.AuctionId);
         builder.HasIndex(bid => bid.CustomerProfileId);
 
@@ -57,6 +58,43 @@ public sealed class BidConfiguration : IEntityTypeConfiguration<Bid>
         builder.HasOne(bid => bid.CustomerProfile)
             .WithMany(customer => customer.Bids)
             .HasForeignKey(bid => bid.CustomerProfileId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class AuctionAllocationConfiguration : IEntityTypeConfiguration<AuctionAllocation>
+{
+    public void Configure(EntityTypeBuilder<AuctionAllocation> builder)
+    {
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_AuctionAllocation_Quantities_Valid", "[RequestedQuantityKg] > 0 AND [AllocatedQuantityKg] >= 0");
+        });
+
+        builder.ConfigureBaseEntity();
+
+        builder.Property(a => a.RequestedQuantityKg).HasPrecision(18, 2);
+        builder.Property(a => a.AllocatedQuantityKg).HasPrecision(18, 2);
+        builder.Property(a => a.WinningBidAmountPerMan).HasPrecision(18, 2);
+        builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
+
+        builder.HasIndex(a => a.AuctionId);
+        builder.HasIndex(a => a.CustomerProfileId);
+        builder.HasIndex(a => a.BidId);
+
+        builder.HasOne(a => a.Auction)
+            .WithMany(auction => auction.Allocations)
+            .HasForeignKey(a => a.AuctionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(a => a.CustomerProfile)
+            .WithMany()
+            .HasForeignKey(a => a.CustomerProfileId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(a => a.Bid)
+            .WithMany()
+            .HasForeignKey(a => a.BidId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -105,14 +143,15 @@ public sealed class AuctionPaymentConfiguration : IEntityTypeConfiguration<Aucti
         builder.ConfigureBaseEntity();
 
         builder.Property(payment => payment.Amount).HasPrecision(18, 2);
+        builder.Property(payment => payment.AllocatedQuantityKg).HasPrecision(18, 2);
         builder.Property(payment => payment.Currency).HasMaxLength(10);
         builder.Property(payment => payment.TransactionReference).HasMaxLength(150);
 
-        builder.HasIndex(payment => payment.AuctionId).IsUnique();
+        builder.HasIndex(payment => new { payment.AuctionId, payment.CustomerProfileId });
 
         builder.HasOne(payment => payment.Auction)
-            .WithOne(auction => auction.AuctionPayment)
-            .HasForeignKey<AuctionPayment>(payment => payment.AuctionId)
+            .WithMany(auction => auction.AuctionPayments)
+            .HasForeignKey(payment => payment.AuctionId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(payment => payment.CustomerProfile)

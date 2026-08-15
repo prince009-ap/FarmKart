@@ -37,8 +37,26 @@ export interface AuctionBid {
   customerProfileId: string;
   customerName: string;
   amount: number;
+  requestedQuantityKg: number;
+  requestedQuantityMan: number;
   bidTimeUtc: string;
   bidStatus: string;
+}
+
+export interface AuctionAllocation {
+  allocationId: string;
+  auctionId: string;
+  bidId: string;
+  customerProfileId: string;
+  customerName: string;
+  requestedQuantityKg: number;
+  allocatedQuantityKg: number;
+  requestedQuantityMan: number;
+  allocatedQuantityMan: number;
+  winningBidAmountPerMan: number;
+  totalPayableAmount: number;
+  status: 'WON' | 'PARTIALLY_WON' | 'LOST' | string;
+  finalizedAtUtc: string;
 }
 
 export interface AuctionResult {
@@ -49,16 +67,20 @@ export interface AuctionResult {
   quantity: number;
   unit: string;
   quantityMan: number;
+  totalAuctionQuantityKg: number;
+  totalAllocatedQuantityKg: number;
+  remainingQuantityKg: number;
   auctionStatus: string;
   hasWinner: boolean;
   winningBidAmount?: number | null;
   winnerCustomerName?: string | null;
   winnerCustomerProfileId?: string | null;
   totalBids: number;
+  allocations: AuctionAllocation[];
   startTimeUtc: string;
   endTimeUtc: string;
   finalizedAtUtc?: string | null;
-  customerResultStatus?: 'WON' | 'LOST' | 'DID NOT BID' | 'NO WINNER' | string | null;
+  customerResultStatus?: 'WON' | 'PARTIALLY_WON' | 'LOST' | 'DID NOT BID' | 'NO WINNER' | string | null;
   serverTimeUtc: string;
 }
 
@@ -72,11 +94,16 @@ export interface CustomerMyBid {
   quantity: number;
   unit: string;
   quantityMan: number;
+  requestedQuantityKg: number;
+  requestedQuantityMan: number;
   customerBidAmount: number;
   currentHighestBid: number;
   minimumBidIncrement: number;
+  allocatedQuantityKg?: number | null;
+  allocatedQuantityMan?: number | null;
   auctionStatus: string;
-  customerBidStatus: 'HIGHEST BID' | 'OUTBID' | 'WON' | 'LOST' | string;
+  customerBidStatus: 'HIGHEST BID' | 'OUTBID' | 'WON' | 'PARTIALLY_WON' | 'LOST' | string;
+  allocationStatus?: 'WON' | 'PARTIALLY_WON' | 'LOST' | string | null;
   bidTimeUtc: string;
   startTimeUtc: string;
   endTimeUtc: string;
@@ -92,6 +119,8 @@ export interface AuctionPayment {
   quantity: number;
   unit: string;
   quantityMan: number;
+  allocatedQuantityKg: number;
+  allocatedQuantityMan: number;
   winningBidAmount: number;
   totalPayableAmount: number;
   currency: string;
@@ -115,6 +144,8 @@ export interface CustomerPaymentHistory {
   quantity: number;
   unit: string;
   quantityMan: number;
+  allocatedQuantityKg: number;
+  allocatedQuantityMan: number;
   winningBidAmount: number;
   totalPayableAmount: number;
   currency: string;

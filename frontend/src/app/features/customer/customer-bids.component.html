@@ -7,7 +7,7 @@
         My Auction Bids
       </h1>
       <p class="text-xs font-semibold text-slate-500">
-        Track your live placed bids, winning status, and completed auction outcomes.
+        Track your live placed bids, requested quantities, allocated quantities, and auction outcomes.
       </p>
     </div>
 
@@ -52,16 +52,16 @@
     <div *ngFor="let item of bids()" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
       
       <div class="space-y-3">
-        <!-- Top Row: Category & Status Badge -->
+        <!-- Top Row: Category & Allocation Status Badge -->
         <div class="flex items-center justify-between gap-2">
           <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase tracking-wider">
             {{ item.cropType }}
           </span>
 
           <span class="px-3 py-1 rounded-full text-xs font-black border tracking-wider flex items-center gap-1.5 shadow-sm"
-            [ngClass]="getBidStatusBadgeClass(item.customerBidStatus, item.auctionStatus)">
-            <mat-icon *ngIf="item.auctionStatus === 'ENDED' && (item.customerBidStatus === 'HIGHEST BID' || item.customerBidStatus === 'WON')" class="!w-4 !h-4 text-xs text-amber-500">emoji_events</mat-icon>
-            {{ item.auctionStatus === 'ENDED' ? (item.customerBidStatus === 'HIGHEST BID' || item.customerBidStatus === 'WON' ? '🏆 WON' : 'LOST') : item.customerBidStatus }}
+            [ngClass]="getBidStatusBadgeClass(item.customerBidStatus, item.auctionStatus, item.allocationStatus)">
+            <mat-icon *ngIf="item.auctionStatus === 'ENDED' && (item.allocationStatus === 'WON' || item.allocationStatus === 'PARTIALLY_WON')" class="!w-4 !h-4 text-xs text-amber-500">emoji_events</mat-icon>
+            {{ item.auctionStatus === 'ENDED' ? (item.allocationStatus || item.customerBidStatus) : item.customerBidStatus }}
           </span>
         </div>
 
@@ -75,21 +75,28 @@
               {{ item.cropName }}
             </h3>
             <p class="text-xs font-semibold text-slate-500">
-              Quantity: {{ item.quantity }} {{ item.unit }} <span class="text-sky-600 font-bold">({{ item.quantityMan }} Man)</span>
+              Auction Total: {{ item.quantity }} {{ item.unit }} <span class="text-sky-600 font-bold">({{ item.quantityMan }} Man)</span>
             </p>
           </div>
         </div>
 
-        <!-- Bidding Stats Grid -->
+        <!-- Bidding & Allocation Stats Grid -->
         <div class="grid grid-cols-2 gap-2.5 pt-2">
           <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-            <span class="text-[10px] font-bold text-slate-400 uppercase block">Your Bid</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Your Bid Rate</span>
             <span class="text-sm font-extrabold text-sky-600 dark:text-sky-400">₹{{ item.customerBidAmount }} / Man</span>
           </div>
 
           <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-            <span class="text-[10px] font-bold text-slate-400 uppercase block">{{ item.auctionStatus === 'ENDED' ? 'Final Winning' : 'Highest Bid' }}</span>
-            <span class="text-sm font-extrabold text-slate-900 dark:text-white">₹{{ item.currentHighestBid }} / Man</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Requested Quantity</span>
+            <span class="text-xs font-extrabold text-slate-900 dark:text-white">{{ item.requestedQuantityKg }} Kg ({{ item.requestedQuantityMan }} Man)</span>
+          </div>
+
+          <div *ngIf="item.allocatedQuantityKg !== undefined && item.allocatedQuantityKg !== null" class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/60 col-span-2">
+            <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase block">Allocated Quantity</span>
+            <span class="text-sm font-black text-emerald-800 dark:text-emerald-300">
+              {{ item.allocatedQuantityKg }} Kg ({{ item.allocatedQuantityMan }} Man)
+            </span>
           </div>
         </div>
 

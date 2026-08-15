@@ -53,8 +53,8 @@ export class CustomerAuctionService {
     );
   }
 
-  placeBid(auctionId: string, amount: number): Observable<AuctionBid> {
-    return this.http.post<AuctionBid>(`${this.apiUrl}/${auctionId}/bids`, { amount });
+  placeBid(auctionId: string, amount: number, requestedQuantityKg?: number | null): Observable<AuctionBid> {
+    return this.http.post<AuctionBid>(`${this.apiUrl}/${auctionId}/bids`, { amount, requestedQuantityKg });
   }
 
   getAuctionBids(auctionId: string): Observable<AuctionBid[]> {

@@ -32,6 +32,7 @@
   - [x] Phase 6.6: Customer Bidding System
   - [x] Phase 6.7: Auction Ending and Winner Finalization
   - [x] Phase 6.8: Auction Winner Payment / Checkout
+  - [x] Phase 6.9: Multi-Quantity Auction / Partial Allocation System
   - [x] Safe Pricing Model Change: ₹ per 20 Kg (₹ per Man) Across System
   - [x] Farmer Auction UI Fixes: Timezone Display & Auction Visibility
 - [ ] Phase 7: Marketplace and crop selling flows
@@ -448,6 +449,31 @@
 - [x] **Unit & Integration Tests**:
   - Added 26 backend tests in `FarmerAuctionDurationTests.cs` verifying duration parsing, end-time calculation, dynamic status checks, and API integration.
   - Added 12 frontend unit tests in `auction-countdown.component.spec.ts` covering status transitions, formatting, server offset sync, and lifecycle cleanup (**208 / 208 total frontend unit tests passing**).
+
+## Phase 6.9 Deliverables — Farmer Auction Management & Live Bids Dashboard
+
+- [x] **Farmer Sidebar & Routing**:
+  - Added `My Auctions` (`/farmer/auctions`) link with `gavel` icon to `farmer-shell.component.ts`.
+  - Registered `/farmer/auctions`, `/farmer/auctions/:id`, and `/farmer/auctions/:id/bids` in `app.routes.ts` protected by `authGuard` and `roleGuard`.
+- [x] **My Auctions Page (`/farmer/auctions`)**:
+  - Real-time summary header cards (Total Auctions, Upcoming, Live, Ended).
+  - Client-side status filter tabs (All, Live, Upcoming, Ended, Cancelled) and search box (crop name & variety).
+  - Auction cards displaying crop image, variety, quantity (Kg & Man), starting price (₹/Man), current highest bid (₹/Man), total bids count, total demand (Kg & %), status badge (🔴 LIVE, 🟡 UPCOMING, ⚫ ENDED, ⚪ CANCELLED), `app-auction-countdown`, and action buttons `[ VIEW AUCTION ]` & `[ VIEW BIDS ]`.
+- [x] **View Auction Page (`/farmer/auctions/:id`)**:
+  - Complete details sections: Auction Information, Crop Info, Quantity/Stock, Pricing, Timeline, Live Bidding Activity banner, Final Allocation Summary table (for Ended auctions), and Payment Summary.
+- [x] **View Bids Page (`/farmer/auctions/:id/bids`)**:
+  - Metric banner header displaying Total Demand Kg, Demand %, Total Bids.
+  - Custom sort dropdown (Highest Bid, Lowest Bid, Highest Quantity, Latest Bid, Earliest Bid).
+  - Responsive table and cards displaying Customer Name (Public full name ONLY), Requested Quantity (Kg & Man), Bid Price / Man, Bid Time (Local timezone), Bid Status (`VALID`), and Allocation Status (`WON`, `PARTIALLY_WON`, `LOST`).
+- [x] **Security & Authorization**:
+  - Authenticated user + Farmer role + Farmer ownership check enforced across all backend APIs. Returns 404/403 for unowned requests. Customer credentials (email, password, tokens, internal IDs) are strictly omitted.
+- [x] **Real-Time Polling & Pricing Consistency**:
+  - Safe 5-second polling on live views for active live auctions.
+  - All pricing consistently rendered in **₹ / Man** ($1\text{ Man} = 20\text{ Kg}$).
+- [x] **Automated Tests**:
+  - Backend integration tests in `FarmerAuctionManagementTests.cs` (4/4 passing).
+  - Frontend unit tests for `FarmerAuctionsComponent`, `FarmerAuctionDetailComponent`, and `FarmerAuctionBidsComponent` (**217 / 217 total frontend unit tests passing**).
+
 
 
 

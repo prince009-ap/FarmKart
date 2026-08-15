@@ -21,6 +21,8 @@ describe('CustomerPaymentsComponent', () => {
       quantity: 300,
       unit: 'Kg',
       quantityMan: 15,
+      allocatedQuantityKg: 300,
+      allocatedQuantityMan: 15,
       winningBidAmount: 600,
       totalPayableAmount: 9000,
       currency: 'INR',

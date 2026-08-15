@@ -146,6 +146,13 @@ public enum BidStatus
     Rejected = 5
 }
 
+public enum AllocationStatus
+{
+    Won = 1,
+    PartiallyWon = 2,
+    Lost = 3
+}
+
 public enum OrderStatus
 {
     Pending = 1,

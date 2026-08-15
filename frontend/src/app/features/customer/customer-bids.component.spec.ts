@@ -20,11 +20,14 @@ describe('CustomerBidsComponent', () => {
       quantity: 300,
       unit: 'Kg',
       quantityMan: 15,
+      requestedQuantityKg: 300,
+      requestedQuantityMan: 15,
       customerBidAmount: 660,
       currentHighestBid: 660,
       minimumBidIncrement: 20,
       auctionStatus: 'ENDED',
       customerBidStatus: 'WON',
+      allocationStatus: 'WON',
       bidTimeUtc: new Date().toISOString(),
       startTimeUtc: new Date(Date.now() - 36000000).toISOString(),
       endTimeUtc: new Date(Date.now() - 360000).toISOString(),
@@ -40,11 +43,14 @@ describe('CustomerBidsComponent', () => {
       quantity: 500,
       unit: 'Kg',
       quantityMan: 25,
+      requestedQuantityKg: 500,
+      requestedQuantityMan: 25,
       customerBidAmount: 500,
       currentHighestBid: 580,
       minimumBidIncrement: 20,
       auctionStatus: 'ENDED',
       customerBidStatus: 'LOST',
+      allocationStatus: 'LOST',
       bidTimeUtc: new Date().toISOString(),
       startTimeUtc: new Date(Date.now() - 36000000).toISOString(),
       endTimeUtc: new Date(Date.now() - 360000).toISOString(),
@@ -73,7 +79,7 @@ describe('CustomerBidsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Golden Wheat');
     expect(fixture.nativeElement.textContent).toContain('Organic Corn');
-    expect(fixture.nativeElement.textContent).toContain('🏆 WON');
+    expect(fixture.nativeElement.textContent).toContain('WON');
     expect(fixture.nativeElement.textContent).toContain('LOST');
   });
 });

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRadioModule } from '@angular/material/radio';
 import { CustomerAuctionService } from './customer-auction.service';
-import { AuctionPayment, AuctionResult, CustomerAuction } from '../../core/models/customer-auction.models';
+import { AuctionAllocation, AuctionPayment, AuctionResult, CustomerAuction } from '../../core/models/customer-auction.models';
 
 @Component({
   selector: 'app-customer-checkout',
@@ -36,6 +36,12 @@ export class CustomerCheckoutComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   paymentError = signal<string | null>(null);
 
+  myAllocation = computed<AuctionAllocation | null>(() => {
+    const res = this.auctionResult();
+    if (!res || !res.allocations) return null;
+    return res.allocations.find(a => a.status === 'WON' || a.status === 'PARTIALLY_WON') || null;
+  });
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -59,8 +65,8 @@ export class CustomerCheckoutComponent implements OnInit {
             this.auctionResult.set(res);
             this.isLoading.set(false);
 
-            if (res.customerResultStatus !== 'WON') {
-              this.errorMessage.set('Only the winning customer can proceed to payment for this auction.');
+            if (res.customerResultStatus !== 'WON' && res.customerResultStatus !== 'PARTIALLY_WON') {
+              this.errorMessage.set('Only winning customer(s) with an allocated quantity can proceed to payment for this auction.');
             }
           },
           error: () => {
@@ -77,6 +83,8 @@ export class CustomerCheckoutComponent implements OnInit {
   }
 
   calculateTotalPayable(): number {
+    const alloc = this.myAllocation();
+    if (alloc) return alloc.totalPayableAmount;
     const auc = this.auction();
     const res = this.auctionResult();
     if (!auc || !res || !res.winningBidAmount) return 0;

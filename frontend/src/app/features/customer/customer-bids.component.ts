@@ -46,15 +46,19 @@ export class CustomerBidsComponent implements OnInit {
     });
   }
 
-  getBidStatusBadgeClass(bidStatus: string, auctionStatus: string): string {
+  getBidStatusBadgeClass(bidStatus: string, auctionStatus: string, allocStatus?: string | null): string {
+    const status = allocStatus || bidStatus;
     if (auctionStatus === 'ENDED') {
-      if (bidStatus === 'HIGHEST BID' || bidStatus === 'WON') {
+      if (status === 'WON' || status === 'HIGHEST BID') {
         return '!bg-emerald-100 !text-emerald-800 dark:!bg-emerald-950 dark:!text-emerald-300 border-emerald-300';
+      }
+      if (status === 'PARTIALLY_WON') {
+        return '!bg-amber-100 !text-amber-800 dark:!bg-amber-950 dark:!text-amber-300 border-amber-300';
       }
       return '!bg-rose-100 !text-rose-800 dark:!bg-rose-950 dark:!text-rose-300 border-rose-300';
     }
 
-    if (bidStatus === 'HIGHEST BID') {
+    if (status === 'HIGHEST BID') {
       return '!bg-emerald-100 !text-emerald-800 dark:!bg-emerald-950 dark:!text-emerald-300 border-emerald-300';
     }
     return '!bg-amber-100 !text-amber-800 dark:!bg-amber-950 dark:!text-amber-300 border-amber-300';

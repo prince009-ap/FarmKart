@@ -5,7 +5,10 @@ using FarmKart.Application.DTOs;
 using FarmKart.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FarmKart.API.Controllers;
 
@@ -18,13 +21,32 @@ public sealed class FarmerAuctionsController(
     ICustomerPaymentService paymentService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll() => CurrentUserId() is { } userId ? Ok(await auctionService.GetAuctionsAsync(userId)) : Unauthorized();
-
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> Get(Guid id)
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         if (CurrentUserId() is not { } userId) return Unauthorized();
-        try { return Ok(await auctionService.GetAuctionAsync(userId, id)); }
+        return Ok(await auctionService.GetAuctionsAsync(userId, cancellationToken));
+    }
+
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetSummaryCounts(CancellationToken cancellationToken)
+    {
+        if (CurrentUserId() is not { } userId) return Unauthorized();
+        return Ok(await auctionService.GetSummaryCountsAsync(userId, cancellationToken));
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
+    {
+        if (CurrentUserId() is not { } userId) return Unauthorized();
+        try { return Ok(await auctionService.GetAuctionAsync(userId, id, cancellationToken)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("{id:guid}/bids")]
+    public async Task<IActionResult> GetBids(Guid id, [FromQuery] string? sortBy, CancellationToken cancellationToken)
+    {
+        if (CurrentUserId() is not { } userId) return Unauthorized();
+        try { return Ok(await auctionService.GetAuctionBidsAsync(userId, id, sortBy, cancellationToken)); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
@@ -50,29 +72,29 @@ public sealed class FarmerAuctionsController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateFarmerAuctionRequest request)
+    public async Task<IActionResult> Create(CreateFarmerAuctionRequest request, CancellationToken cancellationToken)
     {
         if (CurrentUserId() is not { } userId) return Unauthorized();
-        try { var auction = await auctionService.CreateAuctionAsync(userId, request); return CreatedAtAction(nameof(Get), new { id = auction.Id }, auction); }
+        try { var auction = await auctionService.CreateAuctionAsync(userId, request, cancellationToken); return CreatedAtAction(nameof(Get), new { id = auction.Id }, auction); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, UpdateFarmerAuctionRequest request)
+    public async Task<IActionResult> Update(Guid id, UpdateFarmerAuctionRequest request, CancellationToken cancellationToken)
     {
         if (CurrentUserId() is not { } userId) return Unauthorized();
-        try { return Ok(await auctionService.UpdateAuctionAsync(userId, id, request)); }
+        try { return Ok(await auctionService.UpdateAuctionAsync(userId, id, request, cancellationToken)); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
 
     [HttpPost("{id:guid}/cancel")]
-    public async Task<IActionResult> Cancel(Guid id)
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
     {
         if (CurrentUserId() is not { } userId) return Unauthorized();
-        try { await auctionService.CancelAuctionAsync(userId, id); return NoContent(); }
+        try { await auctionService.CancelAuctionAsync(userId, id, cancellationToken); return NoContent(); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }

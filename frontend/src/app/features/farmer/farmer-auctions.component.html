@@ -1,0 +1,284 @@
+<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-[family-name:var(--fk-font-display)] text-emerald-950">
+        My Auctions
+      </h1>
+      <p class="text-sm text-emerald-700/80 mt-1">
+        Manage your farm produce auctions and monitor bidding activity.
+      </p>
+    </div>
+    <a routerLink="/farmer/crops" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-medium text-sm hover:bg-emerald-800 transition-colors shadow-md self-start sm:self-auto">
+      <mat-icon class="text-lg">add</mat-icon>
+      <span>Create Auction</span>
+    </a>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700">
+        <mat-icon>gavel</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-emerald-800/60 uppercase tracking-wider">Total Auctions</p>
+        <p class="text-2xl font-bold text-emerald-950 mt-0.5">{{ summaryCounts().totalAuctions }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-amber-100 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-700">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-amber-800/60 uppercase tracking-wider">Upcoming</p>
+        <p class="text-2xl font-bold text-amber-950 mt-0.5">{{ summaryCounts().upcomingCount }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600 animate-pulse">
+        <mat-icon>sensors</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-rose-800/60 uppercase tracking-wider">Live</p>
+        <p class="text-2xl font-bold text-rose-950 mt-0.5">{{ summaryCounts().liveCount }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-700">
+        <mat-icon>task_alt</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-700/60 uppercase tracking-wider">Ended</p>
+        <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ summaryCounts().endedCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search Bar -->
+  <div class="bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+    <!-- Filter Tabs -->
+    <div class="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+      <button (click)="setFilter('ALL')"
+              [class.bg-emerald-800]="selectedFilter() === 'ALL'"
+              [class.text-white]="selectedFilter() === 'ALL'"
+              [class.bg-slate-100]="selectedFilter() !== 'ALL'"
+              [class.text-slate-700]="selectedFilter() !== 'ALL'"
+              class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors">
+        All
+      </button>
+      <button (click)="setFilter('LIVE')"
+              [class.bg-rose-600]="selectedFilter() === 'LIVE'"
+              [class.text-white]="selectedFilter() === 'LIVE'"
+              [class.bg-slate-100]="selectedFilter() !== 'LIVE'"
+              [class.text-slate-700]="selectedFilter() !== 'LIVE'"
+              class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+        Live
+      </button>
+      <button (click)="setFilter('UPCOMING')"
+              [class.bg-amber-600]="selectedFilter() === 'UPCOMING'"
+              [class.text-white]="selectedFilter() === 'UPCOMING'"
+              [class.bg-slate-100]="selectedFilter() !== 'UPCOMING'"
+              [class.text-slate-700]="selectedFilter() !== 'UPCOMING'"
+              class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors">
+        Upcoming
+      </button>
+      <button (click)="setFilter('ENDED')"
+              [class.bg-slate-800]="selectedFilter() === 'ENDED'"
+              [class.text-white]="selectedFilter() === 'ENDED'"
+              [class.bg-slate-100]="selectedFilter() !== 'ENDED'"
+              [class.text-slate-700]="selectedFilter() !== 'ENDED'"
+              class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors">
+        Ended
+      </button>
+      <button (click)="setFilter('CANCELLED')"
+              [class.bg-slate-600]="selectedFilter() === 'CANCELLED'"
+              [class.text-white]="selectedFilter() === 'CANCELLED'"
+              [class.bg-slate-100]="selectedFilter() !== 'CANCELLED'"
+              [class.text-slate-700]="selectedFilter() !== 'CANCELLED'"
+              class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors">
+        Cancelled
+      </button>
+    </div>
+
+    <!-- Search Box -->
+    <div class="relative w-full md:w-72">
+      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</mat-icon>
+      <input type="text"
+             [value]="searchQuery()"
+             (input)="onSearchChange($event)"
+             placeholder="Search auctions..."
+             class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm text-slate-800">
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center gap-3">
+      <mat-spinner diameter="40" strokeWidth="3" class="text-emerald-600"></mat-spinner>
+      <p class="text-sm font-medium text-slate-600">Loading your auctions...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (errorMessage()) {
+    <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
+      <mat-icon class="text-red-500 text-3xl">error_outline</mat-icon>
+      <p class="text-sm text-red-800 font-medium">{{ errorMessage() }}</p>
+      <button (click)="loadData()" class="px-4 py-2 rounded-xl bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors">
+        Retry
+      </button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (filteredAuctions().length === 0) {
+    <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center p-6 space-y-4">
+      <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+        <mat-icon class="text-3xl">gavel</mat-icon>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-slate-800">No auctions found</h3>
+        <p class="text-sm text-slate-500 max-w-sm mt-1">
+          @if (searchQuery()) {
+            No auctions matching "{{ searchQuery() }}".
+          } @else if (selectedFilter() !== 'ALL') {
+            No {{ selectedFilter().toLowerCase() }} auctions found.
+          } @else {
+            Create an auction for your crops to start selling through FarmKart.
+          }
+        </p>
+      </div>
+      <a routerLink="/farmer/crops" class="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-medium text-sm hover:bg-emerald-800 transition-colors shadow-md">
+        Create Auction
+      </a>
+    </div>
+  }
+
+  <!-- Auction Grid -->
+  @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (auction of filteredAuctions(); track auction.id) {
+        <div class="bg-white rounded-2xl border border-emerald-100/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
+          <!-- Crop Image & Badge Overlay -->
+          <div class="relative h-48 bg-slate-100 overflow-hidden flex items-center justify-center">
+            @if (auction.primaryImageUrl) {
+              <img [src]="auction.primaryImageUrl" [alt]="auction.cropName" class="w-full h-full object-cover">
+            } @else {
+              <div class="flex flex-col items-center justify-center text-emerald-800/40">
+                <mat-icon class="text-5xl">agriculture</mat-icon>
+                <span class="text-xs font-semibold mt-1">{{ auction.cropName }}</span>
+              </div>
+            }
+
+            <!-- Status Badge -->
+            <div class="absolute top-3 left-3">
+              @if ((auction.status || '').toUpperCase() === 'LIVE') {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-xs font-bold shadow-md animate-pulse">
+                  <span class="w-2 h-2 rounded-full bg-white"></span>
+                  LIVE
+                </span>
+              } @else if ((auction.status || '').toUpperCase() === 'SCHEDULED' || (auction.status || '').toUpperCase() === 'UPCOMING') {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-xs font-bold shadow-md">
+                  <span class="w-2 h-2 rounded-full bg-white"></span>
+                  UPCOMING
+                </span>
+              } @else if ((auction.status || '').toUpperCase() === 'CANCELLED') {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-600 text-white text-xs font-bold shadow-md">
+                  CANCELLED
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-white text-xs font-bold shadow-md">
+                  ENDED
+                </span>
+              }
+            </div>
+
+            <!-- Countdown overlay for Live / Upcoming -->
+            @if ((auction.status || '').toUpperCase() === 'LIVE' || (auction.status || '').toUpperCase() === 'SCHEDULED') {
+              <div class="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-md text-white px-3 py-1 rounded-xl text-xs font-semibold">
+                <app-auction-countdown [startTimeUtc]="auction.startTimeUtc" [endTimeUtc]="auction.endTimeUtc" [serverTimeUtc]="auction.serverTimeUtc"></app-auction-countdown>
+              </div>
+            }
+          </div>
+
+          <!-- Card Content -->
+          <div class="p-5 flex-grow space-y-4">
+            <!-- Header Title -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h2 class="text-lg font-bold text-emerald-950">{{ auction.cropName }}</h2>
+                @if (auction.variety) {
+                  <p class="text-xs text-emerald-700/80 font-medium">{{ auction.variety }}</p>
+                }
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-800 text-xs font-bold whitespace-nowrap">
+                {{ auction.quantityKg }} Kg ({{ auction.quantityMan }} Man)
+              </span>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+              <div>
+                <span class="text-slate-500 block">Starting Bid</span>
+                <span class="font-bold text-slate-800 text-sm">₹{{ auction.startingBidPrice }} / Man</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block font-medium">
+                  @if ((auction.status || '').toUpperCase() === 'ENDED') { Winning Bid } @else { Current Highest }
+                </span>
+                <span class="font-bold text-emerald-700 text-sm">₹{{ auction.currentHighestBid }} / Man</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Total Bids</span>
+                <span class="font-bold text-slate-800 text-sm">{{ auction.totalBids }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Total Demand</span>
+                <span class="font-bold text-amber-700 text-sm">{{ auction.totalRequestedQuantityKg }} Kg ({{ auction.demandPercentage }}%)</span>
+              </div>
+            </div>
+
+            <!-- Ended Auction Allocation & Payment Summary -->
+            @if ((auction.status || '').toUpperCase() === 'ENDED') {
+              <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 text-xs space-y-1.5">
+                <div class="flex items-center justify-between text-emerald-900 font-semibold">
+                  <span>Allocated Quantity:</span>
+                  <span>{{ auction.totalAllocatedQuantityKg ?? auction.quantityKg }} Kg</span>
+                </div>
+                <div class="flex items-center justify-between text-emerald-800">
+                  <span>Winners Count:</span>
+                  <span class="font-bold">{{ auction.winnersCount ?? (auction.totalBids > 0 ? 1 : 0) }}</span>
+                </div>
+                @if (auction.paymentSummary) {
+                  <div class="flex items-center justify-between pt-1 border-t border-emerald-200/60 text-emerald-950 font-medium">
+                    <span>Payment Status:</span>
+                    <span class="font-bold text-emerald-700">
+                      {{ auction.paymentSummary.totalPaidCount }} Paid / {{ auction.paymentSummary.totalPendingCount }} Pending
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Card Actions -->
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+            <a [routerLink]="['/farmer/auctions', auction.id]"
+               class="flex-1 py-2 px-3 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs text-center hover:bg-white hover:border-emerald-500 transition-colors">
+              VIEW AUCTION
+            </a>
+            <a [routerLink]="['/farmer/auctions', auction.id, 'bids']"
+               class="flex-1 py-2 px-3 rounded-xl bg-emerald-700 text-white font-semibold text-xs text-center hover:bg-emerald-800 transition-colors shadow-sm">
+              VIEW BIDS
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

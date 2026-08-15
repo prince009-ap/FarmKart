@@ -1,0 +1,183 @@
+<div class="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+  <!-- Navigation Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <a [routerLink]="['/farmer/auctions', auctionId()]" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition-colors mb-1">
+        <mat-icon class="text-base">arrow_back</mat-icon>
+        <span>Back to Auction Details</span>
+      </a>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-[family-name:var(--fk-font-display)] text-emerald-950">
+        Bidding Activity — {{ auction()?.cropName || 'Auction' }}
+      </h1>
+      <p class="text-sm text-emerald-700/80 mt-0.5">
+        Monitor live bids and multi-quantity customer demand.
+      </p>
+    </div>
+
+    <!-- Sort Selector -->
+    <div class="flex items-center gap-2 self-start sm:self-auto bg-white p-2 rounded-xl border border-emerald-100 shadow-sm">
+      <mat-icon class="text-slate-400 text-lg">sort</mat-icon>
+      <span class="text-xs font-medium text-slate-500 whitespace-nowrap">Sort by:</span>
+      <select [ngModel]="selectedSort()"
+              (ngModelChange)="onSortChange($event)"
+              class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+        <option value="highest_bid">Highest Bid Price</option>
+        <option value="lowest_bid">Lowest Bid Price</option>
+        <option value="highest_qty">Highest Quantity</option>
+        <option value="latest_bid">Latest Bid</option>
+        <option value="earliest_bid">Earliest Bid</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Metric Banner Header -->
+  @if (auction(); as a) {
+    <div class="bg-gradient-to-r from-emerald-900 to-emerald-950 rounded-2xl p-6 text-white shadow-md grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div>
+        <span class="text-xs text-emerald-300 block font-medium">Auction Quantity</span>
+        <span class="text-xl font-bold text-white mt-0.5 block">{{ a.quantityKg }} Kg ({{ a.quantityMan }} Man)</span>
+      </div>
+      <div>
+        <span class="text-xs text-emerald-300 block font-medium">Current Highest Bid</span>
+        <span class="text-xl font-bold text-amber-400 mt-0.5 block">₹{{ a.currentHighestBid }} / Man</span>
+      </div>
+      <div>
+        <span class="text-xs text-emerald-300 block font-medium">Total Demand</span>
+        <span class="text-xl font-bold text-white mt-0.5 block">{{ a.totalRequestedQuantityKg }} Kg</span>
+      </div>
+      <div>
+        <span class="text-xs text-emerald-300 block font-medium">Demand %</span>
+        <span class="text-xl font-bold text-emerald-300 mt-0.5 block">{{ a.demandPercentage }}%</span>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center gap-3">
+      <mat-spinner diameter="40" strokeWidth="3" class="text-emerald-600"></mat-spinner>
+      <p class="text-sm font-medium text-slate-600">Loading bidding history...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (errorMessage()) {
+    <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
+      <mat-icon class="text-red-500 text-3xl">error_outline</mat-icon>
+      <p class="text-sm text-red-800 font-medium">{{ errorMessage() }}</p>
+      <button (click)="loadData()" class="px-4 py-2 rounded-xl bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors">
+        Retry
+      </button>
+    </div>
+  }
+
+  <!-- Empty Bids State -->
+  @else if (bids().length === 0) {
+    <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center p-6 space-y-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+        <mat-icon class="text-3xl">gavel</mat-icon>
+      </div>
+      <h3 class="text-base font-bold text-slate-800">No bids placed yet</h3>
+      <p class="text-xs text-slate-500 max-w-sm">
+        Customers have not submitted bids for this auction yet. Bids will update automatically in real-time.
+      </p>
+    </div>
+  }
+
+  <!-- Bids Table & Mobile Cards -->
+  @else {
+    <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-xs border-b border-slate-200">
+            <tr>
+              <th class="p-4">Customer</th>
+              <th class="p-4">Requested Quantity</th>
+              <th class="p-4">Bid Price / Man</th>
+              <th class="p-4">Bid Time</th>
+              <th class="p-4">Bid Status</th>
+              <th class="p-4">Allocation Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-800">
+            @for (bid of bids(); track bid.bidId) {
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-bold text-emerald-950">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                      {{ (bid.customerName || 'C').substring(0, 1).toUpperCase() }}
+                    </div>
+                    <span>{{ bid.customerName }}</span>
+                  </div>
+                </td>
+                <td class="p-4 font-medium text-slate-700">
+                  {{ bid.requestedQuantityKg }} Kg
+                  <span class="text-xs text-slate-400 font-normal">({{ bid.requestedQuantityMan }} Man)</span>
+                </td>
+                <td class="p-4 font-bold text-emerald-700 text-base">
+                  ₹{{ bid.bidAmountPerMan }} / Man
+                </td>
+                <td class="p-4 text-xs text-slate-500">
+                  {{ bid.bidTimeUtc | date:'mediumTime' }} <span class="text-[10px] text-slate-400">({{ bid.bidTimeUtc | date:'shortDate' }})</span>
+                </td>
+                <td class="p-4">
+                  @if (bid.bidStatus === 'Active' || bid.bidStatus === 'Winning') {
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">VALID</span>
+                  } @else {
+                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold text-xs">{{ bid.bidStatus }}</span>
+                  }
+                </td>
+                <td class="p-4">
+                  @if (bid.allocationStatus === 'WON') {
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-700 text-white font-bold text-xs">WON</span>
+                  } @else if (bid.allocationStatus === 'PARTIALLY_WON') {
+                    <span class="px-2.5 py-1 rounded-full bg-amber-500 text-white font-bold text-xs">PARTIALLY WON</span>
+                  } @else if (bid.allocationStatus === 'LOST') {
+                    <span class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-bold text-xs">LOST</span>
+                  } @else {
+                    <span class="text-xs text-slate-400 font-medium">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Responsive Cards -->
+      <div class="md:hidden divide-y divide-slate-100">
+        @for (bid of bids(); track bid.bidId) {
+          <div class="p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                  {{ (bid.customerName || 'C').substring(0, 1).toUpperCase() }}
+                </div>
+                <span class="font-bold text-sm text-emerald-950">{{ bid.customerName }}</span>
+              </div>
+              <span class="font-bold text-emerald-700 text-base">₹{{ bid.bidAmountPerMan }} / Man</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+              <span>Requested: <strong class="text-slate-800">{{ bid.requestedQuantityKg }} Kg</strong></span>
+              <span>Time: {{ bid.bidTimeUtc | date:'shortTime' }}</span>
+            </div>
+
+            @if (bid.allocationStatus) {
+              <div class="pt-1">
+                @if (bid.allocationStatus === 'WON') {
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-700 text-white font-bold text-[10px]">WON</span>
+                } @else if (bid.allocationStatus === 'PARTIALLY_WON') {
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[10px]">PARTIALLY WON</span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px]">LOST</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

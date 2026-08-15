@@ -34,6 +34,7 @@ public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> option
     public DbSet<CropStockTransaction> CropStockTransactions => Set<CropStockTransaction>();
     public DbSet<Auction> Auctions => Set<Auction>();
     public DbSet<Bid> Bids => Set<Bid>();
+    public DbSet<AuctionAllocation> AuctionAllocations => Set<AuctionAllocation>();
     public DbSet<AuctionWinner> AuctionWinners => Set<AuctionWinner>();
     public DbSet<AuctionPayment> AuctionPayments => Set<AuctionPayment>();
     public DbSet<Order> Orders => Set<Order>();
