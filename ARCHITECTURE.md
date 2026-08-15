@@ -302,4 +302,23 @@ The Angular app follows a feature-based structure:
   - `CustomerOrdersComponent` (`/customer/orders`): Rendered inside the existing Customer Shell layout. Displays order cards with order number, crop image, crop name, allocated quantity (Kg and Man), winning rate per Man, total paid amount, farmer display name, status badges (`CONFIRMED`, `PAID`), search input, status dropdown, sort dropdown, loading skeleton state, error retry state, and empty state with [ Browse Auctions ] action.
   - `CustomerOrderDetailComponent` (`/customer/orders/:id`): Displays order details including order banner, crop information (image, name, type, variety), farmer information (name, farm location), purchase breakdown (allocated quantity, rate per Man, payment method, transaction reference, total amount), and auction reference link (`/customer/auctions/:id`).
 
+## Phase 7.3: Customer Order Details & Order Timeline
+
+- **Customer Order Details API**: Exposed under `GET /api/customer/orders/{id}` guarded by `[Authorize(Roles = Roles.Customer)]`. Verified against authenticated customer profile ownership (`AuthenticatedCustomerProfileId == Order.CustomerProfileId`), returning `404 Not Found` for unowned orders.
+- **Enhanced Order DTO**: DTO includes `RequestedQuantityKg`, `RequestedQuantityMan`, `AuctionQuantityKg`, `AuctionQuantityMan`, `AuctionStartTimeUtc`, and `PaidAtUtc` alongside existing purchase and payment metadata.
+- **Visual Order Timeline**: Displays active milestones (`✓ Payment Successful`, `✓ Order Confirmed`) with real timestamps and future milestones (`○ Ready for Pickup`, `○ Picked Up`, `○ Delivered`, `○ Completed`) in pending inactive states without fake timestamps.
+- **Quantity & Price Rules**: Displays requested quantity, allocated quantity, rate per Man ($1\text{ Man} = 20\text{ Kg}$), equivalent Man quantity, payment method, transaction reference, total amount paid, seller info, and direct link to original auction.
+
+## Phase 7.4: Farmer Order Management & Order Details
+
+- **Farmer Order APIs**: Exposed under `/api/farmer/orders` (`GET /api/farmer/orders/summary`, `GET /api/farmer/orders`, `GET /api/farmer/orders/{id}`) guarded by `[Authorize(Roles = Roles.Farmer)]`.
+- **Ownership & Multi-Winner Support**: Handled via `OrderService.cs`. Filters strictly by `FarmerProfileId == AuthenticatedFarmerProfileId`. If an auction had multiple winning allocations (e.g. Winner A wins 250 Kg, Winner B wins 100 Kg), separate `AuctionOrder` records are returned for each winning buyer.
+- **Summary Metrics**: `GET /api/farmer/orders/summary` computes total orders, confirmed count, ready for pickup count, picked up count, delivered count, and completed count.
+- **Search & Filtering**: `GET /api/farmer/orders` supports `search` (OrderNumber, CropName, CustomerName) and `status` (`CONFIRMED`, `READY_FOR_PICKUP`, etc.).
+- **Frontend Architecture**:
+  - `FarmerOrdersComponent` (`/farmer/orders`): Displays summary metrics cards, search input, status filter tabs (`All`, `Confirmed`, `Ready Pickup`, `Delivered`), order cards with crop image, customer display name, allocated quantity, rate per Man, total amount, status badge, and `[ VIEW ]` button. Empty state provides a `[ View My Auctions ]` button.
+  - `FarmerOrderDetailComponent` (`/farmer/orders/:id`): Displays order details banner, crop info, customer safe contact info (Name, Phone, City, State), purchase summary (Requested vs Allocated Qty, Rate per Man, Total Amount), payment & transaction reference, and original auction reference.
+  - Navigation: Added "My Orders" link to `FarmerShellComponent` sidebar and mobile menu.
+
+
 

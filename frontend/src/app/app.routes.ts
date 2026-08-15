@@ -142,6 +142,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'orders',
+        loadComponent: () =>
+          import('./features/farmer/farmer-orders.component').then(
+            (module) => module.FarmerOrdersComponent,
+          ),
+      },
+      {
+        path: 'orders/:id',
+        loadComponent: () =>
+          import('./features/farmer/farmer-order-detail.component').then(
+            (module) => module.FarmerOrderDetailComponent,
+          ),
+      },
+      {
         path: 'machinery',
         data: { title: 'Machinery' },
         loadComponent: () =>

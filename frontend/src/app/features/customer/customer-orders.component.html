@@ -131,13 +131,17 @@
         
         <!-- Left: Image & Crop Info (md:col-span-5) -->
         <div class="md:col-span-5 flex items-center gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+          <div class="w-16 h-16 rounded-2xl bg-sky-50 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
             <img
+              *ngIf="item.primaryImageUrl"
               [src]="item.primaryImageUrl"
               [alt]="item.cropName"
-              (error)="onImageError($event)"
+              (error)="onImageError(item)"
               class="w-full h-full object-cover"
             />
+            <div *ngIf="!item.primaryImageUrl" class="flex items-center justify-center text-sky-600 dark:text-sky-400">
+              <mat-icon class="!w-8 !h-8 text-3xl">eco</mat-icon>
+            </div>
           </div>
           <div class="space-y-1">
             <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase">

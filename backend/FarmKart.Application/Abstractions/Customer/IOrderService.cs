@@ -1,5 +1,4 @@
 using FarmKart.Application.DTOs;
-using FarmKart.Domain.Entities;
 
 namespace FarmKart.Application.Abstractions.Customer;
 
@@ -32,5 +31,28 @@ public interface IOrderService
         Guid customerUserId,
         Guid orderId,
         CancellationToken cancellationToken = default);
-}
 
+    /// <summary>
+    /// Returns farmer order summary metrics for orders from auctions owned by the authenticated farmer.
+    /// </summary>
+    Task<FarmerOrderSummaryResponse> GetFarmerOrderSummaryAsync(
+        Guid farmerUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all orders for the authenticated farmer matching the search, status filter, and sort order.
+    /// </summary>
+    Task<IReadOnlyList<FarmerOrderListItemResponse>> GetFarmerOrdersAsync(
+        Guid farmerUserId,
+        FarmerOrderFilterRequest filter,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves detailed order breakdown for a specific order belonging to an auction owned by the authenticated farmer.
+    /// Throws KeyNotFoundException if not found or UnauthorizedAccessException if owned by another farmer.
+    /// </summary>
+    Task<FarmerOrderDetailResponse> GetFarmerOrderDetailsAsync(
+        Guid farmerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
+}

@@ -22,7 +22,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         {
             using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
-            // Load payment with all required relationships
             var payment = await dbContext.AuctionPayments
                 .Include(p => p.Auction)
                     .ThenInclude(a => a.CropListing)
@@ -35,21 +34,18 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken)
                 ?? throw new KeyNotFoundException($"Payment with ID '{paymentId}' was not found.");
 
-            // Verify payment is PAID
             if (payment.PaymentStatus != PaymentStatus.Paid)
             {
                 throw new InvalidOperationException(
                     $"Order can only be created for PAID payments. Current status: {payment.PaymentStatus}.");
             }
 
-            // Idempotency: return existing order if already created
             if (payment.AuctionOrder is not null)
             {
                 await transaction.CommitAsync(cancellationToken);
                 return MapOrderToResponse(payment.AuctionOrder, payment.Auction);
             }
 
-            // Find the AuctionAllocation for this customer and auction
             var allocation = payment.Auction.Allocations
                 .FirstOrDefault(al =>
                     al.CustomerProfileId == payment.CustomerProfileId &&
@@ -58,7 +54,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 ?? throw new InvalidOperationException(
                     "No winning or partially-won allocation found for this payment's customer on this auction.");
 
-            // Validate amount: AllocatedQuantityKg / 20 * PricePerMan
             var expectedAmount = Math.Round(
                 AuctionPricingConstants.ConvertKgToMan(allocation.AllocatedQuantityKg) * allocation.WinningBidAmountPerMan, 2);
 
@@ -72,7 +67,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             var cropId = payment.Auction.CropListing.CropId;
             var farmerProfileId = payment.Auction.FarmerProfileId;
 
-            // Generate unique OrderNumber: FK-YYYYMMDD-NNNN
             var today = DateTime.UtcNow;
             var dateStr = today.ToString("yyyyMMdd");
             var todayStart = new DateTime(today.Year, today.Month, today.Day, 0, 0, 0, DateTimeKind.Utc);
@@ -82,7 +76,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             var seqNumber = (countToday + 1).ToString("D4");
             var orderNumber = $"FK-{dateStr}-{seqNumber}";
 
-            // Ensure uniqueness (handle race condition by appending milliseconds if needed)
             var exists = await dbContext.AuctionOrders.AnyAsync(o => o.OrderNumber == orderNumber, cancellationToken);
             if (exists)
             {
@@ -146,7 +139,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             .Include(o => o.AuctionPayment)
             .Where(o => o.CustomerProfileId == customerProfile.Id);
 
-        // Search filter (OrderNumber, CropName, FarmerName)
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.Trim().ToLower();
@@ -157,7 +149,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 (o.FarmerProfile.FarmName != null && o.FarmerProfile.FarmName.ToLower().Contains(search)));
         }
 
-        // Status filter
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var statusStr = filter.Status.Trim();
@@ -167,7 +158,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             }
         }
 
-        // Sort By (default: newest)
         if (filter.SortBy?.Trim().ToLower() == "oldest")
         {
             query = query.OrderBy(o => o.CreatedAtUtc);
@@ -222,7 +212,9 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 .ThenInclude(c => c.Images)
             .Include(o => o.FarmerProfile)
             .Include(o => o.AuctionPayment)
+            .Include(o => o.AuctionAllocation)
             .Include(o => o.Auction)
+                .ThenInclude(a => a.CropListing)
             .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
         if (order is null)
@@ -230,7 +222,6 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
         }
 
-        // Security check: order must belong to authenticated customer
         if (order.CustomerProfileId != customerProfile.Id)
         {
             throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
@@ -241,6 +232,14 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
 
         var allocMan = AuctionPricingConstants.ConvertKgToMan(order.AllocatedQuantityKg);
 
+        var reqKg = order.AuctionAllocation?.RequestedQuantityKg ?? order.AllocatedQuantityKg;
+        var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
+
+        var auctionKg = order.Auction?.CropListing != null
+            ? CropStockUnitConverter.ToKilograms(order.Auction.CropListing.QuantityForSale, order.Auction.CropListing.Unit)
+            : order.AllocatedQuantityKg;
+        var auctionMan = AuctionPricingConstants.ConvertKgToMan(auctionKg);
+
         return new CustomerOrderDetailResponse(
             OrderId: order.Id,
             OrderNumber: order.OrderNumber,
@@ -250,6 +249,8 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             CropType: order.Crop.CropType,
             Variety: order.Crop.Variety,
             PrimaryImageUrl: primaryImg,
+            RequestedQuantityKg: reqKg,
+            RequestedQuantityMan: reqMan,
             AllocatedQuantityKg: order.AllocatedQuantityKg,
             AllocatedQuantityMan: allocMan,
             PricePerMan: order.PricePerMan,
@@ -259,12 +260,193 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             Status: order.Status.ToString().ToUpperInvariant(),
             PaymentStatus: order.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
             OrderDateUtc: order.CreatedAtUtc,
-            AuctionEndDateUtc: order.Auction.EndTimeUtc,
+            AuctionStartTimeUtc: order.Auction?.StartTimeUtc ?? order.CreatedAtUtc,
+            AuctionEndDateUtc: order.Auction?.EndTimeUtc ?? order.CreatedAtUtc,
+            AuctionQuantityKg: auctionKg,
+            AuctionQuantityMan: auctionMan,
             WinningBidAmount: order.PricePerMan,
             AuctionAllocationId: order.AuctionAllocationId,
             AuctionPaymentId: order.AuctionPaymentId,
             TransactionReference: order.AuctionPayment.TransactionReference,
-            PaymentMethod: order.AuctionPayment.PaymentMethod.ToString().ToUpperInvariant()
+            PaymentMethod: order.AuctionPayment.PaymentMethod.ToString().ToUpperInvariant(),
+            PaidAtUtc: order.AuctionPayment.PaidAtUtc ?? order.CreatedAtUtc
+        );
+    }
+
+    public async Task<FarmerOrderSummaryResponse> GetFarmerOrderSummaryAsync(
+        Guid farmerUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var farmerProfile = await dbContext.FarmerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.UserId == farmerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Farmer profile not found for authenticated user.");
+
+        var orders = await dbContext.AuctionOrders
+            .AsNoTracking()
+            .Where(o => o.FarmerProfileId == farmerProfile.Id)
+            .ToListAsync(cancellationToken);
+
+        return new FarmerOrderSummaryResponse(
+            TotalOrders: orders.Count,
+            ConfirmedOrdersCount: orders.Count(o => o.Status == OrderStatus.Confirmed),
+            ReadyForPickupCount: 0,
+            PickedUpCount: 0,
+            DeliveredCount: 0,
+            CompletedCount: 0
+        );
+    }
+
+    public async Task<IReadOnlyList<FarmerOrderListItemResponse>> GetFarmerOrdersAsync(
+        Guid farmerUserId,
+        FarmerOrderFilterRequest filter,
+        CancellationToken cancellationToken = default)
+    {
+        var farmerProfile = await dbContext.FarmerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.UserId == farmerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Farmer profile not found for authenticated user.");
+
+        var query = dbContext.AuctionOrders
+            .AsNoTracking()
+            .Include(o => o.Crop)
+                .ThenInclude(c => c.Images)
+            .Include(o => o.CustomerProfile)
+            .Include(o => o.AuctionPayment)
+            .Where(o => o.FarmerProfileId == farmerProfile.Id);
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.Trim().ToLower();
+            query = query.Where(o =>
+                o.OrderNumber.ToLower().Contains(search) ||
+                o.Crop.CropName.ToLower().Contains(search) ||
+                (o.CustomerProfile.FullName != null && o.CustomerProfile.FullName.ToLower().Contains(search)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+        {
+            var statusStr = filter.Status.Trim();
+            if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
+            {
+                query = query.Where(o => o.Status == statusEnum);
+            }
+        }
+
+        if (filter.SortBy?.Trim().ToLower() == "oldest")
+        {
+            query = query.OrderBy(o => o.CreatedAtUtc);
+        }
+        else
+        {
+            query = query.OrderByDescending(o => o.CreatedAtUtc);
+        }
+
+        var orders = await query.ToListAsync(cancellationToken);
+
+        return orders.Select(o =>
+        {
+            var primaryImg = o.Crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                ?? o.Crop.Images.FirstOrDefault()?.ImageUrl;
+
+            var allocMan = AuctionPricingConstants.ConvertKgToMan(o.AllocatedQuantityKg);
+
+            return new FarmerOrderListItemResponse(
+                OrderId: o.Id,
+                OrderNumber: o.OrderNumber,
+                AuctionId: o.AuctionId,
+                CropId: o.CropId,
+                CropName: o.Crop.CropName,
+                CropType: o.Crop.CropType,
+                PrimaryImageUrl: primaryImg,
+                CustomerName: o.CustomerProfile.FullName,
+                AllocatedQuantityKg: o.AllocatedQuantityKg,
+                AllocatedQuantityMan: allocMan,
+                PricePerMan: o.PricePerMan,
+                TotalAmount: o.TotalAmount,
+                Status: o.Status.ToString().ToUpperInvariant(),
+                PaymentStatus: o.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+                CreatedAtUtc: o.CreatedAtUtc
+            );
+        }).ToList();
+    }
+
+    public async Task<FarmerOrderDetailResponse> GetFarmerOrderDetailsAsync(
+        Guid farmerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var farmerProfile = await dbContext.FarmerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.UserId == farmerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Farmer profile not found for authenticated user.");
+
+        var order = await dbContext.AuctionOrders
+            .AsNoTracking()
+            .Include(o => o.Crop)
+                .ThenInclude(c => c.Images)
+            .Include(o => o.CustomerProfile)
+            .Include(o => o.AuctionPayment)
+            .Include(o => o.AuctionAllocation)
+            .Include(o => o.Auction)
+                .ThenInclude(a => a.CropListing)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        if (order.FarmerProfileId != farmerProfile.Id)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        var primaryImg = order.Crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+            ?? order.Crop.Images.FirstOrDefault()?.ImageUrl;
+
+        var allocMan = AuctionPricingConstants.ConvertKgToMan(order.AllocatedQuantityKg);
+
+        var reqKg = order.AuctionAllocation?.RequestedQuantityKg ?? order.AllocatedQuantityKg;
+        var reqMan = AuctionPricingConstants.ConvertKgToMan(reqKg);
+
+        var auctionKg = order.Auction?.CropListing != null
+            ? CropStockUnitConverter.ToKilograms(order.Auction.CropListing.QuantityForSale, order.Auction.CropListing.Unit)
+            : order.AllocatedQuantityKg;
+        var auctionMan = AuctionPricingConstants.ConvertKgToMan(auctionKg);
+
+        return new FarmerOrderDetailResponse(
+            OrderId: order.Id,
+            OrderNumber: order.OrderNumber,
+            AuctionId: order.AuctionId,
+            CropId: order.CropId,
+            CropName: order.Crop.CropName,
+            CropType: order.Crop.CropType,
+            Variety: order.Crop.Variety,
+            PrimaryImageUrl: primaryImg,
+            CustomerName: order.CustomerProfile.FullName,
+            CustomerPhone: order.CustomerProfile.Phone,
+            CustomerCity: order.CustomerProfile.AddressInfo?.City,
+            CustomerState: order.CustomerProfile.AddressInfo?.State,
+            RequestedQuantityKg: reqKg,
+            RequestedQuantityMan: reqMan,
+            AllocatedQuantityKg: order.AllocatedQuantityKg,
+            AllocatedQuantityMan: allocMan,
+            PricePerMan: order.PricePerMan,
+            TotalAmount: order.TotalAmount,
+            AuctionQuantityKg: auctionKg,
+            AuctionQuantityMan: auctionMan,
+            WinningBidAmountPerMan: order.PricePerMan,
+            AuctionStartTimeUtc: order.Auction?.StartTimeUtc ?? order.CreatedAtUtc,
+            AuctionEndTimeUtc: order.Auction?.EndTimeUtc ?? order.CreatedAtUtc,
+            Status: order.Status.ToString().ToUpperInvariant(),
+            PaymentStatus: order.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+            OrderDateUtc: order.CreatedAtUtc,
+            AuctionAllocationId: order.AuctionAllocationId,
+            AuctionPaymentId: order.AuctionPaymentId,
+            TransactionReference: order.AuctionPayment.TransactionReference,
+            PaymentMethod: order.AuctionPayment.PaymentMethod.ToString().ToUpperInvariant(),
+            PaidAtUtc: order.AuctionPayment.PaidAtUtc ?? order.CreatedAtUtc
         );
     }
 
@@ -290,4 +472,3 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         );
     }
 }
-

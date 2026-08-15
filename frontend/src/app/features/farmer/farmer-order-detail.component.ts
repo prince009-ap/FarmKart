@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CustomerOrderService } from './customer-order.service';
-import { CustomerOrderDetail } from '../../core/models/customer-auction.models';
+import { FarmerOrderService } from './farmer-order.service';
+import { FarmerOrderDetail } from '../../core/models/farmer-order.models';
 
 @Component({
-  selector: 'app-customer-order-detail',
+  selector: 'app-farmer-order-detail',
   standalone: true,
   imports: [
     CommonModule,
@@ -15,13 +15,13 @@ import { CustomerOrderDetail } from '../../core/models/customer-auction.models';
     MatButtonModule,
     MatIconModule
   ],
-  templateUrl: './customer-order-detail.component.html'
+  templateUrl: './farmer-order-detail.component.html'
 })
-export class CustomerOrderDetailComponent implements OnInit {
+export class FarmerOrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly orderService = inject(CustomerOrderService);
+  private readonly farmerOrderService = inject(FarmerOrderService);
 
-  order = signal<CustomerOrderDetail | null>(null);
+  order = signal<FarmerOrderDetail | null>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
@@ -39,7 +39,7 @@ export class CustomerOrderDetailComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.orderService.getCustomerOrderById(id).subscribe({
+    this.farmerOrderService.getFarmerOrderById(id).subscribe({
       next: (data) => {
         this.order.set(data);
         this.isLoading.set(false);

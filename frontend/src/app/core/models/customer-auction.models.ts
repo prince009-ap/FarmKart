@@ -160,6 +160,8 @@ export interface CustomerOrderDetail {
   cropType: string;
   variety?: string | null;
   primaryImageUrl?: string | null;
+  requestedQuantityKg: number;
+  requestedQuantityMan: number;
   allocatedQuantityKg: number;
   allocatedQuantityMan: number;
   pricePerMan: number;
@@ -169,12 +171,16 @@ export interface CustomerOrderDetail {
   status: string;
   paymentStatus: string;
   orderDateUtc: string;
+  auctionStartTimeUtc: string;
   auctionEndDateUtc: string;
+  auctionQuantityKg: number;
+  auctionQuantityMan: number;
   winningBidAmount: number;
   auctionAllocationId: string;
   auctionPaymentId: string;
   transactionReference: string;
   paymentMethod: string;
+  paidAtUtc?: string | null;
 }
 
 
