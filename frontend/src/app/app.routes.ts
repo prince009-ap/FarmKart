@@ -323,6 +323,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'orders',
+        loadComponent: () =>
+          import('./features/customer/customer-orders.component').then(
+            (module) => module.CustomerOrdersComponent,
+          ),
+      },
+      {
+        path: 'orders/:id',
+        loadComponent: () =>
+          import('./features/customer/customer-order-detail.component').then(
+            (module) => module.CustomerOrderDetailComponent,
+          ),
+      },
+      {
         path: 'notifications',
         data: { title: 'Notifications' },
         loadComponent: () =>

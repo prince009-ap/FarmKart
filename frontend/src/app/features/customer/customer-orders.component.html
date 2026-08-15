@@ -1,0 +1,192 @@
+<div class="app-page animate-fk-rise space-y-6 max-w-6xl mx-auto">
+  
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 text-xs font-black uppercase tracking-wider mb-2">
+        <mat-icon class="!w-4 !h-4 text-sm">shopping_bag</mat-icon>
+        Auction Purchases
+      </div>
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        My Orders
+      </h1>
+      <p class="text-xs font-semibold text-slate-500 mt-1">
+        View and track your auction purchases.
+      </p>
+    </div>
+
+    <!-- Quick Stats Pill -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="px-4 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <mat-icon class="text-sky-600">receipt_long</mat-icon>
+        <div>
+          <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Orders</span>
+          <span class="text-sm font-black text-slate-900 dark:text-white">{{ orders().length }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+      
+      <!-- Search Input -->
+      <div class="md:col-span-6 relative">
+        <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 !w-5 !h-5 text-xl">search</mat-icon>
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search by order #, crop name, or farmer..."
+          class="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all placeholder:text-slate-400"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <div class="md:col-span-3">
+        <select
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="onStatusChange($event)"
+          class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+        >
+          <option *ngFor="let opt of statusOptions" [value]="opt.value" [disabled]="opt.disabled">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Sort By -->
+      <div class="md:col-span-3">
+        <select
+          [ngModel]="selectedSortBy()"
+          (ngModelChange)="onSortChange($event)"
+          class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+        >
+          <option *ngFor="let s of sortOptions" [value]="s.value">
+            {{ s.label }}
+          </option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-20 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold text-slate-500">Loading your orders...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-8 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-center space-y-4 max-w-md mx-auto shadow-sm">
+    <mat-icon class="text-rose-500 !w-12 !h-12 text-5xl">error_outline</mat-icon>
+    <h2 class="text-base font-bold text-rose-800 dark:text-rose-300">{{ errorMessage() }}</h2>
+    <button mat-flat-button color="primary" (click)="loadOrders()" class="!bg-sky-600 !rounded-xl text-xs font-bold">
+      <mat-icon>refresh</mat-icon> Retry
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && !errorMessage() && orders().length === 0" class="py-16 px-6 text-center space-y-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md mx-auto shadow-sm">
+    <div class="w-16 h-16 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center mx-auto shadow-inner">
+      <mat-icon class="!w-9 !h-9 text-4xl">shopping_bag</mat-icon>
+    </div>
+    <div class="space-y-1">
+      <h2 class="text-lg font-black text-slate-900 dark:text-white">No orders yet</h2>
+      <p class="text-xs font-medium text-slate-500">Your successful auction purchases will appear here.</p>
+    </div>
+    <a mat-flat-button color="primary" routerLink="/customer/auctions" class="!bg-sky-600 !rounded-xl text-xs font-bold">
+      <mat-icon>storefront</mat-icon> Browse Auctions
+    </a>
+  </div>
+
+  <!-- ORDER CARDS LIST -->
+  <div *ngIf="!isLoading() && !errorMessage() && orders().length > 0" class="space-y-4">
+    <div *ngFor="let item of orders()" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+      
+      <!-- Card Top Row: Order # and Status Badges -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-mono text-xs font-black">
+            Order #{{ item.orderNumber }}
+          </span>
+          <span class="text-[11px] text-slate-400 font-semibold">
+            Placed on {{ item.createdAtUtc | date:'mediumDate' }}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wider">
+            ✅ {{ item.status }}
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 uppercase tracking-wider">
+            💳 {{ item.paymentStatus }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Card Body: Image, Crop Details, Financial Breakdown, View Button -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        
+        <!-- Left: Image & Crop Info (md:col-span-5) -->
+        <div class="md:col-span-5 flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+            <img
+              [src]="item.primaryImageUrl"
+              [alt]="item.cropName"
+              (error)="onImageError($event)"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="space-y-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase">
+              {{ item.cropType }}
+            </span>
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-white leading-tight">
+              🌾 {{ item.cropName }}
+            </h2>
+            <p class="text-xs font-semibold text-slate-500">
+              Farmer: <strong class="text-slate-700 dark:text-slate-300">{{ item.farmerName }}</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Middle: Financial Metrics (md:col-span-4) -->
+        <div class="md:col-span-4 grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs">
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold block">Quantity</span>
+            <span class="font-extrabold text-slate-900 dark:text-white block">{{ item.allocatedQuantityKg }} Kg</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">({{ item.allocatedQuantityMan }} Man)</span>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold block">Winning Price</span>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 block">₹{{ item.pricePerMan }}</span>
+            <span class="text-[10px] text-slate-400 font-semibold">/ Man (20 Kg)</span>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold block">Total Paid</span>
+            <span class="font-black text-slate-900 dark:text-white text-sm block">₹{{ item.totalAmount | number:'1.0-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Right: Action Button (md:col-span-3) -->
+        <div class="md:col-span-3 flex justify-end">
+          <a
+            mat-flat-button
+            color="primary"
+            [routerLink]="['/customer/orders', item.orderId]"
+            class="!bg-sky-600 hover:!bg-sky-700 !rounded-xl text-xs font-extrabold !w-full md:!w-auto !py-2"
+          >
+            <mat-icon>visibility</mat-icon> VIEW ORDER
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

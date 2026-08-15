@@ -126,6 +126,57 @@ export interface CustomerOrder {
   createdAtUtc: string;
 }
 
+export interface CustomerOrderFilter {
+  search?: string;
+  status?: string;
+  sortBy?: string;
+}
+
+export interface CustomerOrderListItem {
+  orderId: string;
+  orderNumber: string;
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  cropType: string;
+  primaryImageUrl?: string | null;
+  allocatedQuantityKg: number;
+  allocatedQuantityMan: number;
+  pricePerMan: number;
+  totalAmount: number;
+  farmerName: string;
+  status: string;
+  paymentStatus: string;
+  createdAtUtc: string;
+}
+
+export interface CustomerOrderDetail {
+  orderId: string;
+  orderNumber: string;
+  auctionId: string;
+  cropId: string;
+  cropName: string;
+  cropType: string;
+  variety?: string | null;
+  primaryImageUrl?: string | null;
+  allocatedQuantityKg: number;
+  allocatedQuantityMan: number;
+  pricePerMan: number;
+  totalAmount: number;
+  farmerName: string;
+  farmLocation?: string | null;
+  status: string;
+  paymentStatus: string;
+  orderDateUtc: string;
+  auctionEndDateUtc: string;
+  winningBidAmount: number;
+  auctionAllocationId: string;
+  auctionPaymentId: string;
+  transactionReference: string;
+  paymentMethod: string;
+}
+
+
 export interface AuctionPayment {
   paymentId: string;
   auctionId: string;

@@ -279,3 +279,27 @@ The Angular app follows a feature-based structure:
   - `FarmerAttendanceComponent` (`/farmer/jobs/:jobId/attendance`): Date selection, quick "Mark All Present/Absent" actions, worker attendance status selection (`Present`, `Absent`, `HalfDay`, `Leave`), optional notes, and attendance history log.
   - `WorkerAttendanceComponent` (`/worker/attendance` & `/worker/assignments/:assignmentId/attendance`): Metric summary cards (Total Days, Present, Absent, Half Day/Leave, Attendance Rate %) and detailed attendance history log table.
 
+## Customer My Orders Module
+
+- **Order Creation Flow (Phase 7.1)**:
+  - FarmKart is an auction-only marketplace. Orders are created ONLY after a winning customer successfully completes mock payment (`PAID` status) for a finalized auction allocation.
+  - Handled by `IOrderService` (`OrderService.cs`), triggered automatically inside `CustomerPaymentService.ProcessAuctionPaymentAsync`.
+  - Idempotent execution ensures that multiple payment processing calls for the same `PaymentId` return the pre-existing `AuctionOrder` without creating duplicates.
+  - Order numbers are sequentially generated per day using the format `FK-YYYYMMDD-NNNN` with unique index constraints.
+
+- **Customer My Orders APIs (Phase 7.2)**:
+  - Exposed under `/api/customer/orders` (`GET /api/customer/orders`, `GET /api/customer/orders/{id}`) and guarded by `[Authorize(Roles = Roles.Customer)]`.
+  - Server-side filtering enforces `WHERE CustomerProfileId == CurrentAuthenticatedCustomerProfileId`. Requests never accept or trust `customerId` parameters from frontend.
+  - Query endpoints support `search` (OrderNumber, CropName, FarmerName), `status` (e.g. `CONFIRMED`), and `sortBy` (`newest` / `oldest`).
+  - Single order detail endpoint (`GET /api/customer/orders/{id}`) returns `404 Not Found` if the order ID does not exist or belongs to another customer, preventing cross-customer resource probing.
+
+- **Partial Allocation & Man Pricing Rules**:
+  - Purchased quantity displays `AllocatedQuantityKg` (from `AuctionAllocation.AllocatedQuantityKg`), never `Bid.RequestedQuantityKg`.
+  - Pricing is consistently displayed in **₹ / Man** ($1\text{ Man} = 20\text{ Kg}$).
+  - Total amount calculation: $\text{TotalAmount} = \frac{\text{AllocatedQuantityKg}}{20} \times \text{WinningBidAmountPerMan}$.
+
+- **Frontend Architecture**:
+  - `CustomerOrdersComponent` (`/customer/orders`): Rendered inside the existing Customer Shell layout. Displays order cards with order number, crop image, crop name, allocated quantity (Kg and Man), winning rate per Man, total paid amount, farmer display name, status badges (`CONFIRMED`, `PAID`), search input, status dropdown, sort dropdown, loading skeleton state, error retry state, and empty state with [ Browse Auctions ] action.
+  - `CustomerOrderDetailComponent` (`/customer/orders/:id`): Displays order details including order banner, crop information (image, name, type, variety), farmer information (name, farm location), purchase breakdown (allocated quantity, rate per Man, payment method, transaction reference, total amount), and auction reference link (`/customer/auctions/:id`).
+
+

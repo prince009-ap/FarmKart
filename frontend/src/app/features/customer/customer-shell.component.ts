@@ -37,7 +37,7 @@ export class CustomerShellComponent implements OnInit {
     { label: 'Dashboard', route: '/customer', icon: 'dashboard' },
     { label: 'Browse Auctions', route: '/customer/auctions', icon: 'gavel' },
     { label: 'My Bids', route: '/customer/bids', icon: 'local_offer' },
-    { label: 'My Orders', route: '/customer/orders', icon: 'shopping_bag', isPlaceholder: true },
+    { label: 'My Orders', route: '/customer/orders', icon: 'shopping_bag' },
     { label: 'Payments', route: '/customer/payments', icon: 'payments' },
     { label: 'Notifications', route: '/customer/notifications', icon: 'notifications', isPlaceholder: true },
     { label: 'My Profile', route: '/customer/profile', icon: 'person', isPlaceholder: true }

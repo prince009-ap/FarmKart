@@ -1,0 +1,49 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { CustomerOrderDetail, CustomerOrderFilter, CustomerOrderListItem } from '../../core/models/customer-auction.models';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CustomerOrderService {
+  private readonly http = inject(HttpClient);
+  private readonly ordersUrl = `${environment.apiUrl}/customer/orders`;
+
+  private get serverBaseUrl(): string {
+    return environment.apiUrl.replace(/\/api\/?$/, '');
+  }
+
+  resolveImageUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${this.serverBaseUrl}${cleanPath}`;
+  }
+
+  getCustomerOrders(filter?: CustomerOrderFilter): Observable<CustomerOrderListItem[]> {
+    let params = new HttpParams();
+    if (filter?.search) params = params.set('search', filter.search);
+    if (filter?.status) params = params.set('status', filter.status);
+    if (filter?.sortBy) params = params.set('sortBy', filter.sortBy);
+
+    return this.http.get<CustomerOrderListItem[]>(this.ordersUrl, { params }).pipe(
+      map(orders => orders.map(o => ({
+        ...o,
+        primaryImageUrl: this.resolveImageUrl(o.primaryImageUrl)
+      })))
+    );
+  }
+
+  getCustomerOrderById(id: string): Observable<CustomerOrderDetail> {
+    return this.http.get<CustomerOrderDetail>(`${this.ordersUrl}/${id}`).pipe(
+      map(order => ({
+        ...order,
+        primaryImageUrl: this.resolveImageUrl(order.primaryImageUrl)
+      }))
+    );
+  }
+}
