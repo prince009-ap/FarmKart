@@ -110,6 +110,22 @@ export interface CustomerMyBid {
   serverTimeUtc: string;
 }
 
+export interface CustomerOrder {
+  orderId: string;
+  orderNumber: string;
+  auctionId: string;
+  auctionPaymentId: string;
+  auctionAllocationId: string;
+  cropName: string;
+  cropType: string;
+  allocatedQuantityKg: number;
+  allocatedQuantityMan: number;
+  pricePerMan: number;
+  totalAmount: number;
+  status: string;
+  createdAtUtc: string;
+}
+
 export interface AuctionPayment {
   paymentId: string;
   auctionId: string;
@@ -132,6 +148,7 @@ export interface AuctionPayment {
   createdAtUtc: string;
   paidAtUtc?: string | null;
   serverTimeUtc: string;
+  order?: CustomerOrder | null;
 }
 
 export interface CustomerPaymentHistory {

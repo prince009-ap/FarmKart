@@ -75,4 +75,28 @@ public sealed class AuctionPayment : BaseEntity
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public string TransactionReference { get; set; } = string.Empty;
     public DateTime? PaidAtUtc { get; set; }
+
+    public AuctionOrder? AuctionOrder { get; set; }
 }
+
+public sealed class AuctionOrder : BaseEntity
+{
+    public string OrderNumber { get; set; } = string.Empty;
+    public Guid AuctionId { get; set; }
+    public Auction Auction { get; set; } = null!;
+    public Guid AuctionAllocationId { get; set; }
+    public AuctionAllocation AuctionAllocation { get; set; } = null!;
+    public Guid AuctionPaymentId { get; set; }
+    public AuctionPayment AuctionPayment { get; set; } = null!;
+    public Guid CustomerProfileId { get; set; }
+    public CustomerProfile CustomerProfile { get; set; } = null!;
+    public Guid FarmerProfileId { get; set; }
+    public FarmerProfile FarmerProfile { get; set; } = null!;
+    public Guid CropId { get; set; }
+    public Crop Crop { get; set; } = null!;
+    public decimal AllocatedQuantityKg { get; set; }
+    public decimal PricePerMan { get; set; }
+    public decimal TotalAmount { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Confirmed;
+}
+

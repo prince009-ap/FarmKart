@@ -160,3 +160,58 @@ public sealed class AuctionPaymentConfiguration : IEntityTypeConfiguration<Aucti
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class AuctionOrderConfiguration : IEntityTypeConfiguration<AuctionOrder>
+{
+    public void Configure(EntityTypeBuilder<AuctionOrder> builder)
+    {
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_AuctionOrder_Amounts_NonNegative", "[AllocatedQuantityKg] >= 0 AND [PricePerMan] >= 0 AND [TotalAmount] >= 0");
+        });
+
+        builder.ConfigureBaseEntity();
+
+        builder.Property(o => o.OrderNumber).HasMaxLength(50).IsRequired();
+        builder.Property(o => o.AllocatedQuantityKg).HasPrecision(18, 2);
+        builder.Property(o => o.PricePerMan).HasPrecision(18, 2);
+        builder.Property(o => o.TotalAmount).HasPrecision(18, 2);
+
+        builder.HasIndex(o => o.OrderNumber).IsUnique();
+        builder.HasIndex(o => o.AuctionPaymentId).IsUnique();
+        builder.HasIndex(o => o.CustomerProfileId);
+        builder.HasIndex(o => o.FarmerProfileId);
+        builder.HasIndex(o => o.AuctionId);
+
+        builder.HasOne(o => o.AuctionPayment)
+            .WithOne(p => p.AuctionOrder)
+            .HasForeignKey<AuctionOrder>(o => o.AuctionPaymentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.AuctionAllocation)
+            .WithMany()
+            .HasForeignKey(o => o.AuctionAllocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.Auction)
+            .WithMany()
+            .HasForeignKey(o => o.AuctionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.CustomerProfile)
+            .WithMany()
+            .HasForeignKey(o => o.CustomerProfileId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.FarmerProfile)
+            .WithMany()
+            .HasForeignKey(o => o.FarmerProfileId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(o => o.Crop)
+            .WithMany()
+            .HasForeignKey(o => o.CropId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+

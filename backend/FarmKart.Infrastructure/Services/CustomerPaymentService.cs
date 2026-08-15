@@ -15,7 +15,8 @@ namespace FarmKart.Infrastructure.Services;
 public sealed class CustomerPaymentService(
     FarmKartDbContext dbContext,
     IPaymentProvider paymentProvider,
-    IAuctionFinalizationService finalizationService) : ICustomerPaymentService
+    IAuctionFinalizationService finalizationService,
+    IOrderService orderService) : ICustomerPaymentService
 {
     public async Task<AuctionPaymentResponse> ProcessAuctionPaymentAsync(
         Guid userId,
@@ -72,8 +73,10 @@ public sealed class CustomerPaymentService(
 
             if (existingPayment != null && existingPayment.PaymentStatus == PaymentStatus.Paid)
             {
+                // Return existing order if any (idempotency)
+                var existingOrder = await orderService.GetOrderByPaymentIdAsync(existingPayment.Id, cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                return MapToResponse(existingPayment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, custAllocation.WinningBidAmountPerMan);
+                return MapToResponse(existingPayment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, custAllocation.WinningBidAmountPerMan, existingOrder);
             }
 
             var allocatedMan = AuctionPricingConstants.ConvertKgToMan(custAllocation.AllocatedQuantityKg);
@@ -114,7 +117,22 @@ public sealed class CustomerPaymentService(
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return MapToResponse(payment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, winningBidRate);
+            // Auto-create order if payment succeeded
+            AuctionOrderResponse? orderResponse = null;
+            if (providerResult.IsSuccess)
+            {
+                try
+                {
+                    orderResponse = await orderService.CreateOrderFromPaidPaymentAsync(payment.Id, cancellationToken);
+                }
+                catch
+                {
+                    // Order creation failure must not roll back a successful payment
+                    // It will be retried on the next call (idempotent)
+                }
+            }
+
+            return MapToResponse(payment, auction, customerProfile.FullName, custAllocation.AllocatedQuantityKg, winningBidRate, orderResponse);
         });
     }
 
@@ -147,7 +165,14 @@ public sealed class CustomerPaymentService(
         var allocatedKg = payment.AllocatedQuantityKg > 0 ? payment.AllocatedQuantityKg : (custAlloc?.AllocatedQuantityKg ?? 0m);
         var winningBidRate = custAlloc?.WinningBidAmountPerMan ?? (payment.Amount > 0 && allocatedKg > 0 ? Math.Round(payment.Amount / (allocatedKg / 20m), 2) : payment.Amount);
 
-        return MapToResponse(payment, payment.Auction, customerProfile.FullName, allocatedKg, winningBidRate);
+        // Include order if payment is PAID
+        AuctionOrderResponse? orderResponse = null;
+        if (payment.PaymentStatus == PaymentStatus.Paid)
+        {
+            orderResponse = await orderService.GetOrderByPaymentIdAsync(payment.Id, cancellationToken);
+        }
+
+        return MapToResponse(payment, payment.Auction, customerProfile.FullName, allocatedKg, winningBidRate, orderResponse);
     }
 
     public async Task<IReadOnlyList<CustomerPaymentHistoryResponse>> GetCustomerPaymentHistoryAsync(
@@ -249,7 +274,8 @@ public sealed class CustomerPaymentService(
         Auction auction,
         string winnerCustomerName,
         decimal allocatedKg,
-        decimal winningBidRate)
+        decimal winningBidRate,
+        AuctionOrderResponse? order = null)
     {
         var crop = auction.CropListing.Crop;
         var totalQtyKg = CropStockUnitConverter.ToKilograms(auction.CropListing.QuantityForSale, auction.CropListing.Unit);
@@ -277,7 +303,8 @@ public sealed class CustomerPaymentService(
             FarmerName: auction.FarmerProfile?.FullName ?? "Farmer",
             CreatedAtUtc: payment.CreatedAtUtc,
             PaidAtUtc: payment.PaidAtUtc,
-            ServerTimeUtc: DateTime.UtcNow
+            ServerTimeUtc: DateTime.UtcNow,
+            Order: order
         );
     }
 

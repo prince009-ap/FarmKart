@@ -27,8 +27,10 @@ public sealed record AuctionPaymentResponse(
     string FarmerName,
     DateTime CreatedAtUtc,
     DateTime? PaidAtUtc,
-    DateTime ServerTimeUtc
+    DateTime ServerTimeUtc,
+    AuctionOrderResponse? Order = null
 );
+
 
 public sealed record CustomerPaymentHistoryResponse(
     Guid PaymentId,

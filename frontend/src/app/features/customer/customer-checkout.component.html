@@ -41,6 +41,15 @@
 
     <!-- Receipt Details Box -->
     <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-3 text-left">
+      <div *ngIf="pay.order" class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
+        <div>
+          <span class="text-sky-800 dark:text-sky-300 font-extrabold block">Order Generated</span>
+          <span class="text-[11px] text-slate-500 font-mono font-bold">{{ pay.order.orderNumber }}</span>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wider">
+          {{ pay.order.status }}
+        </span>
+      </div>
       <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
         <span class="text-slate-500 font-medium">Crop Purchased</span>
         <span class="font-extrabold text-slate-900 dark:text-white text-sm">{{ pay.cropName }} ({{ pay.cropType }})</span>
