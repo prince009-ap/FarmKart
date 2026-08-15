@@ -1,0 +1,96 @@
+<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black tracking-tight">Customer Reviews</h1>
+        <p class="text-sm text-slate-400">Reviews left by customers for your completed orders.</p>
+      </div>
+      <a routerLink="/farmer/orders" mat-button class="!text-slate-400 hover:!text-white flex items-center gap-1">
+        <mat-icon>arrow_back</mat-icon> Back to Orders
+      </a>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="flex justify-center py-16">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (!isLoading() && errorMessage()) {
+      <div class="p-4 bg-red-950/60 border border-red-800 rounded-2xl text-red-300 text-sm flex items-center gap-2">
+        <mat-icon class="text-red-400">error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Summary Card -->
+    @if (!isLoading() && summary()) {
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-center gap-8">
+        <div class="text-center space-y-1">
+          <p class="text-5xl font-black text-amber-400">{{ summary()!.averageRating.toFixed(1) }}</p>
+          <div class="flex items-center justify-center gap-0.5 mt-1">
+            @for (star of [1,2,3,4,5]; track star) {
+              <mat-icon class="!text-lg !w-5 !h-5" [class]="star <= summary()!.averageRating ? '!text-amber-400' : '!text-slate-700'">
+                {{ star <= summary()!.averageRating ? 'star' : 'star_border' }}
+              </mat-icon>
+            }
+          </div>
+          <p class="text-xs text-slate-400 font-semibold">Average Rating</p>
+        </div>
+        <div class="h-16 border-l border-slate-800"></div>
+        <div class="text-center space-y-1">
+          <p class="text-4xl font-black text-white">{{ summary()!.totalReviews }}</p>
+          <p class="text-xs text-slate-400 font-semibold">Total Reviews</p>
+        </div>
+      </div>
+
+      <!-- Empty Reviews -->
+      @if (summary()!.recentReviews.length === 0) {
+        <div class="text-center py-12 space-y-3">
+          <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">rate_review</mat-icon>
+          <p class="text-slate-400 font-semibold">No reviews yet. Complete more orders to receive reviews!</p>
+        </div>
+      }
+
+      <!-- Review Cards -->
+      @if (summary()!.recentReviews.length > 0) {
+        <div class="space-y-4">
+          <h2 class="text-sm font-black uppercase tracking-wider text-slate-400">Recent Reviews</h2>
+          @for (review of summary()!.recentReviews; track review.reviewId) {
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-slate-700 transition-colors">
+              <div class="flex items-start justify-between">
+                <div class="space-y-0.5">
+                  <p class="font-bold text-white text-sm">{{ review.cropName }}
+                    <span class="ml-2 text-xs font-normal text-slate-500 font-mono">#{{ review.orderNumber }}</span>
+                  </p>
+                  <p class="text-xs text-slate-400">by <span class="font-semibold text-slate-300">{{ review.customerName }}</span></p>
+                </div>
+                <!-- Star Display -->
+                <div class="flex items-center gap-0.5">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <mat-icon class="!text-base !w-4 !h-4" [class]="star <= review.rating ? '!text-amber-400' : '!text-slate-700'">
+                      {{ star <= review.rating ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  }
+                </div>
+              </div>
+
+              @if (review.comment) {
+                <p class="text-sm text-slate-300 bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800 italic">
+                  "{{ review.comment }}"
+                </p>
+              }
+
+              <p class="text-xs text-slate-500">{{ review.createdAtUtc | date:'mediumDate' }}</p>
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </div>
+</div>

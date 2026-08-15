@@ -1,0 +1,98 @@
+<div class="p-6 md:p-8 bg-slate-900 text-white rounded-3xl max-w-lg mx-auto space-y-6 font-sans border border-slate-800">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div>
+      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 border border-amber-500/30 text-amber-300 uppercase tracking-wider">
+        {{ isEditing() ? 'Edit Review' : 'Rate & Review' }}
+      </span>
+      <h2 class="text-xl font-black tracking-tight text-white mt-1">Rate Your Purchase</h2>
+      <p class="text-xs text-slate-400">Share your experience with the farmer and crop quality.</p>
+    </div>
+    <button mat-icon-button (click)="close()" class="!text-slate-400 hover:!text-white">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Order Info Card -->
+  <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-1 text-xs">
+    <div class="flex justify-between">
+      <span class="text-slate-400 font-semibold">Order Number:</span>
+      <span class="font-mono font-bold text-white">#{{ data.orderNumber }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-slate-400 font-semibold">Farmer:</span>
+      <span class="font-bold text-slate-200">{{ data.farmerName }}</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-slate-400 font-semibold">Crop:</span>
+      <span class="font-bold text-emerald-400">🌾 {{ data.cropName }}</span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="p-3 bg-red-950/70 border border-red-800/60 rounded-xl text-red-300 text-xs flex items-center gap-2">
+      <mat-icon class="!w-4 !h-4 text-sm text-red-400">error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Interactive Star Selector -->
+  <div class="text-center space-y-2 py-2">
+    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Select Rating</span>
+    <div class="flex items-center justify-center gap-2">
+      @for (star of [1, 2, 3, 4, 5]; track star) {
+        <button
+          type="button"
+          (click)="setRating(star)"
+          (mouseenter)="setHover(star)"
+          (mouseleave)="setHover(0)"
+          class="focus:outline-none transition-transform hover:scale-125 p-1">
+          <mat-icon [class]="(hoverRating() >= star || (!hoverRating() && rating() >= star)) ? '!text-amber-400 text-4xl !w-10 !h-10' : '!text-slate-700 text-4xl !w-10 !h-10'">
+            {{ (hoverRating() >= star || (!hoverRating() && rating() >= star)) ? 'star' : 'star_border' }}
+          </mat-icon>
+        </button>
+      }
+    </div>
+    <p class="text-sm font-extrabold text-amber-300">
+      {{ rating() }} Star{{ rating() > 1 ? 's' : '' }}
+    </p>
+  </div>
+
+  <!-- Optional Comment Text Box -->
+  <div class="space-y-1.5">
+    <div class="flex justify-between text-xs">
+      <label for="review-comment" class="font-bold text-slate-300">Review Comment (Optional)</label>
+      <span class="text-slate-500 font-mono text-[10px]">{{ comment().length }}/1000</span>
+    </div>
+    <textarea
+      id="review-comment"
+      [ngModel]="comment()"
+      (ngModelChange)="comment.set($event)"
+      rows="4"
+      maxlength="1000"
+      placeholder="Write a few words about the crop quality, farmer communication, or delivery..."
+      class="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all resize-none"
+    ></textarea>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <button mat-button class="!text-slate-400 hover:!text-white" (click)="close()" [disabled]="isSubmitting()">
+      Cancel
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="!bg-amber-500 hover:!bg-amber-600 !text-slate-950 font-black !rounded-xl"
+      (click)="submitReview()"
+      [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        <mat-spinner diameter="18" color="accent" class="inline-block mr-2"></mat-spinner>
+      }
+      {{ isEditing() ? 'Update Review' : 'Submit Review' }}
+    </button>
+  </div>
+
+</div>

@@ -177,6 +177,101 @@ public sealed class CustomerOrdersController(IOrderService orderService) : Contr
         }
     }
 
+    [HttpPost("{id:guid}/review")]
+    public async Task<IActionResult> CreateOrderReview(
+        Guid id,
+        [FromBody] CreateOrderReviewRequest request,
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await orderReviewService.CreateOrderReviewAsync(userIdStr, id, request);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already been submitted"))
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:guid}/review")]
+    public async Task<IActionResult> GetOrderReview(
+        Guid id,
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var result = await orderReviewService.GetOrderReviewForCustomerAsync(userIdStr, id);
+        return result is null ? NotFound(new { message = "No review found for this order." }) : Ok(result);
+    }
+
+    [HttpPut("{id:guid}/review")]
+    public async Task<IActionResult> UpdateOrderReview(
+        Guid id,
+        [FromBody] UpdateOrderReviewRequest request,
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await orderReviewService.UpdateOrderReviewAsync(userIdStr, id, request);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("/api/customer/reviews")]
+    public async Task<IActionResult> GetMyCustomerReviews(
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var reviews = await orderReviewService.GetCustomerReviewsAsync(userIdStr);
+        return Ok(reviews);
+    }
+
     private Guid? GetCurrentUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

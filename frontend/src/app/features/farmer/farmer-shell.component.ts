@@ -47,6 +47,7 @@ export class FarmerShellComponent implements OnInit {
     { label: 'My Crops', route: '/farmer/crops', icon: 'eco' },
     { label: 'My Auctions', route: '/farmer/auctions', icon: 'gavel' },
     { label: 'My Orders', route: '/farmer/orders', icon: 'shopping_bag' },
+    { label: 'My Reviews', route: '/farmer/reviews', icon: 'star_rate' },
     { label: 'Machinery', route: '/farmer/machinery', icon: 'construction', isPlaceholder: true },
     { label: 'Marketplace', route: '/farmer/marketplace', icon: 'storefront', isPlaceholder: true },
     { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications' }

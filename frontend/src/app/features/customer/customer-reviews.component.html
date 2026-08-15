@@ -1,0 +1,91 @@
+<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black tracking-tight">My Reviews</h1>
+        <p class="text-sm text-slate-400">All reviews you have submitted for completed orders.</p>
+      </div>
+      <a routerLink="/customer/orders" mat-button class="!text-slate-400 hover:!text-white flex items-center gap-1">
+        <mat-icon>arrow_back</mat-icon> Back to Orders
+      </a>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="flex justify-center py-16">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (!isLoading() && errorMessage()) {
+      <div class="p-4 bg-red-950/60 border border-red-800 rounded-2xl text-red-300 text-sm flex items-center gap-2">
+        <mat-icon class="text-red-400">error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && !errorMessage() && reviews().length === 0) {
+      <div class="text-center py-16 space-y-3">
+        <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">rate_review</mat-icon>
+        <p class="text-slate-400 font-semibold">You have not submitted any reviews yet.</p>
+        <a routerLink="/customer/orders" mat-raised-button color="primary">View My Orders</a>
+      </div>
+    }
+
+    <!-- Review Cards -->
+    @if (!isLoading() && reviews().length > 0) {
+      <div class="space-y-4">
+        @for (review of reviews(); track review.reviewId) {
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-slate-700 transition-colors">
+            <!-- Top Row -->
+            <div class="flex items-start justify-between">
+              <div class="flex gap-3 items-center">
+                @if (review.primaryImageUrl) {
+                  <img [src]="review.primaryImageUrl" alt="Crop" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                } @else {
+                  <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl">🌾</div>
+                }
+                <div>
+                  <p class="font-bold text-white text-sm">{{ review.cropName }}</p>
+                  <p class="text-xs text-slate-400">Farmer: <span class="text-slate-300 font-semibold">{{ review.farmerName }}</span></p>
+                  <p class="font-mono text-xs text-slate-500">Order #{{ review.orderNumber }}</p>
+                </div>
+              </div>
+              <!-- Star Display -->
+              <div class="flex items-center gap-0.5">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <mat-icon class="!text-base !w-4 !h-4" [class]="star <= review.rating ? '!text-amber-400' : '!text-slate-700'">
+                    {{ star <= review.rating ? 'star' : 'star_border' }}
+                  </mat-icon>
+                }
+              </div>
+            </div>
+
+            <!-- Comment -->
+            @if (review.comment) {
+              <p class="text-sm text-slate-300 bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800 italic">
+                "{{ review.comment }}"
+              </p>
+            }
+
+            <!-- Footer Row -->
+            <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+              <span>Reviewed on {{ review.createdAtUtc | date:'mediumDate' }}</span>
+              @if (review.updatedAtUtc) {
+                <span class="text-slate-600">Edited {{ review.updatedAtUtc | date:'mediumDate' }}</span>
+              }
+              <button mat-button class="!text-xs !text-amber-400 hover:!text-amber-300 !px-2" (click)="editReview(review)">
+                <mat-icon class="!text-sm !w-4 !h-4">edit</mat-icon> Edit Review
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

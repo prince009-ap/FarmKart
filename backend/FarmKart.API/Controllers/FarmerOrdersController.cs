@@ -139,6 +139,35 @@ public sealed class FarmerOrdersController(IOrderService orderService) : Control
         }
     }
 
+    [HttpGet("{id:guid}/review")]
+    public async Task<IActionResult> GetOrderReview(
+        Guid id,
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var review = await orderReviewService.GetOrderReviewForFarmerAsync(userIdStr, id);
+        return review is null ? NotFound(new { message = "No review found for this order." }) : Ok(review);
+    }
+
+    [HttpGet("/api/farmer/reviews")]
+    public async Task<IActionResult> GetFarmerReviews(
+        [FromServices] IOrderReviewService orderReviewService)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr))
+        {
+            return Unauthorized();
+        }
+
+        var summary = await orderReviewService.GetFarmerRatingSummaryAsync(userIdStr);
+        return Ok(summary);
+    }
+
     private Guid? GetCurrentUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

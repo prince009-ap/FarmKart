@@ -163,6 +163,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./features/farmer/farmer-reviews.component').then(
+            (module) => module.FarmerReviewsComponent,
+          ),
+      },
+      {
         path: 'machinery',
         data: { title: 'Machinery' },
         loadComponent: () =>
@@ -375,6 +382,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-invoice.component').then(
             (module) => module.CustomerInvoiceComponent,
+          ),
+      },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./features/customer/customer-reviews.component').then(
+            (module) => module.CustomerReviewsComponent,
           ),
       },
       {

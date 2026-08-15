@@ -79,6 +79,46 @@
       <div *ngIf="actionError()" class="p-3 rounded-xl bg-rose-500/20 border border-rose-400 text-rose-200 text-xs font-semibold">
         {{ actionError() }}
       </div>
+
+      <!-- Rate & Review Section — only when COMPLETED + PAID -->
+      <div *ngIf="o.status === 'COMPLETED' && o.paymentStatus === 'PAID'"
+           class="pt-3 border-t border-sky-800/60 flex items-center justify-between gap-3 flex-wrap">
+        <div *ngIf="reviewLoading()" class="text-xs text-slate-400 animate-pulse">Loading review status...</div>
+
+        <ng-container *ngIf="!reviewLoading()">
+          <!-- No review yet -->
+          <ng-container *ngIf="!existingReview()">
+            <span class="text-xs font-semibold text-amber-200">
+              ⭐ Rate your experience with this completed order.
+            </span>
+            <button
+              mat-flat-button
+              (click)="openReviewDialog()"
+              class="!bg-amber-500 hover:!bg-amber-600 !text-slate-950 !rounded-xl text-xs font-extrabold">
+              <mat-icon>star</mat-icon> RATE &amp; REVIEW
+            </button>
+          </ng-container>
+
+          <!-- Existing review badge -->
+          <ng-container *ngIf="existingReview() as review">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs text-slate-300 font-semibold">Your Review:</span>
+              <div class="flex gap-0.5 items-center">
+                <span *ngFor="let s of [1,2,3,4,5]"
+                      class="text-base"
+                      [class]="s <= review.rating ? 'text-amber-400' : 'text-slate-600'">★</span>
+                <span class="ml-1 text-xs text-slate-400 font-mono">{{ review.rating }}/5</span>
+              </div>
+              <button
+                mat-button
+                (click)="openReviewDialog()"
+                class="!text-xs !text-amber-400 hover:!text-amber-300 !px-2">
+                <mat-icon class="!text-sm !w-4 !h-4">edit</mat-icon> Edit
+              </button>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
     </div>
 
     <!-- ORDER TIMELINE CARD -->

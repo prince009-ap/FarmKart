@@ -77,5 +77,8 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         builder.HasIndex(review => review.ReviewerUserId);
         builder.HasIndex(review => review.RevieweeUserId);
+        builder.HasIndex(review => new { review.RelatedEntityType, review.RelatedEntityId })
+            .HasFilter("[RelatedEntityId] IS NOT NULL")
+            .IsUnique();
     }
 }
