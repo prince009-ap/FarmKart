@@ -228,7 +228,15 @@ public sealed class OrderService(FarmKartDbContext dbContext, INotificationServi
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var statusStr = filter.Status.Trim();
-            if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
+            if (statusStr.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(o => o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled);
+            }
+            else if (statusStr.Equals("COMPLETED", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(o => o.Status == OrderStatus.Completed);
+            }
+            else if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
             {
                 query = query.Where(o => o.Status == statusEnum);
             }
@@ -424,7 +432,15 @@ public sealed class OrderService(FarmKartDbContext dbContext, INotificationServi
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var statusStr = filter.Status.Trim();
-            if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
+            if (statusStr.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(o => o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled);
+            }
+            else if (statusStr.Equals("COMPLETED", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(o => o.Status == OrderStatus.Completed);
+            }
+            else if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
             {
                 query = query.Where(o => o.Status == statusEnum);
             }
@@ -1001,9 +1017,9 @@ public sealed class OrderService(FarmKartDbContext dbContext, INotificationServi
             throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
         }
 
-        if (order.Status == OrderStatus.Completed)
+        if (order.Status == OrderStatus.Completed || order.Status == OrderStatus.Cancelled)
         {
-            throw new InvalidOperationException("Completed orders cannot be modified.");
+            throw new InvalidOperationException("Completed or cancelled orders cannot be modified.");
         }
 
         if (!TryParseFulfillmentMode(request.FulfillmentMode, out var newMode))
@@ -1111,6 +1127,172 @@ public sealed class OrderService(FarmKartDbContext dbContext, INotificationServi
             Status: FormatStatusString(order.Status),
             FulfillmentMode: order.FulfillmentMode.ToString().ToUpperInvariant(),
             CreatedAtUtc: order.CreatedAtUtc
+        );
+    }
+
+    public async Task<InvoiceResponse> GetOrCreateInvoiceForCustomerAsync(
+        Guid customerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var customerProfile = await dbContext.CustomerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == customerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Customer profile not found for authenticated user.");
+
+        var orderExists = await dbContext.AuctionOrders
+            .AsNoTracking()
+            .AnyAsync(o => o.Id == orderId && o.CustomerProfileId == customerProfile.Id, cancellationToken);
+
+        if (!orderExists)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        return await GetOrCreateInvoiceInternalAsync(orderId, cancellationToken);
+    }
+
+    public async Task<InvoiceResponse> GetOrCreateInvoiceForFarmerAsync(
+        Guid farmerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var farmerProfile = await dbContext.FarmerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.UserId == farmerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Farmer profile not found for authenticated user.");
+
+        var orderExists = await dbContext.AuctionOrders
+            .AsNoTracking()
+            .AnyAsync(o => o.Id == orderId && o.FarmerProfileId == farmerProfile.Id, cancellationToken);
+
+        if (!orderExists)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        return await GetOrCreateInvoiceInternalAsync(orderId, cancellationToken);
+    }
+
+    private async Task<InvoiceResponse> GetOrCreateInvoiceInternalAsync(
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        // 1. Idempotency Check: Return existing Invoice if created
+        var existingInvoice = await dbContext.Invoices
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.AuctionOrderId == orderId, cancellationToken);
+
+        if (existingInvoice != null)
+        {
+            return MapInvoiceToResponse(existingInvoice);
+        }
+
+        // 2. Fetch Order Details with Payment & Profiles
+        var order = await dbContext.AuctionOrders
+            .Include(o => o.Crop)
+                .ThenInclude(c => c.Images)
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.CustomerProfile)
+            .Include(o => o.AuctionPayment)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+
+        // 3. Verify Payment Status
+        if (order.AuctionPayment == null || order.AuctionPayment.PaymentStatus != PaymentStatus.Paid)
+        {
+            throw new InvalidOperationException("Invoice is available after successful payment.");
+        }
+
+        // 4. Generate Unique, Deterministic Invoice Number
+        var invoiceNumber = order.OrderNumber.StartsWith("FK-")
+            ? "INV-" + order.OrderNumber[3..]
+            : $"INV-{DateTime.UtcNow:yyyyMMdd}-{order.Id.ToString()[..4].ToUpper()}";
+
+        var primaryImg = order.Crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+            ?? order.Crop.Images.FirstOrDefault()?.ImageUrl;
+
+        var quantityMan = AuctionPricingConstants.ConvertKgToMan(order.AllocatedQuantityKg);
+
+        var addressList = new List<string>();
+        if (order.FulfillmentMode == FulfillmentMode.Delivery)
+        {
+            if (!string.IsNullOrWhiteSpace(order.DeliveryAddress)) addressList.Add(order.DeliveryAddress);
+            if (!string.IsNullOrWhiteSpace(order.DeliveryCity)) addressList.Add(order.DeliveryCity);
+            if (!string.IsNullOrWhiteSpace(order.DeliveryState)) addressList.Add(order.DeliveryState);
+            if (!string.IsNullOrWhiteSpace(order.DeliveryPincode)) addressList.Add(order.DeliveryPincode);
+        }
+        else
+        {
+            var pLoc = order.PickupLocation ?? order.FarmerProfile.FarmLocation ?? order.FarmerProfile.FarmName ?? order.FarmerProfile.FullName;
+            if (!string.IsNullOrWhiteSpace(pLoc)) addressList.Add(pLoc);
+        }
+        var address = string.Join(", ", addressList);
+
+        var invoice = new Invoice
+        {
+            InvoiceNumber = invoiceNumber,
+            AuctionOrderId = order.Id,
+            CustomerProfileId = order.CustomerProfileId,
+            FarmerProfileId = order.FarmerProfileId,
+            InvoiceDateUtc = DateTime.UtcNow,
+            SellerName = order.FarmerProfile.FullName ?? order.FarmerProfile.FarmName ?? "FarmKart Seller",
+            SellerPhone = order.FarmerProfile.Phone,
+            SellerLocation = order.FarmerProfile.FarmLocation,
+            BuyerName = order.ContactName ?? order.CustomerProfile.FullName ?? "FarmKart Buyer",
+            BuyerPhone = order.ContactPhone ?? order.CustomerProfile.Phone,
+            DeliveryOrPickupAddress = address,
+            CropName = order.Crop.CropName,
+            CropType = order.Crop.CropType,
+            Variety = order.Crop.Variety ?? "",
+            PrimaryImageUrl = primaryImg,
+            QuantityKg = order.AllocatedQuantityKg,
+            QuantityMan = quantityMan,
+            PricePerMan = order.PricePerMan,
+            SubtotalAmount = order.TotalAmount,
+            TaxAmount = 0,
+            TotalAmount = order.TotalAmount,
+            PaymentStatus = "PAID",
+            PaymentReference = order.AuctionPayment.TransactionReference,
+            PaidAtUtc = order.AuctionPayment.PaidAtUtc ?? order.CreatedAtUtc,
+            FulfillmentMode = order.FulfillmentMode.ToString().ToUpperInvariant()
+        };
+
+        dbContext.Invoices.Add(invoice);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return MapInvoiceToResponse(invoice);
+    }
+
+    private static InvoiceResponse MapInvoiceToResponse(Invoice invoice)
+    {
+        return new InvoiceResponse(
+            InvoiceId: invoice.Id,
+            InvoiceNumber: invoice.InvoiceNumber,
+            InvoiceDateUtc: invoice.InvoiceDateUtc,
+            OrderId: invoice.AuctionOrderId,
+            OrderNumber: invoice.AuctionOrder?.OrderNumber ?? invoice.InvoiceNumber.Replace("INV-", "FK-"),
+            OrderDateUtc: invoice.AuctionOrder?.CreatedAtUtc ?? invoice.CreatedAtUtc,
+            PaymentStatus: invoice.PaymentStatus,
+            PaymentReference: invoice.PaymentReference,
+            PaidAtUtc: invoice.PaidAtUtc,
+            SellerName: invoice.SellerName,
+            SellerPhone: invoice.SellerPhone,
+            SellerLocation: invoice.SellerLocation,
+            BuyerName: invoice.BuyerName,
+            BuyerPhone: invoice.BuyerPhone,
+            FulfillmentMode: invoice.FulfillmentMode,
+            DeliveryOrPickupAddress: invoice.DeliveryOrPickupAddress,
+            CropName: invoice.CropName,
+            CropType: invoice.CropType,
+            Variety: invoice.Variety,
+            PrimaryImageUrl: invoice.PrimaryImageUrl,
+            QuantityKg: invoice.QuantityKg,
+            QuantityMan: invoice.QuantityMan,
+            PricePerMan: invoice.PricePerMan,
+            SubtotalAmount: invoice.SubtotalAmount,
+            TaxAmount: invoice.TaxAmount,
+            TotalAmount: invoice.TotalAmount
         );
     }
 }

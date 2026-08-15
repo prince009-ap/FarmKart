@@ -38,10 +38,13 @@ export class CustomerOrdersComponent implements OnInit {
 
   readonly statusOptions = [
     { value: 'ALL', label: 'All Orders' },
+    { value: 'ACTIVE', label: 'Active Orders' },
+    { value: 'COMPLETED', label: 'Completed Orders' },
     { value: 'CONFIRMED', label: 'Confirmed' },
-    { value: 'READY_FOR_PICKUP', label: 'Ready for Pickup (Soon)', disabled: true },
-    { value: 'DELIVERED', label: 'Delivered (Soon)', disabled: true },
-    { value: 'CANCELLED', label: 'Cancelled (Soon)', disabled: true }
+    { value: 'READY_FOR_PICKUP', label: 'Ready for Pickup' },
+    { value: 'DISPATCHED', label: 'Dispatched' },
+    { value: 'DELIVERED', label: 'Delivered' },
+    { value: 'CANCELLED', label: 'Cancelled' }
   ];
 
   readonly sortOptions = [

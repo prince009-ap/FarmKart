@@ -27,6 +27,25 @@
     </div>
   </div>
 
+  <!-- Quick Status Tabs -->
+  <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+    <button
+      (click)="onStatusChange('ALL')"
+      [class]="selectedStatus() === 'ALL' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm' : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+      All Orders
+    </button>
+    <button
+      (click)="onStatusChange('ACTIVE')"
+      [class]="selectedStatus() === 'ACTIVE' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm' : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+      Active Orders
+    </button>
+    <button
+      (click)="onStatusChange('COMPLETED')"
+      [class]="selectedStatus() === 'COMPLETED' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm' : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'">
+      Completed Orders
+    </button>
+  </div>
+
   <!-- Search & Filter Controls -->
   <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -50,7 +69,7 @@
           (ngModelChange)="onStatusChange($event)"
           class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
         >
-          <option *ngFor="let opt of statusOptions" [value]="opt.value" [disabled]="opt.disabled">
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">
             {{ opt.label }}
           </option>
         </select>
@@ -93,8 +112,12 @@
       <mat-icon class="!w-9 !h-9 text-4xl">shopping_bag</mat-icon>
     </div>
     <div class="space-y-1">
-      <h2 class="text-lg font-black text-slate-900 dark:text-white">No orders yet</h2>
-      <p class="text-xs font-medium text-slate-500">Your successful auction purchases will appear here.</p>
+      <h2 class="text-lg font-black text-slate-900 dark:text-white">
+        {{ selectedStatus() === 'COMPLETED' ? 'No completed orders yet' : 'No orders yet' }}
+      </h2>
+      <p class="text-xs font-medium text-slate-500">
+        {{ selectedStatus() === 'COMPLETED' ? 'Your completed auction purchases will appear here.' : 'Your successful auction purchases will appear here.' }}
+      </p>
     </div>
     <a mat-flat-button color="primary" routerLink="/customer/auctions" class="!bg-sky-600 !rounded-xl text-xs font-bold">
       <mat-icon>storefront</mat-icon> Browse Auctions
@@ -178,6 +201,14 @@
 
         <!-- Right: Action Buttons (md:col-span-3) -->
         <div class="md:col-span-3 flex flex-col sm:flex-row md:flex-col justify-end gap-2">
+          <a
+            *ngIf="item.paymentStatus === 'PAID'"
+            mat-stroked-button
+            [routerLink]="['/customer/orders', item.orderId, 'invoice']"
+            class="!border-emerald-600 !text-emerald-400 hover:!bg-emerald-950/40 !rounded-xl text-xs font-extrabold !w-full !py-2"
+          >
+            <mat-icon>receipt_long</mat-icon> VIEW INVOICE
+          </a>
           <a
             mat-flat-button
             [routerLink]="['/customer/orders', item.orderId, 'track']"

@@ -156,6 +156,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'orders/:id/invoice',
+        loadComponent: () =>
+          import('./features/farmer/farmer-invoice.component').then(
+            (module) => module.FarmerInvoiceComponent,
+          ),
+      },
+      {
         path: 'machinery',
         data: { title: 'Machinery' },
         loadComponent: () =>
@@ -361,6 +368,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-order-tracking.component').then(
             (module) => module.CustomerOrderTrackingComponent,
+          ),
+      },
+      {
+        path: 'orders/:id/invoice',
+        loadComponent: () =>
+          import('./features/customer/customer-invoice.component').then(
+            (module) => module.CustomerInvoiceComponent,
           ),
       },
       {

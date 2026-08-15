@@ -194,9 +194,14 @@
           <p class="text-lg font-black text-slate-900 dark:text-white">₹{{ item.totalAmount | number:'1.0-2' }}</p>
         </div>
 
-        <a mat-flat-button [routerLink]="['/farmer/orders', item.orderId]" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
-          <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> MANAGE
-        </a>
+        <div class="flex items-center gap-2">
+          <a *ngIf="item.paymentStatus === 'PAID'" mat-stroked-button [routerLink]="['/farmer/orders', item.orderId, 'invoice']" class="!border-emerald-600 !text-emerald-400 !rounded-xl text-xs font-bold">
+            <mat-icon class="!w-4 !h-4 text-sm">receipt_long</mat-icon> INVOICE
+          </a>
+          <a mat-flat-button [routerLink]="['/farmer/orders', item.orderId]" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
+            <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> MANAGE
+          </a>
+        </div>
       </div>
 
     </div>

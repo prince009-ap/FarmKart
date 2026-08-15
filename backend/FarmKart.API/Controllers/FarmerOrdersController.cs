@@ -112,6 +112,33 @@ public sealed class FarmerOrdersController(IOrderService orderService) : Control
         }
     }
 
+    [HttpGet("{id:guid}/invoice")]
+    public async Task<IActionResult> GetOrderInvoice(Guid id, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var invoice = await orderService.GetOrCreateInvoiceForFarmerAsync(userId, id, cancellationToken);
+            return Ok(invoice);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+    }
+
     private Guid? GetCurrentUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

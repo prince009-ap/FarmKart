@@ -92,4 +92,26 @@ public interface IOrderService
         Guid authenticatedUserId,
         Guid orderId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves or generates an invoice for an order owned by the authenticated customer.
+    /// Idempotent: Repeated requests return the same existing invoice without duplicating records.
+    /// Throws KeyNotFoundException if order does not exist or belong to customer.
+    /// Throws InvalidOperationException if order payment is not PAID.
+    /// </summary>
+    Task<InvoiceResponse> GetOrCreateInvoiceForCustomerAsync(
+        Guid customerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves or generates an invoice for an order belonging to an auction owned by the authenticated farmer.
+    /// Idempotent: Repeated requests return the same existing invoice without duplicating records.
+    /// Throws KeyNotFoundException if order does not exist or belong to farmer.
+    /// Throws InvalidOperationException if order payment is not PAID.
+    /// </summary>
+    Task<InvoiceResponse> GetOrCreateInvoiceForFarmerAsync(
+        Guid farmerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
 }

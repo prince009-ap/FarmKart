@@ -45,7 +45,10 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <a *ngIf="o.paymentStatus === 'PAID'" mat-stroked-button [routerLink]="['/customer/orders', o.orderId, 'invoice']" class="!border-emerald-400 !text-emerald-300 hover:!bg-emerald-950/60 !rounded-xl text-xs font-extrabold">
+            <mat-icon>receipt_long</mat-icon> VIEW INVOICE
+          </a>
           <a mat-flat-button [routerLink]="['/customer/orders', o.orderId, 'track']" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-extrabold">
             <mat-icon>route</mat-icon> TRACK ORDER
           </a>
