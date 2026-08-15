@@ -98,5 +98,17 @@ public sealed class AuctionOrder : BaseEntity
     public decimal PricePerMan { get; set; }
     public decimal TotalAmount { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Confirmed;
+    public FulfillmentMode FulfillmentMode { get; set; } = FulfillmentMode.Delivery;
+    public string? DeliveryAddress { get; set; }
+    public string? DeliveryCity { get; set; }
+    public string? DeliveryState { get; set; }
+    public string? DeliveryPincode { get; set; }
+    public string? ContactName { get; set; }
+    public string? ContactPhone { get; set; }
+    public string? PickupLocation { get; set; }
+    public DateTime? PickupDate { get; set; }
+    public DateTime? ExpectedDeliveryDate { get; set; }
+
+    public ICollection<OrderStatusHistory> StatusHistories { get; set; } = [];
 }
 

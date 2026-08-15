@@ -78,8 +78,8 @@
 
     <!-- Actions -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-      <a mat-flat-button color="primary" routerLink="/customer/payments" class="!bg-sky-600 !rounded-xl text-xs font-bold !w-full sm:!w-auto">
-        <mat-icon>history</mat-icon> View My Purchases / Payments
+      <a mat-flat-button color="primary" routerLink="/customer/orders" class="!bg-sky-600 !rounded-xl text-xs font-bold !w-full sm:!w-auto">
+        <mat-icon>shopping_bag</mat-icon> View My Orders
       </a>
       <a mat-stroked-button routerLink="/customer/auctions" class="!rounded-xl text-xs font-bold !w-full sm:!w-auto">
         Return to Marketplace
@@ -101,7 +101,7 @@
         </div>
         <h1 class="text-2xl font-extrabold">Complete Your Multi-Quantity Purchase</h1>
         <p class="text-xs text-emerald-100">
-          Review your final allocated quantity and rate before proceeding to payment.
+          Review your final allocated quantity, choose fulfillment method, and proceed to payment.
         </p>
       </div>
 
@@ -112,8 +112,9 @@
         </h2>
 
         <div class="flex items-center gap-4">
-          <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
-            <img [src]="auc.primaryImageUrl" [alt]="auc.cropName" (error)="onImageError($event)" class="w-full h-full object-cover" />
+          <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
+            <img *ngIf="auc.primaryImageUrl" [src]="auc.primaryImageUrl" [alt]="auc.cropName" (error)="onImageError($event)" class="w-full h-full object-cover" />
+            <mat-icon *ngIf="!auc.primaryImageUrl" class="!w-8 !h-8 text-3xl text-emerald-600 dark:text-emerald-400">eco</mat-icon>
           </div>
           <div class="space-y-1">
             <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 uppercase">
@@ -151,6 +152,89 @@
           <div class="flex justify-between py-3 text-base font-black text-slate-900 dark:text-white">
             <span>Total Payable Amount</span>
             <span class="text-xl text-emerald-600 dark:text-emerald-400">₹{{ calculateTotalPayable() | number:'1.0-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fulfillment Selection Card -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+          <mat-icon class="text-teal-600">local_shipping</mat-icon> Fulfillment & Delivery Method
+        </h2>
+
+        <!-- Mode Toggle -->
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            (click)="fulfillmentMode.set('DELIVERY')"
+            class="p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all"
+            [ngClass]="fulfillmentMode() === 'DELIVERY' ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/40 text-sky-900 dark:text-sky-200 font-extrabold ring-2 ring-sky-500/20' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'"
+          >
+            <mat-icon [ngClass]="fulfillmentMode() === 'DELIVERY' ? 'text-sky-600' : 'text-slate-400'">local_shipping</mat-icon>
+            <div>
+              <span class="text-xs block">Home Delivery</span>
+              <span class="text-[10px] text-slate-400 font-normal">Direct to address</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            (click)="fulfillmentMode.set('PICKUP')"
+            class="p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all"
+            [ngClass]="fulfillmentMode() === 'PICKUP' ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-extrabold ring-2 ring-amber-500/20' : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'"
+          >
+            <mat-icon [ngClass]="fulfillmentMode() === 'PICKUP' ? 'text-amber-600' : 'text-slate-400'">storefront</mat-icon>
+            <div>
+              <span class="text-xs block">Farm Pickup</span>
+              <span class="text-[10px] text-slate-400 font-normal">Collect at farm</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Delivery Inputs -->
+        <div *ngIf="fulfillmentMode() === 'DELIVERY'" class="space-y-3 pt-2 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">Recipient Name</label>
+              <input type="text" [ngModel]="contactName()" (ngModelChange)="contactName.set($event)" placeholder="Full Name" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">Contact Phone</label>
+              <input type="text" [ngModel]="contactPhone()" (ngModelChange)="contactPhone.set($event)" placeholder="10-digit Phone" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">Street Address</label>
+            <input type="text" [ngModel]="deliveryAddress()" (ngModelChange)="deliveryAddress.set($event)" placeholder="House no, Street, Landmark" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">City</label>
+              <input type="text" [ngModel]="deliveryCity()" (ngModelChange)="deliveryCity.set($event)" placeholder="City" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">State</label>
+              <input type="text" [ngModel]="deliveryState()" (ngModelChange)="deliveryState.set($event)" placeholder="State" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">Pincode</label>
+              <input type="text" [ngModel]="deliveryPincode()" (ngModelChange)="deliveryPincode.set($event)" placeholder="Pincode" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Pickup Inputs -->
+        <div *ngIf="fulfillmentMode() === 'PICKUP'" class="space-y-3 pt-2 text-xs">
+          <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 space-y-1">
+            <span class="font-extrabold block text-xs flex items-center gap-1.5">
+              <mat-icon class="!w-4 !h-4 text-sm text-amber-600">location_on</mat-icon> Farm Pickup Location
+            </span>
+            <p class="text-xs font-semibold">{{ auc.farmerName }} - {{ auc.farmLocation }}</p>
+          </div>
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">Preferred Pickup Date & Time</label>
+            <input type="datetime-local" [ngModel]="pickupDate()" (ngModelChange)="pickupDate.set($event)" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-900 dark:text-white" />
+            <span class="text-[10px] text-slate-400 mt-1 block">Specify when you plan to visit the farm to collect your order.</span>
           </div>
         </div>
       </div>

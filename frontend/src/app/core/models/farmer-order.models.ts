@@ -1,3 +1,5 @@
+import { OrderStatusHistoryItem } from './customer-auction.models';
+
 export interface FarmerOrderSummary {
   totalOrders: number;
   confirmedOrdersCount: number;
@@ -27,6 +29,9 @@ export interface FarmerOrderListItem {
   pricePerMan: number;
   totalAmount: number;
   status: string;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
+  pickupDate?: string | null;
+  expectedDeliveryDate?: string | null;
   paymentStatus: string;
   createdAtUtc: string;
 }
@@ -56,6 +61,16 @@ export interface FarmerOrderDetail {
   auctionStartTimeUtc: string;
   auctionEndTimeUtc: string;
   status: string;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
+  deliveryAddress?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryPincode?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  pickupLocation?: string | null;
+  pickupDate?: string | null;
+  expectedDeliveryDate?: string | null;
   paymentStatus: string;
   orderDateUtc: string;
   auctionAllocationId: string;
@@ -63,4 +78,5 @@ export interface FarmerOrderDetail {
   transactionReference: string;
   paymentMethod: string;
   paidAtUtc?: string | null;
+  timeline: OrderStatusHistoryItem[];
 }

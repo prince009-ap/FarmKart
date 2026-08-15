@@ -2,7 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuctionBid, AuctionPayment, AuctionResult, CustomerAuction, CustomerAuctionFilter, CustomerMyBid, CustomerPaymentHistory } from '../../core/models/customer-auction.models';
+import {
+  AuctionBid,
+  AuctionPayment,
+  AuctionResult,
+  CustomerAuction,
+  CustomerAuctionFilter,
+  CustomerMyBid,
+  CustomerPaymentHistory
+} from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -26,14 +34,6 @@ export class CustomerAuctionService {
     return `${this.serverBaseUrl}${cleanPath}`;
   }
 
-  private transformAuction(auction: CustomerAuction): CustomerAuction {
-    return {
-      ...auction,
-      primaryImageUrl: this.resolveImageUrl(auction.primaryImageUrl),
-      images: (auction.images || []).map(img => this.resolveImageUrl(img) || img)
-    };
-  }
-
   getMarketplaceAuctions(filter?: CustomerAuctionFilter): Observable<CustomerAuction[]> {
     let params = new HttpParams();
     if (filter?.search) params = params.set('search', filter.search);
@@ -43,17 +43,25 @@ export class CustomerAuctionService {
     if (filter?.sortBy) params = params.set('sortBy', filter.sortBy);
 
     return this.http.get<CustomerAuction[]>(this.apiUrl, { params }).pipe(
-      map(auctions => auctions.map(auc => this.transformAuction(auc)))
+      map(auctions => auctions.map(a => ({
+        ...a,
+        primaryImageUrl: this.resolveImageUrl(a.primaryImageUrl),
+        images: (a.images || []).map(img => this.resolveImageUrl(img) || img)
+      })))
     );
   }
 
   getAuctionById(id: string): Observable<CustomerAuction> {
     return this.http.get<CustomerAuction>(`${this.apiUrl}/${id}`).pipe(
-      map(auc => this.transformAuction(auc))
+      map(auction => ({
+        ...auction,
+        primaryImageUrl: this.resolveImageUrl(auction.primaryImageUrl),
+        images: (auction.images || []).map(img => this.resolveImageUrl(img) || img)
+      }))
     );
   }
 
-  placeBid(auctionId: string, amount: number, requestedQuantityKg?: number | null): Observable<AuctionBid> {
+  placeBid(auctionId: string, amount: number, requestedQuantityKg: number): Observable<AuctionBid> {
     return this.http.post<AuctionBid>(`${this.apiUrl}/${auctionId}/bids`, { amount, requestedQuantityKg });
   }
 
@@ -76,8 +84,25 @@ export class CustomerAuctionService {
     );
   }
 
-  processAuctionPayment(auctionId: string, paymentMethod: string): Observable<AuctionPayment> {
-    return this.http.post<AuctionPayment>(`${this.apiUrl}/${auctionId}/payments`, { paymentMethod });
+  processAuctionPayment(
+    auctionId: string,
+    paymentMethod: string,
+    fulfillmentDetails?: {
+      fulfillmentMode?: string;
+      deliveryAddress?: string;
+      deliveryCity?: string;
+      deliveryState?: string;
+      deliveryPincode?: string;
+      contactName?: string;
+      contactPhone?: string;
+      pickupDate?: string;
+    }
+  ): Observable<AuctionPayment> {
+    const body = {
+      paymentMethod,
+      ...fulfillmentDetails
+    };
+    return this.http.post<AuctionPayment>(`${this.apiUrl}/${auctionId}/payments`, body);
   }
 
   getPaymentHistory(): Observable<CustomerPaymentHistory[]> {

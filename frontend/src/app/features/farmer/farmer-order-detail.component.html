@@ -26,12 +26,17 @@
   <div *ngIf="!isLoading() && !errorMessage() && order() as o" class="space-y-6">
     
     <!-- Top Order Banner -->
-    <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-lg space-y-3 border border-emerald-800/50">
+    <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-lg space-y-4 border border-emerald-800/50">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="space-y-1">
-          <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider">
-            Farmer Order Details
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider">
+              Farmer Order Fulfillment
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/20 border border-sky-400/40 text-sky-200 uppercase">
+              {{ o.fulfillmentMode === 'PICKUP' ? '📦 Farm Pickup' : '🚚 Home Delivery' }}
+            </span>
+          </div>
           <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
             Order #{{ o.orderNumber }}
           </h1>
@@ -47,6 +52,176 @@
           <span class="px-3 py-1 rounded-full text-xs font-black bg-sky-500/20 border border-sky-400/40 text-sky-300 uppercase tracking-wider">
             💳 {{ o.paymentStatus }}
           </span>
+        </div>
+      </div>
+
+      <!-- Farmer Action Controls Bar -->
+      <div *ngIf="o.status !== 'COMPLETED'" class="pt-3 border-t border-emerald-800/60 space-y-3">
+        <span class="text-xs font-bold text-emerald-200 block">Fulfillment Action & Status Transition:</span>
+        
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Step 1 -> Ready for Pickup -->
+          <button
+            *ngIf="o.status === 'CONFIRMED'"
+            type="button"
+            mat-flat-button
+            (click)="updateStatus('READY_FOR_PICKUP')"
+            [disabled]="isUpdating()"
+            class="!bg-sky-600 hover:!bg-sky-700 !text-white !rounded-xl text-xs font-extrabold"
+          >
+            <mat-icon>check_circle</mat-icon> Mark Ready for Pickup
+          </button>
+
+          <!-- Step 2 -> Dispatched (Delivery) -->
+          <button
+            *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'DELIVERY'"
+            type="button"
+            mat-flat-button
+            (click)="updateStatus('DISPATCHED')"
+            [disabled]="isUpdating()"
+            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold"
+          >
+            <mat-icon>local_shipping</mat-icon> Mark Dispatched
+          </button>
+
+          <!-- Step 2 -> Picked Up (Pickup) -->
+          <button
+            *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'PICKUP'"
+            type="button"
+            mat-flat-button
+            (click)="updateStatus('PICKED_UP')"
+            [disabled]="isUpdating()"
+            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold"
+          >
+            <mat-icon>storefront</mat-icon> Mark Picked Up
+          </button>
+
+          <!-- Step 3 -> Delivered (Delivery) -->
+          <button
+            *ngIf="o.status === 'DISPATCHED' && o.fulfillmentMode === 'DELIVERY'"
+            type="button"
+            mat-flat-button
+            (click)="updateStatus('DELIVERED')"
+            [disabled]="isUpdating()"
+            class="!bg-indigo-600 hover:!bg-indigo-700 !text-white !rounded-xl text-xs font-extrabold"
+          >
+            <mat-icon>task_alt</mat-icon> Mark Delivered
+          </button>
+
+          <!-- Step 4 -> Completed -->
+          <button
+            *ngIf="o.status === 'DELIVERED' || o.status === 'PICKED_UP'"
+            type="button"
+            mat-flat-button
+            (click)="updateStatus('COMPLETED')"
+            [disabled]="isUpdating()"
+            class="!bg-emerald-500 hover:!bg-emerald-600 !text-white !rounded-xl text-xs font-extrabold"
+          >
+            <mat-icon>verified</mat-icon> Mark Completed
+          </button>
+
+          <input
+            type="text"
+            [ngModel]="actionNote()"
+            (ngModelChange)="actionNote.set($event)"
+            placeholder="Optional transition note..."
+            class="px-3 py-1.5 rounded-xl border border-emerald-700 bg-emerald-900/60 text-xs text-white placeholder-emerald-300/60 focus:outline-none flex-1 min-w-[200px]"
+          />
+        </div>
+
+        <div *ngIf="actionError()" class="p-3 rounded-xl bg-rose-500/20 border border-rose-400 text-rose-200 text-xs font-semibold">
+          {{ actionError() }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDER TIMELINE CARD -->
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+      <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+        <mat-icon class="text-emerald-600">timeline</mat-icon> Fulfillment Status Lifecycle
+      </h2>
+
+      <!-- Visual Timeline Steps -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+        
+        <!-- Step 1: Confirmed -->
+        <div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 space-y-1">
+          <div class="flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
+            <mat-icon class="!w-4 !h-4 text-sm text-emerald-600">check_circle</mat-icon> Confirmed
+          </div>
+          <p class="text-[10px] text-emerald-800/80 dark:text-emerald-400/80 font-medium">
+            {{ o.orderDateUtc | date:'mediumDate' }}
+          </p>
+        </div>
+
+        <!-- Step 2: Ready for Pickup -->
+        <div
+          class="p-3 rounded-2xl border space-y-1"
+          [ngClass]="o.status === 'READY_FOR_PICKUP' || o.status === 'DISPATCHED' || o.status === 'PICKED_UP' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'"
+        >
+          <div class="flex items-center gap-1.5 text-xs font-extrabold" [ngClass]="o.status === 'READY_FOR_PICKUP' || o.status === 'DISPATCHED' || o.status === 'PICKED_UP' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'">
+            <mat-icon class="!w-4 !h-4 text-sm">{{ o.status === 'CONFIRMED' ? 'radio_button_unchecked' : 'check_circle' }}</mat-icon> Ready Pickup
+          </div>
+          <p class="text-[10px] font-medium">{{ o.status === 'CONFIRMED' ? 'Pending' : 'Completed' }}</p>
+        </div>
+
+        <!-- Step 3: Dispatched (Delivery) OR Picked Up (Pickup) -->
+        <div
+          *ngIf="o.fulfillmentMode === 'DELIVERY'"
+          class="p-3 rounded-2xl border space-y-1"
+          [ngClass]="o.status === 'DISPATCHED' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'"
+        >
+          <div class="flex items-center gap-1.5 text-xs font-extrabold" [ngClass]="o.status === 'DISPATCHED' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'">
+            <mat-icon class="!w-4 !h-4 text-sm">{{ o.status === 'DISPATCHED' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon> Dispatched
+          </div>
+          <p class="text-[10px] font-medium">{{ o.status === 'DISPATCHED' || o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'In Transit' : 'Pending' }}</p>
+        </div>
+
+        <div
+          *ngIf="o.fulfillmentMode === 'PICKUP'"
+          class="p-3 rounded-2xl border space-y-1"
+          [ngClass]="o.status === 'PICKED_UP' || o.status === 'COMPLETED' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'"
+        >
+          <div class="flex items-center gap-1.5 text-xs font-extrabold" [ngClass]="o.status === 'PICKED_UP' || o.status === 'COMPLETED' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'">
+            <mat-icon class="!w-4 !h-4 text-sm">{{ o.status === 'PICKED_UP' || o.status === 'COMPLETED' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon> Picked Up
+          </div>
+          <p class="text-[10px] font-medium">{{ o.status === 'PICKED_UP' || o.status === 'COMPLETED' ? 'Collected' : 'Pending' }}</p>
+        </div>
+
+        <!-- Step 4: Delivered (Delivery Mode Only) -->
+        <div
+          *ngIf="o.fulfillmentMode === 'DELIVERY'"
+          class="p-3 rounded-2xl border space-y-1"
+          [ngClass]="o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'"
+        >
+          <div class="flex items-center gap-1.5 text-xs font-extrabold" [ngClass]="o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'">
+            <mat-icon class="!w-4 !h-4 text-sm">{{ o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon> Delivered
+          </div>
+          <p class="text-[10px] font-medium">{{ o.status === 'DELIVERED' || o.status === 'COMPLETED' ? 'Delivered' : 'Pending' }}</p>
+        </div>
+
+        <!-- Step 5: Completed -->
+        <div
+          class="p-3 rounded-2xl border space-y-1"
+          [ngClass]="o.status === 'COMPLETED' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'"
+        >
+          <div class="flex items-center gap-1.5 text-xs font-extrabold" [ngClass]="o.status === 'COMPLETED' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'">
+            <mat-icon class="!w-4 !h-4 text-sm">{{ o.status === 'COMPLETED' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon> Completed
+          </div>
+          <p class="text-[10px] font-medium">{{ o.status === 'COMPLETED' ? 'Finalized' : 'Pending' }}</p>
+        </div>
+
+      </div>
+
+      <!-- History log list -->
+      <div *ngIf="o.timeline && o.timeline.length > 0" class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300 block">Status Event History</span>
+        <div *ngFor="let t of o.timeline" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-xs flex items-start justify-between gap-2">
+          <div>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ t.previousStatus }} → {{ t.newStatus }}</span>
+            <p *ngIf="t.note" class="text-[11px] text-slate-500 italic mt-0.5">"{{ t.note }}"</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400 shrink-0">{{ t.changedAtUtc | date:'short' }}</span>
         </div>
       </div>
     </div>
@@ -82,6 +257,47 @@
               </span>
               <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ o.cropName }}</h3>
               <p *ngIf="o.variety" class="text-xs text-slate-500">Variety: <strong class="text-slate-700 dark:text-slate-300">{{ o.variety }}</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fulfillment Details Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <mat-icon class="text-teal-600">{{ o.fulfillmentMode === 'PICKUP' ? 'storefront' : 'local_shipping' }}</mat-icon> Fulfillment & Delivery Details
+          </h2>
+
+          <div *ngIf="o.fulfillmentMode === 'DELIVERY'" class="space-y-2.5 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Fulfillment Mode</span>
+              <span class="font-extrabold text-sky-600 dark:text-sky-400">Home Delivery</span>
+            </div>
+            <div *ngIf="o.contactName" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Recipient</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ o.contactName }} ({{ o.contactPhone }})</span>
+            </div>
+            <div *ngIf="o.deliveryAddress" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Delivery Address</span>
+              <span class="font-bold text-slate-900 dark:text-white text-right max-w-xs">{{ o.deliveryAddress }}</span>
+            </div>
+            <div *ngIf="o.deliveryCity" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">City / State / Pincode</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ o.deliveryCity }}, {{ o.deliveryState }} - {{ o.deliveryPincode }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="o.fulfillmentMode === 'PICKUP'" class="space-y-2.5 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Fulfillment Mode</span>
+              <span class="font-extrabold text-amber-600 dark:text-amber-400">Farm Pickup</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Pickup Location</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ o.pickupLocation }}</span>
+            </div>
+            <div *ngIf="o.pickupDate" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Scheduled Pickup Date</span>
+              <span class="font-bold text-amber-700 dark:text-amber-300">{{ o.pickupDate | date:'medium' }}</span>
             </div>
           </div>
         </div>

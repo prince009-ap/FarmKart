@@ -125,7 +125,7 @@ public sealed class CustomerPaymentService(
             {
                 try
                 {
-                    orderResponse = await orderService.CreateOrderFromPaidPaymentAsync(payment.Id, cancellationToken);
+                    orderResponse = await orderService.CreateOrderFromPaidPaymentAsync(payment.Id, request, cancellationToken);
                 }
                 catch
                 {

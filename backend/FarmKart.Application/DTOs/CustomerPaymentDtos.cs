@@ -1,9 +1,18 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace FarmKart.Application.DTOs;
 
 public sealed record ProcessPaymentRequest(
-    [Required] string PaymentMethod
+    [Required] string PaymentMethod,
+    string? FulfillmentMode = null,
+    string? DeliveryAddress = null,
+    string? DeliveryCity = null,
+    string? DeliveryState = null,
+    string? DeliveryPincode = null,
+    string? ContactName = null,
+    string? ContactPhone = null,
+    DateTime? PickupDate = null
 );
 
 public sealed record AuctionPaymentResponse(
@@ -30,7 +39,6 @@ public sealed record AuctionPaymentResponse(
     DateTime ServerTimeUtc,
     AuctionOrderResponse? Order = null
 );
-
 
 public sealed record CustomerPaymentHistoryResponse(
     Guid PaymentId,

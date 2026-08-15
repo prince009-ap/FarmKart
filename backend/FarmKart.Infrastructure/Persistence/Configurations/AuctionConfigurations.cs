@@ -208,10 +208,38 @@ public sealed class AuctionOrderConfiguration : IEntityTypeConfiguration<Auction
             .HasForeignKey(o => o.FarmerProfileId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(o => o.DeliveryAddress).HasMaxLength(500);
+        builder.Property(o => o.DeliveryCity).HasMaxLength(100);
+        builder.Property(o => o.DeliveryState).HasMaxLength(100);
+        builder.Property(o => o.DeliveryPincode).HasMaxLength(20);
+        builder.Property(o => o.ContactName).HasMaxLength(100);
+        builder.Property(o => o.ContactPhone).HasMaxLength(30);
+        builder.Property(o => o.PickupLocation).HasMaxLength(500);
+
         builder.HasOne(o => o.Crop)
             .WithMany()
             .HasForeignKey(o => o.CropId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public sealed class OrderStatusHistoryConfiguration : IEntityTypeConfiguration<OrderStatusHistory>
+{
+    public void Configure(EntityTypeBuilder<OrderStatusHistory> builder)
+    {
+        builder.ConfigureBaseEntity();
+
+        builder.Property(h => h.ChangedByUserId).HasMaxLength(450).IsRequired();
+        builder.Property(h => h.Note).HasMaxLength(500);
+
+        builder.HasIndex(h => h.AuctionOrderId);
+        builder.HasIndex(h => h.ChangedAtUtc);
+
+        builder.HasOne(h => h.AuctionOrder)
+            .WithMany(o => o.StatusHistories)
+            .HasForeignKey(h => h.AuctionOrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 

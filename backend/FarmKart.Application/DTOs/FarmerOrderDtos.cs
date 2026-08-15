@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace FarmKart.Application.DTOs;
 
 public sealed record FarmerOrderSummaryResponse(
@@ -29,6 +32,9 @@ public sealed record FarmerOrderListItemResponse(
     decimal PricePerMan,
     decimal TotalAmount,
     string Status,
+    string FulfillmentMode,
+    DateTime? PickupDate,
+    DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
     DateTime CreatedAtUtc
 );
@@ -58,11 +64,22 @@ public sealed record FarmerOrderDetailResponse(
     DateTime AuctionStartTimeUtc,
     DateTime AuctionEndTimeUtc,
     string Status,
+    string FulfillmentMode,
+    string? DeliveryAddress,
+    string? DeliveryCity,
+    string? DeliveryState,
+    string? DeliveryPincode,
+    string? ContactName,
+    string? ContactPhone,
+    string? PickupLocation,
+    DateTime? PickupDate,
+    DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
     DateTime OrderDateUtc,
     Guid AuctionAllocationId,
     Guid AuctionPaymentId,
     string TransactionReference,
     string PaymentMethod,
-    DateTime? PaidAtUtc
+    DateTime? PaidAtUtc,
+    IReadOnlyList<OrderStatusHistoryResponse> Timeline
 );

@@ -21,21 +21,21 @@
       <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase">Confirmed</span>
       <p class="text-xl font-black text-emerald-700 dark:text-emerald-300">{{ summary()?.confirmedOrdersCount ?? 0 }}</p>
     </div>
-    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 opacity-60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-slate-400 uppercase">Ready Pickup</span>
-      <p class="text-xl font-black text-slate-500">{{ summary()?.readyForPickupCount ?? 0 }}</p>
+    <div class="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 shadow-sm space-y-1">
+      <span class="text-[11px] font-bold text-sky-700 dark:text-sky-400 uppercase">Ready Pickup</span>
+      <p class="text-xl font-black text-sky-700 dark:text-sky-300">{{ summary()?.readyForPickupCount ?? 0 }}</p>
     </div>
-    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 opacity-60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-slate-400 uppercase">Picked Up</span>
-      <p class="text-xl font-black text-slate-500">{{ summary()?.pickedUpCount ?? 0 }}</p>
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 shadow-sm space-y-1">
+      <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase">In Transit</span>
+      <p class="text-xl font-black text-amber-700 dark:text-amber-300">{{ summary()?.pickedUpCount ?? 0 }}</p>
     </div>
-    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 opacity-60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-slate-400 uppercase">Delivered</span>
-      <p class="text-xl font-black text-slate-500">{{ summary()?.deliveredCount ?? 0 }}</p>
+    <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 shadow-sm space-y-1">
+      <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 uppercase">Delivered</span>
+      <p class="text-xl font-black text-indigo-700 dark:text-indigo-300">{{ summary()?.deliveredCount ?? 0 }}</p>
     </div>
-    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 opacity-60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-slate-400 uppercase">Completed</span>
-      <p class="text-xl font-black text-slate-500">{{ summary()?.completedCount ?? 0 }}</p>
+    <div class="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900/60 shadow-sm space-y-1">
+      <span class="text-[11px] font-bold text-teal-700 dark:text-teal-400 uppercase">Completed</span>
+      <p class="text-xl font-black text-teal-700 dark:text-teal-300">{{ summary()?.completedCount ?? 0 }}</p>
     </div>
   </div>
 
@@ -47,8 +47,8 @@
       <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !w-5 !h-5 text-lg">search</mat-icon>
       <input
         type="text"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="onSearchChange()"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); onSearchChange()"
         placeholder="Search by Order #, Crop, Customer..."
         class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
       />
@@ -73,15 +73,29 @@
       <button
         (click)="onStatusChange('READY_FOR_PICKUP')"
         [ngClass]="selectedStatus() === 'READY_FOR_PICKUP' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 opacity-70">
+        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
         Ready Pickup
+      </button>
+
+      <button
+        (click)="onStatusChange('DISPATCHED')"
+        [ngClass]="selectedStatus() === 'DISPATCHED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
+        Dispatched / Picked Up
       </button>
 
       <button
         (click)="onStatusChange('DELIVERED')"
         [ngClass]="selectedStatus() === 'DELIVERED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 opacity-70">
+        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
         Delivered
+      </button>
+
+      <button
+        (click)="onStatusChange('COMPLETED')"
+        [ngClass]="selectedStatus() === 'COMPLETED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
+        Completed
       </button>
     </div>
   </div>
@@ -107,8 +121,8 @@
       <mat-icon class="!w-8 !h-8 text-4xl">shopping_bag</mat-icon>
     </div>
     <div class="space-y-1">
-      <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">No orders yet</h2>
-      <p class="text-xs text-slate-500">Orders from your successful auction sales will appear here.</p>
+      <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">No orders found</h2>
+      <p class="text-xs text-slate-500">Orders matching your search/filters will appear here.</p>
     </div>
     <a mat-flat-button [routerLink]="['/farmer/auctions']" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
       <mat-icon>gavel</mat-icon> View My Auctions
@@ -126,9 +140,14 @@
             <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Order Number</span>
             <p class="text-base font-extrabold text-slate-900 dark:text-white font-mono">#{{ item.orderNumber }}</p>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-400/40 uppercase">
-            ✓ {{ item.status }}
-          </span>
+          <div class="flex flex-col items-end gap-1">
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-400/40 uppercase">
+              ✓ {{ item.status }}
+            </span>
+            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold" [ngClass]="item.fulfillmentMode === 'PICKUP' ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' : 'bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300'">
+              {{ item.fulfillmentMode === 'PICKUP' ? '📦 Pickup' : '🚚 Delivery' }}
+            </span>
+          </div>
         </div>
 
         <!-- Crop & Customer Info -->
@@ -176,7 +195,7 @@
         </div>
 
         <a mat-flat-button [routerLink]="['/farmer/orders', item.orderId]" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
-          <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> VIEW
+          <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> MANAGE
         </a>
       </div>
 

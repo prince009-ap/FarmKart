@@ -33,6 +33,7 @@ describe('FarmerOrdersComponent', () => {
       pricePerMan: 600,
       totalAmount: 7500,
       status: 'CONFIRMED',
+      fulfillmentMode: 'DELIVERY',
       paymentStatus: 'PAID',
       createdAtUtc: new Date().toISOString()
     },
@@ -49,6 +50,7 @@ describe('FarmerOrdersComponent', () => {
       pricePerMan: 620,
       totalAmount: 3100,
       status: 'CONFIRMED',
+      fulfillmentMode: 'DELIVERY',
       paymentStatus: 'PAID',
       createdAtUtc: new Date().toISOString()
     }
@@ -90,7 +92,7 @@ describe('FarmerOrdersComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('No orders yet');
-    expect(text).toContain('Orders from your successful auction sales will appear here.');
+    expect(text).toContain('No orders found');
+    expect(text).toContain('Orders matching your search/filters will appear here.');
   });
 });

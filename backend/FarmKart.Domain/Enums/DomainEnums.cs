@@ -157,10 +157,18 @@ public enum OrderStatus
 {
     Pending = 1,
     Confirmed = 2,
-    Packed = 3,
-    Shipped = 4,
-    Delivered = 5,
-    Cancelled = 6
+    ReadyForPickup = 3,
+    Dispatched = 4,
+    PickedUp = 5,
+    Delivered = 6,
+    Completed = 7,
+    Cancelled = 8
+}
+
+public enum FulfillmentMode
+{
+    Delivery = 1,
+    Pickup = 2
 }
 
 public enum DeliveryStatus

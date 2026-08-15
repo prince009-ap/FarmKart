@@ -2,7 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CustomerOrderDetail, CustomerOrderFilter, CustomerOrderListItem } from '../../core/models/customer-auction.models';
+import {
+  CustomerOrderDetail,
+  CustomerOrderFilter,
+  CustomerOrderListItem,
+  UpdateFulfillmentDetailsRequest,
+  UpdateOrderStatusRequest
+} from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +46,20 @@ export class CustomerOrderService {
 
   getCustomerOrderById(id: string): Observable<CustomerOrderDetail> {
     return this.http.get<CustomerOrderDetail>(`${this.ordersUrl}/${id}`).pipe(
+      map(order => ({
+        ...order,
+        primaryImageUrl: this.resolveImageUrl(order.primaryImageUrl)
+      }))
+    );
+  }
+
+  updateOrderStatus(orderId: string, newStatus: string, note?: string): Observable<any> {
+    const payload: UpdateOrderStatusRequest = { newStatus, note };
+    return this.http.patch(`${this.ordersUrl}/${orderId}/status`, payload);
+  }
+
+  updateFulfillmentDetails(orderId: string, request: UpdateFulfillmentDetailsRequest): Observable<CustomerOrderDetail> {
+    return this.http.put<CustomerOrderDetail>(`${this.ordersUrl}/${orderId}/fulfillment`, request).pipe(
       map(order => ({
         ...order,
         primaryImageUrl: this.resolveImageUrl(order.primaryImageUrl)

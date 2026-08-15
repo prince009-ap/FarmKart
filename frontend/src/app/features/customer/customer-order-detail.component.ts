@@ -23,7 +23,9 @@ export class CustomerOrderDetailComponent implements OnInit {
 
   order = signal<CustomerOrderDetail | null>(null);
   isLoading = signal<boolean>(true);
+  isUpdating = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+  actionError = signal<string | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -51,6 +53,25 @@ export class CustomerOrderDetailComponent implements OnInit {
           this.errorMessage.set('Unable to load order details.');
         }
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  markCompleted(): void {
+    const ord = this.order();
+    if (!ord) return;
+
+    this.isUpdating.set(true);
+    this.actionError.set(null);
+
+    this.orderService.updateOrderStatus(ord.orderId, 'COMPLETED', 'Customer confirmed order receipt and completion.').subscribe({
+      next: () => {
+        this.isUpdating.set(false);
+        this.loadOrderDetail(ord.orderId);
+      },
+      error: (err) => {
+        this.isUpdating.set(false);
+        this.actionError.set(err?.error?.message || 'Failed to update order status.');
       }
     });
   }

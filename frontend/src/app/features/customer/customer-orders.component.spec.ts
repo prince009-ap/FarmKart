@@ -28,6 +28,7 @@ describe('CustomerOrdersComponent', () => {
       totalAmount: 7500,
       farmerName: 'Ramesh Farmer',
       status: 'CONFIRMED',
+      fulfillmentMode: 'DELIVERY',
       paymentStatus: 'PAID',
       createdAtUtc: '2026-08-15T10:00:00Z'
     }

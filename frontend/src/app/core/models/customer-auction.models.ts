@@ -124,6 +124,7 @@ export interface CustomerOrder {
   pricePerMan: number;
   totalAmount: number;
   status: string;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
   createdAtUtc: string;
 }
 
@@ -131,6 +132,15 @@ export interface CustomerOrderFilter {
   search?: string;
   status?: string;
   sortBy?: string;
+}
+
+export interface OrderStatusHistoryItem {
+  historyId: string;
+  previousStatus: string;
+  newStatus: string;
+  changedAtUtc: string;
+  changedByUserId: string;
+  note?: string | null;
 }
 
 export interface CustomerOrderListItem {
@@ -147,6 +157,7 @@ export interface CustomerOrderListItem {
   totalAmount: number;
   farmerName: string;
   status: string;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
   paymentStatus: string;
   createdAtUtc: string;
 }
@@ -169,6 +180,16 @@ export interface CustomerOrderDetail {
   farmerName: string;
   farmLocation?: string | null;
   status: string;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
+  deliveryAddress?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryPincode?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  pickupLocation?: string | null;
+  pickupDate?: string | null;
+  expectedDeliveryDate?: string | null;
   paymentStatus: string;
   orderDateUtc: string;
   auctionStartTimeUtc: string;
@@ -181,8 +202,25 @@ export interface CustomerOrderDetail {
   transactionReference: string;
   paymentMethod: string;
   paidAtUtc?: string | null;
+  timeline: OrderStatusHistoryItem[];
 }
 
+export interface UpdateOrderStatusRequest {
+  newStatus: string;
+  note?: string | null;
+}
+
+export interface UpdateFulfillmentDetailsRequest {
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
+  deliveryAddress?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryPincode?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  pickupDate?: string | null;
+  expectedDeliveryDate?: string | null;
+}
 
 export interface AuctionPayment {
   paymentId: string;

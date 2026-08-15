@@ -8,7 +8,10 @@ public interface IOrderService
     /// Creates an AuctionOrder when payment is PAID. Idempotent: returns the existing order
     /// if one already exists for the given paymentId.
     /// </summary>
-    Task<AuctionOrderResponse> CreateOrderFromPaidPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default);
+    Task<AuctionOrderResponse> CreateOrderFromPaidPaymentAsync(
+        Guid paymentId,
+        ProcessPaymentRequest? fulfillmentDetails = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns the AuctionOrder for a given paymentId, or null if not yet created.
@@ -54,5 +57,23 @@ public interface IOrderService
     Task<FarmerOrderDetailResponse> GetFarmerOrderDetailsAsync(
         Guid farmerUserId,
         Guid orderId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates order status enforcing lifecycle transitions, history logging, and role authorization.
+    /// </summary>
+    Task<AuctionOrderResponse> UpdateOrderStatusAsync(
+        Guid authenticatedUserId,
+        Guid orderId,
+        UpdateOrderStatusRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates fulfillment mode and address/pickup details for an order owned by the authenticated customer.
+    /// </summary>
+    Task<CustomerOrderDetailResponse> UpdateCustomerOrderFulfillmentAsync(
+        Guid customerUserId,
+        Guid orderId,
+        UpdateFulfillmentDetailsRequest request,
         CancellationToken cancellationToken = default);
 }

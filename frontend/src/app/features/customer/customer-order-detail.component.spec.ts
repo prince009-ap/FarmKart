@@ -40,7 +40,9 @@ describe('CustomerOrderDetailComponent', () => {
     auctionAllocationId: 'alloc-111',
     auctionPaymentId: 'pay-111',
     transactionReference: 'FK-TEST-999',
-    paymentMethod: 'UPI'
+    paymentMethod: 'UPI',
+    fulfillmentMode: 'DELIVERY',
+    timeline: []
   };
 
   beforeEach(async () => {

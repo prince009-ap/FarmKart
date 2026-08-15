@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace FarmKart.Application.DTOs;
 
 public sealed record AuctionOrderResponse(
@@ -13,6 +17,7 @@ public sealed record AuctionOrderResponse(
     decimal PricePerMan,
     decimal TotalAmount,
     string Status,
+    string FulfillmentMode,
     DateTime CreatedAtUtc
 );
 
@@ -36,8 +41,18 @@ public sealed record CustomerOrderListItemResponse(
     decimal TotalAmount,
     string FarmerName,
     string Status,
+    string FulfillmentMode,
     string PaymentStatus,
     DateTime CreatedAtUtc
+);
+
+public sealed record OrderStatusHistoryResponse(
+    Guid HistoryId,
+    string PreviousStatus,
+    string NewStatus,
+    DateTime ChangedAtUtc,
+    string ChangedByUserId,
+    string? Note
 );
 
 public sealed record CustomerOrderDetailResponse(
@@ -58,6 +73,16 @@ public sealed record CustomerOrderDetailResponse(
     string FarmerName,
     string? FarmLocation,
     string Status,
+    string FulfillmentMode,
+    string? DeliveryAddress,
+    string? DeliveryCity,
+    string? DeliveryState,
+    string? DeliveryPincode,
+    string? ContactName,
+    string? ContactPhone,
+    string? PickupLocation,
+    DateTime? PickupDate,
+    DateTime? ExpectedDeliveryDate,
     string PaymentStatus,
     DateTime OrderDateUtc,
     DateTime AuctionStartTimeUtc,
@@ -69,5 +94,23 @@ public sealed record CustomerOrderDetailResponse(
     Guid AuctionPaymentId,
     string TransactionReference,
     string PaymentMethod,
-    DateTime? PaidAtUtc
+    DateTime? PaidAtUtc,
+    IReadOnlyList<OrderStatusHistoryResponse> Timeline
+);
+
+public sealed record UpdateOrderStatusRequest(
+    [Required] string NewStatus,
+    string? Note = null
+);
+
+public sealed record UpdateFulfillmentDetailsRequest(
+    [Required] string FulfillmentMode,
+    string? DeliveryAddress = null,
+    string? DeliveryCity = null,
+    string? DeliveryState = null,
+    string? DeliveryPincode = null,
+    string? ContactName = null,
+    string? ContactPhone = null,
+    DateTime? PickupDate = null,
+    DateTime? ExpectedDeliveryDate = null
 );

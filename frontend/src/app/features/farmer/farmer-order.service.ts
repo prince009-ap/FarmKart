@@ -8,6 +8,7 @@ import {
   FarmerOrderListItem,
   FarmerOrderSummary
 } from '../../core/models/farmer-order.models';
+import { UpdateOrderStatusRequest } from '../../core/models/customer-auction.models';
 
 @Injectable({
   providedIn: 'root'
@@ -60,5 +61,10 @@ export class FarmerOrderService {
         primaryImageUrl: this.resolveImageUrl(order.primaryImageUrl)
       }))
     );
+  }
+
+  updateOrderStatus(orderId: string, newStatus: string, note?: string): Observable<any> {
+    const payload: UpdateOrderStatusRequest = { newStatus, note };
+    return this.http.patch(`${this.baseUrl}/${orderId}/status`, payload);
   }
 }

@@ -31,6 +31,16 @@ export class CustomerCheckoutComponent implements OnInit {
   completedPayment = signal<AuctionPayment | null>(null);
 
   selectedPaymentMethod = signal<string>('UPI');
+  fulfillmentMode = signal<'DELIVERY' | 'PICKUP'>('DELIVERY');
+  
+  deliveryAddress = signal<string>('');
+  deliveryCity = signal<string>('');
+  deliveryState = signal<string>('');
+  deliveryPincode = signal<string>('');
+  contactName = signal<string>('');
+  contactPhone = signal<string>('');
+  pickupDate = signal<string>('');
+
   isLoading = signal<boolean>(true);
   isProcessingPayment = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
@@ -96,10 +106,29 @@ export class CustomerCheckoutComponent implements OnInit {
     const auc = this.auction();
     if (!auc) return;
 
+    if (this.fulfillmentMode() === 'PICKUP' && this.pickupDate()) {
+      const selected = new Date(this.pickupDate());
+      if (selected < new Date()) {
+        this.paymentError.set('Pickup date cannot be in the past.');
+        return;
+      }
+    }
+
     this.isProcessingPayment.set(true);
     this.paymentError.set(null);
 
-    this.auctionService.processAuctionPayment(auc.id, this.selectedPaymentMethod()).subscribe({
+    const fulfillmentDetails = {
+      fulfillmentMode: this.fulfillmentMode(),
+      deliveryAddress: this.deliveryAddress().trim() || undefined,
+      deliveryCity: this.deliveryCity().trim() || undefined,
+      deliveryState: this.deliveryState().trim() || undefined,
+      deliveryPincode: this.deliveryPincode().trim() || undefined,
+      contactName: this.contactName().trim() || undefined,
+      contactPhone: this.contactPhone().trim() || undefined,
+      pickupDate: this.pickupDate() ? new Date(this.pickupDate()).toISOString() : undefined
+    };
+
+    this.auctionService.processAuctionPayment(auc.id, this.selectedPaymentMethod(), fulfillmentDetails).subscribe({
       next: (payment) => {
         this.isProcessingPayment.set(false);
         this.completedPayment.set(payment);
@@ -113,6 +142,6 @@ export class CustomerCheckoutComponent implements OnInit {
 
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'assets/images/crop-placeholder.png';
+    img.style.display = 'none';
   }
 }

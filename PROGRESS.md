@@ -40,6 +40,8 @@
   - [x] Phase 7.2: Customer My Orders Module (List, Filtering, Search, Sorting, Security)
   - [x] Phase 7.3: Customer Order Details & Order Timeline Module (Full Breakdown, Purchase Summary, Payment & Seller Info, Visual Timeline, Security Authorization)
   - [x] Phase 7.4: Farmer Order Management & Farmer Order Details Module (Summary Metrics Cards, Orders List, Search & Status Filters, Detailed Breakdown, Separate Order Items for Multiple Winners, Security Authorization)
+  - [x] Phase 7.5: Order Fulfillment Status Workflow Module (Lifecycle: CONFIRMED -> READY_FOR_PICKUP -> DISPATCHED/PICKED_UP -> DELIVERED -> COMPLETED, Status History Logging, Role Authorization, Validation Guardrails)
+  - [x] Phase 7.6: Pickup / Delivery Details Module (Delivery Address & Contact Snapshot, Farm Pickup Location & Future Date Validation, Dynamic Customer & Farmer UI Controls, 34 Backend Integration Tests & 232 Frontend Specs)
 - [ ] Phase 8: Auction and bidding flows
 - [ ] Phase 9: Real-time chat and notifications with SignalR
 - [ ] Phase 10: AI service integration and intelligent assistant features

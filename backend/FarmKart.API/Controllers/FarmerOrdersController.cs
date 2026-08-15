@@ -78,6 +78,40 @@ public sealed class FarmerOrdersController(IOrderService orderService) : Control
         }
     }
 
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateOrderStatus(
+        Guid id,
+        [FromBody] UpdateOrderStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var order = await orderService.UpdateOrderStatusAsync(userId, id, request, cancellationToken);
+            return Ok(order);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+    }
+
     private Guid? GetCurrentUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

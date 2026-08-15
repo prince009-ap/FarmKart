@@ -14,6 +14,7 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
 {
     public async Task<AuctionOrderResponse> CreateOrderFromPaidPaymentAsync(
         Guid paymentId,
+        ProcessPaymentRequest? fulfillmentDetails = null,
         CancellationToken cancellationToken = default)
     {
         var strategy = dbContext.Database.CreateExecutionStrategy();
@@ -64,8 +65,11 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                     $"({allocation.AllocatedQuantityKg} Kg @ ₹{allocation.WinningBidAmountPerMan}/Man).");
             }
 
+            var customerProfile = await dbContext.CustomerProfiles
+                .FirstOrDefaultAsync(c => c.Id == payment.CustomerProfileId, cancellationToken);
+
             var cropId = payment.Auction.CropListing.CropId;
-            var farmerProfileId = payment.Auction.FarmerProfileId;
+            var farmerProfile = payment.Auction.FarmerProfile;
 
             var today = DateTime.UtcNow;
             var dateStr = today.ToString("yyyyMMdd");
@@ -82,6 +86,13 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 orderNumber = $"FK-{dateStr}-{today:HHmmss}-{seqNumber}";
             }
 
+            var mode = FulfillmentMode.Delivery;
+            if (!string.IsNullOrWhiteSpace(fulfillmentDetails?.FulfillmentMode) &&
+                TryParseFulfillmentMode(fulfillmentDetails.FulfillmentMode, out var parsedMode))
+            {
+                mode = parsedMode;
+            }
+
             var order = new AuctionOrder
             {
                 OrderNumber = orderNumber,
@@ -89,16 +100,52 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 AuctionAllocationId = allocation.Id,
                 AuctionPaymentId = payment.Id,
                 CustomerProfileId = payment.CustomerProfileId,
-                FarmerProfileId = farmerProfileId,
+                FarmerProfileId = farmerProfile.Id,
                 CropId = cropId,
                 AllocatedQuantityKg = allocation.AllocatedQuantityKg,
                 PricePerMan = allocation.WinningBidAmountPerMan,
                 TotalAmount = expectedAmount,
-                Status = OrderStatus.Confirmed
+                Status = OrderStatus.Confirmed,
+                FulfillmentMode = mode
             };
+
+            if (mode == FulfillmentMode.Delivery)
+            {
+                order.DeliveryAddress = fulfillmentDetails?.DeliveryAddress ?? customerProfile?.AddressInfo?.AddressLine;
+                order.DeliveryCity = fulfillmentDetails?.DeliveryCity ?? customerProfile?.AddressInfo?.City;
+                order.DeliveryState = fulfillmentDetails?.DeliveryState ?? customerProfile?.AddressInfo?.State;
+                order.DeliveryPincode = fulfillmentDetails?.DeliveryPincode ?? customerProfile?.AddressInfo?.Pincode;
+                order.ContactName = fulfillmentDetails?.ContactName ?? customerProfile?.FullName;
+                order.ContactPhone = fulfillmentDetails?.ContactPhone ?? customerProfile?.Phone;
+            }
+            else
+            {
+                order.PickupLocation = farmerProfile.FarmLocation ?? farmerProfile.FarmName ?? farmerProfile.FullName;
+                if (fulfillmentDetails?.PickupDate.HasValue == true)
+                {
+                    if (fulfillmentDetails.PickupDate.Value < DateTime.UtcNow.AddMinutes(-5))
+                    {
+                        throw new ArgumentException("Pickup date cannot be in the past.");
+                    }
+                    order.PickupDate = fulfillmentDetails.PickupDate.Value;
+                }
+            }
 
             dbContext.AuctionOrders.Add(order);
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            var history = new OrderStatusHistory
+            {
+                AuctionOrderId = order.Id,
+                PreviousStatus = OrderStatus.Confirmed,
+                NewStatus = OrderStatus.Confirmed,
+                ChangedAtUtc = today,
+                ChangedByUserId = customerProfile?.UserId.ToString() ?? "System",
+                Note = "Order created after payment confirmation."
+            };
+            dbContext.OrderStatusHistories.Add(history);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             await transaction.CommitAsync(cancellationToken);
 
             return MapOrderToResponse(order, payment.Auction);
@@ -152,7 +199,7 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var statusStr = filter.Status.Trim();
-            if (Enum.TryParse<OrderStatus>(statusStr, true, out var statusEnum))
+            if (TryParseOrderStatus(statusStr, out var statusEnum))
             {
                 query = query.Where(o => o.Status == statusEnum);
             }
@@ -188,9 +235,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 AllocatedQuantityMan: allocMan,
                 PricePerMan: o.PricePerMan,
                 TotalAmount: o.TotalAmount,
-                FarmerName: o.FarmerProfile.FullName ?? o.FarmerProfile.FarmName ?? "Farmer",
-                Status: o.Status.ToString().ToUpperInvariant(),
-                PaymentStatus: o.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+                FarmerName: o.FarmerProfile?.FullName ?? o.FarmerProfile?.FarmName ?? "Farmer",
+                Status: FormatStatusString(o.Status),
+                FulfillmentMode: o.FulfillmentMode.ToString().ToUpperInvariant(),
+                PaymentStatus: o.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
                 CreatedAtUtc: o.CreatedAtUtc
             );
         }).ToList();
@@ -215,14 +263,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             .Include(o => o.AuctionAllocation)
             .Include(o => o.Auction)
                 .ThenInclude(a => a.CropListing)
+            .Include(o => o.StatusHistories)
             .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
-        if (order is null)
-        {
-            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
-        }
-
-        if (order.CustomerProfileId != customerProfile.Id)
+        if (order is null || order.CustomerProfileId != customerProfile.Id)
         {
             throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
         }
@@ -240,6 +284,17 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             : order.AllocatedQuantityKg;
         var auctionMan = AuctionPricingConstants.ConvertKgToMan(auctionKg);
 
+        var timeline = order.StatusHistories
+            .OrderBy(h => h.ChangedAtUtc)
+            .Select(h => new OrderStatusHistoryResponse(
+                HistoryId: h.Id,
+                PreviousStatus: FormatStatusString(h.PreviousStatus),
+                NewStatus: FormatStatusString(h.NewStatus),
+                ChangedAtUtc: h.ChangedAtUtc,
+                ChangedByUserId: h.ChangedByUserId,
+                Note: h.Note
+            )).ToList();
+
         return new CustomerOrderDetailResponse(
             OrderId: order.Id,
             OrderNumber: order.OrderNumber,
@@ -255,10 +310,20 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             AllocatedQuantityMan: allocMan,
             PricePerMan: order.PricePerMan,
             TotalAmount: order.TotalAmount,
-            FarmerName: order.FarmerProfile.FullName ?? order.FarmerProfile.FarmName ?? "Farmer",
-            FarmLocation: order.FarmerProfile.FarmLocation,
-            Status: order.Status.ToString().ToUpperInvariant(),
-            PaymentStatus: order.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+            FarmerName: order.FarmerProfile?.FullName ?? order.FarmerProfile?.FarmName ?? "Farmer",
+            FarmLocation: order.FarmerProfile?.FarmLocation ?? "",
+            Status: FormatStatusString(order.Status),
+            FulfillmentMode: order.FulfillmentMode.ToString().ToUpperInvariant(),
+            DeliveryAddress: order.DeliveryAddress,
+            DeliveryCity: order.DeliveryCity,
+            DeliveryState: order.DeliveryState,
+            DeliveryPincode: order.DeliveryPincode,
+            ContactName: order.ContactName,
+            ContactPhone: order.ContactPhone,
+            PickupLocation: order.PickupLocation ?? order.FarmerProfile?.FarmLocation ?? "",
+            PickupDate: order.PickupDate,
+            ExpectedDeliveryDate: order.ExpectedDeliveryDate,
+            PaymentStatus: order.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
             OrderDateUtc: order.CreatedAtUtc,
             AuctionStartTimeUtc: order.Auction?.StartTimeUtc ?? order.CreatedAtUtc,
             AuctionEndDateUtc: order.Auction?.EndTimeUtc ?? order.CreatedAtUtc,
@@ -267,9 +332,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             WinningBidAmount: order.PricePerMan,
             AuctionAllocationId: order.AuctionAllocationId,
             AuctionPaymentId: order.AuctionPaymentId,
-            TransactionReference: order.AuctionPayment.TransactionReference,
-            PaymentMethod: order.AuctionPayment.PaymentMethod.ToString().ToUpperInvariant(),
-            PaidAtUtc: order.AuctionPayment.PaidAtUtc ?? order.CreatedAtUtc
+            TransactionReference: order.AuctionPayment?.TransactionReference ?? "",
+            PaymentMethod: order.AuctionPayment?.PaymentMethod.ToString().ToUpperInvariant() ?? "CARD",
+            PaidAtUtc: order.AuctionPayment?.PaidAtUtc ?? order.CreatedAtUtc,
+            Timeline: timeline
         );
     }
 
@@ -290,10 +356,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         return new FarmerOrderSummaryResponse(
             TotalOrders: orders.Count,
             ConfirmedOrdersCount: orders.Count(o => o.Status == OrderStatus.Confirmed),
-            ReadyForPickupCount: 0,
-            PickedUpCount: 0,
-            DeliveredCount: 0,
-            CompletedCount: 0
+            ReadyForPickupCount: orders.Count(o => o.Status == OrderStatus.ReadyForPickup),
+            PickedUpCount: orders.Count(o => o.Status == OrderStatus.PickedUp || o.Status == OrderStatus.Dispatched),
+            DeliveredCount: orders.Count(o => o.Status == OrderStatus.Delivered),
+            CompletedCount: orders.Count(o => o.Status == OrderStatus.Completed)
         );
     }
 
@@ -365,6 +431,9 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
                 PricePerMan: o.PricePerMan,
                 TotalAmount: o.TotalAmount,
                 Status: o.Status.ToString().ToUpperInvariant(),
+                FulfillmentMode: o.FulfillmentMode.ToString().ToUpperInvariant(),
+                PickupDate: o.PickupDate,
+                ExpectedDeliveryDate: o.ExpectedDeliveryDate,
                 PaymentStatus: o.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
                 CreatedAtUtc: o.CreatedAtUtc
             );
@@ -385,19 +454,16 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             .AsNoTracking()
             .Include(o => o.Crop)
                 .ThenInclude(c => c.Images)
+            .Include(o => o.FarmerProfile)
             .Include(o => o.CustomerProfile)
             .Include(o => o.AuctionPayment)
             .Include(o => o.AuctionAllocation)
             .Include(o => o.Auction)
                 .ThenInclude(a => a.CropListing)
+            .Include(o => o.StatusHistories)
             .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
-        if (order is null)
-        {
-            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
-        }
-
-        if (order.FarmerProfileId != farmerProfile.Id)
+        if (order is null || order.FarmerProfileId != farmerProfile.Id)
         {
             throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
         }
@@ -415,6 +481,17 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             : order.AllocatedQuantityKg;
         var auctionMan = AuctionPricingConstants.ConvertKgToMan(auctionKg);
 
+        var timeline = order.StatusHistories
+            .OrderBy(h => h.ChangedAtUtc)
+            .Select(h => new OrderStatusHistoryResponse(
+                HistoryId: h.Id,
+                PreviousStatus: FormatStatusString(h.PreviousStatus),
+                NewStatus: FormatStatusString(h.NewStatus),
+                ChangedAtUtc: h.ChangedAtUtc,
+                ChangedByUserId: h.ChangedByUserId,
+                Note: h.Note
+            )).ToList();
+
         return new FarmerOrderDetailResponse(
             OrderId: order.Id,
             OrderNumber: order.OrderNumber,
@@ -424,10 +501,10 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             CropType: order.Crop.CropType,
             Variety: order.Crop.Variety,
             PrimaryImageUrl: primaryImg,
-            CustomerName: order.CustomerProfile.FullName,
-            CustomerPhone: order.CustomerProfile.Phone,
-            CustomerCity: order.CustomerProfile.AddressInfo?.City,
-            CustomerState: order.CustomerProfile.AddressInfo?.State,
+            CustomerName: order.CustomerProfile?.FullName ?? "Customer",
+            CustomerPhone: order.CustomerProfile?.Phone,
+            CustomerCity: order.CustomerProfile?.AddressInfo?.City,
+            CustomerState: order.CustomerProfile?.AddressInfo?.State,
             RequestedQuantityKg: reqKg,
             RequestedQuantityMan: reqMan,
             AllocatedQuantityKg: order.AllocatedQuantityKg,
@@ -439,15 +516,206 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             WinningBidAmountPerMan: order.PricePerMan,
             AuctionStartTimeUtc: order.Auction?.StartTimeUtc ?? order.CreatedAtUtc,
             AuctionEndTimeUtc: order.Auction?.EndTimeUtc ?? order.CreatedAtUtc,
-            Status: order.Status.ToString().ToUpperInvariant(),
-            PaymentStatus: order.AuctionPayment.PaymentStatus.ToString().ToUpperInvariant(),
+            Status: FormatStatusString(order.Status),
+            FulfillmentMode: order.FulfillmentMode.ToString().ToUpperInvariant(),
+            DeliveryAddress: order.DeliveryAddress,
+            DeliveryCity: order.DeliveryCity,
+            DeliveryState: order.DeliveryState,
+            DeliveryPincode: order.DeliveryPincode,
+            ContactName: order.ContactName,
+            ContactPhone: order.ContactPhone,
+            PickupLocation: order.PickupLocation ?? order.FarmerProfile?.FarmLocation ?? "",
+            PickupDate: order.PickupDate,
+            ExpectedDeliveryDate: order.ExpectedDeliveryDate,
+            PaymentStatus: order.AuctionPayment?.PaymentStatus.ToString().ToUpperInvariant() ?? "PAID",
             OrderDateUtc: order.CreatedAtUtc,
             AuctionAllocationId: order.AuctionAllocationId,
             AuctionPaymentId: order.AuctionPaymentId,
-            TransactionReference: order.AuctionPayment.TransactionReference,
-            PaymentMethod: order.AuctionPayment.PaymentMethod.ToString().ToUpperInvariant(),
-            PaidAtUtc: order.AuctionPayment.PaidAtUtc ?? order.CreatedAtUtc
+            TransactionReference: order.AuctionPayment?.TransactionReference ?? "",
+            PaymentMethod: order.AuctionPayment?.PaymentMethod.ToString().ToUpperInvariant() ?? "CARD",
+            PaidAtUtc: order.AuctionPayment?.PaidAtUtc ?? order.CreatedAtUtc,
+            Timeline: timeline
         );
+    }
+
+    public async Task<AuctionOrderResponse> UpdateOrderStatusAsync(
+        Guid authenticatedUserId,
+        Guid orderId,
+        UpdateOrderStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await dbContext.AuctionOrders
+            .Include(o => o.Auction)
+                .ThenInclude(a => a.CropListing)
+                    .ThenInclude(l => l.Crop)
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.CustomerProfile)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        var isFarmer = order.FarmerProfile.UserId == authenticatedUserId;
+        var isCustomer = order.CustomerProfile.UserId == authenticatedUserId;
+
+        if (!isFarmer && !isCustomer)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        if (!TryParseOrderStatus(request.NewStatus, out var nextStatus))
+        {
+            throw new ArgumentException($"Invalid status '{request.NewStatus}'.");
+        }
+
+        if (order.Status == OrderStatus.Completed)
+        {
+            throw new InvalidOperationException("Completed orders cannot be modified.");
+        }
+
+        if (!IsValidStatusTransition(order.Status, nextStatus, order.FulfillmentMode))
+        {
+            throw new InvalidOperationException(
+                $"Invalid status transition from {order.Status} to {nextStatus} for {order.FulfillmentMode} order.");
+        }
+
+        var prevStatus = order.Status;
+        order.Status = nextStatus;
+
+        var history = new OrderStatusHistory
+        {
+            AuctionOrderId = order.Id,
+            PreviousStatus = prevStatus,
+            NewStatus = nextStatus,
+            ChangedAtUtc = DateTime.UtcNow,
+            ChangedByUserId = authenticatedUserId.ToString(),
+            Note = request.Note
+        };
+
+        dbContext.OrderStatusHistories.Add(history);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return MapOrderToResponse(order, order.Auction);
+    }
+
+    public async Task<CustomerOrderDetailResponse> UpdateCustomerOrderFulfillmentAsync(
+        Guid customerUserId,
+        Guid orderId,
+        UpdateFulfillmentDetailsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var customerProfile = await dbContext.CustomerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == customerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Customer profile not found for authenticated user.");
+
+        var order = await dbContext.AuctionOrders
+            .Include(o => o.Crop)
+                .ThenInclude(c => c.Images)
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.CustomerProfile)
+            .Include(o => o.AuctionPayment)
+            .Include(o => o.AuctionAllocation)
+            .Include(o => o.Auction)
+                .ThenInclude(a => a.CropListing)
+            .Include(o => o.StatusHistories)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order is null || order.CustomerProfileId != customerProfile.Id)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        if (order.Status == OrderStatus.Completed)
+        {
+            throw new InvalidOperationException("Completed orders cannot be modified.");
+        }
+
+        if (!TryParseFulfillmentMode(request.FulfillmentMode, out var newMode))
+        {
+            throw new ArgumentException($"Invalid fulfillment mode '{request.FulfillmentMode}'.");
+        }
+
+        if (newMode == FulfillmentMode.Pickup && request.PickupDate.HasValue && request.PickupDate.Value < DateTime.UtcNow.AddMinutes(-5))
+        {
+            throw new ArgumentException("Pickup date cannot be in the past.");
+        }
+
+        order.FulfillmentMode = newMode;
+        if (newMode == FulfillmentMode.Delivery)
+        {
+            order.DeliveryAddress = request.DeliveryAddress ?? order.DeliveryAddress;
+            order.DeliveryCity = request.DeliveryCity ?? order.DeliveryCity;
+            order.DeliveryState = request.DeliveryState ?? order.DeliveryState;
+            order.DeliveryPincode = request.DeliveryPincode ?? order.DeliveryPincode;
+            order.ContactName = request.ContactName ?? order.ContactName;
+            order.ContactPhone = request.ContactPhone ?? order.ContactPhone;
+            order.ExpectedDeliveryDate = request.ExpectedDeliveryDate ?? order.ExpectedDeliveryDate;
+        }
+        else
+        {
+            order.PickupLocation = order.FarmerProfile.FarmLocation ?? order.FarmerProfile.FarmName ?? order.FarmerProfile.FullName;
+            if (request.PickupDate.HasValue) order.PickupDate = request.PickupDate;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetCustomerOrderDetailsAsync(customerUserId, orderId, cancellationToken);
+    }
+
+    public static string FormatStatusString(OrderStatus status) => status switch
+    {
+        OrderStatus.ReadyForPickup => "READY_FOR_PICKUP",
+        OrderStatus.PickedUp => "PICKED_UP",
+        _ => status.ToString().ToUpperInvariant()
+    };
+
+    public static bool TryParseOrderStatus(string? statusStr, out OrderStatus result)
+    {
+        result = default;
+        if (string.IsNullOrWhiteSpace(statusStr)) return false;
+
+        var cleanStr = statusStr.Trim().Replace("_", "");
+        return Enum.TryParse<OrderStatus>(cleanStr, true, out result);
+    }
+
+    public static bool TryParseFulfillmentMode(string? modeStr, out FulfillmentMode result)
+    {
+        result = default;
+        if (string.IsNullOrWhiteSpace(modeStr)) return false;
+
+        var cleanStr = modeStr.Trim().Replace("_", "");
+        return Enum.TryParse<FulfillmentMode>(cleanStr, true, out result);
+    }
+
+    public static bool IsValidStatusTransition(OrderStatus current, OrderStatus next, FulfillmentMode mode)
+    {
+        if (current == OrderStatus.Completed) return false;
+        if (current == next) return true;
+
+        if (mode == FulfillmentMode.Delivery)
+        {
+            return (current, next) switch
+            {
+                (OrderStatus.Confirmed, OrderStatus.ReadyForPickup) => true,
+                (OrderStatus.ReadyForPickup, OrderStatus.Dispatched) => true,
+                (OrderStatus.Dispatched, OrderStatus.Delivered) => true,
+                (OrderStatus.Delivered, OrderStatus.Completed) => true,
+                _ => false
+            };
+        }
+        else // Pickup
+        {
+            return (current, next) switch
+            {
+                (OrderStatus.Confirmed, OrderStatus.ReadyForPickup) => true,
+                (OrderStatus.ReadyForPickup, OrderStatus.PickedUp) => true,
+                (OrderStatus.PickedUp, OrderStatus.Completed) => true,
+                _ => false
+            };
+        }
     }
 
     private static AuctionOrderResponse MapOrderToResponse(AuctionOrder order, Auction auction)
@@ -467,7 +735,8 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             AllocatedQuantityMan: allocatedMan,
             PricePerMan: order.PricePerMan,
             TotalAmount: order.TotalAmount,
-            Status: order.Status.ToString().ToUpperInvariant(),
+            Status: FormatStatusString(order.Status),
+            FulfillmentMode: order.FulfillmentMode.ToString().ToUpperInvariant(),
             CreatedAtUtc: order.CreatedAtUtc
         );
     }

@@ -40,7 +40,9 @@ describe('FarmerOrderDetailComponent', () => {
     auctionPaymentId: 'pay-1',
     transactionReference: 'FK-TEST-123456',
     paymentMethod: 'CARD',
-    paidAtUtc: new Date().toISOString()
+    paidAtUtc: new Date().toISOString(),
+    fulfillmentMode: 'DELIVERY',
+    timeline: []
   };
 
   beforeEach(async () => {
