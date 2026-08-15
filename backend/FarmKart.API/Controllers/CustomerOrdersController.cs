@@ -59,6 +59,29 @@ public sealed class CustomerOrdersController(IOrderService orderService) : Contr
         }
     }
 
+    [HttpGet("{id:guid}/tracking")]
+    public async Task<IActionResult> GetOrderTracking(Guid id, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var tracking = await orderService.GetCustomerOrderTrackingAsync(userId, id, cancellationToken);
+            return Ok(tracking);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+    }
+
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateOrderStatus(
         Guid id,

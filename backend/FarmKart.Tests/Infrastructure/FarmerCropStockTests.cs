@@ -90,7 +90,8 @@ public class FarmerCropStockTests : IClassFixture<WebApplicationFactory<Program>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<FarmKartDbContext>();
-            var farmer = await db.FarmerProfiles.FirstAsync(f => f.FullName == "Test Farmer" || f.Phone == "9876543210");
+            var user = await db.Users.FirstAsync(u => u.Email == email);
+            var farmer = await db.FarmerProfiles.FirstAsync(f => f.UserId == user.Id);
 
             var harvestedCrop = new Crop
             {

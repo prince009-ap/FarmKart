@@ -6,6 +6,7 @@ import {
   CustomerOrderDetail,
   CustomerOrderFilter,
   CustomerOrderListItem,
+  CustomerOrderTracking,
   UpdateFulfillmentDetailsRequest,
   UpdateOrderStatusRequest
 } from '../../core/models/customer-auction.models';
@@ -63,6 +64,15 @@ export class CustomerOrderService {
       map(order => ({
         ...order,
         primaryImageUrl: this.resolveImageUrl(order.primaryImageUrl)
+      }))
+    );
+  }
+
+  getOrderTracking(id: string): Observable<CustomerOrderTracking> {
+    return this.http.get<CustomerOrderTracking>(`${this.ordersUrl}/${id}/tracking`).pipe(
+      map(tracking => ({
+        ...tracking,
+        primaryImageUrl: this.resolveImageUrl(tracking.primaryImageUrl)
       }))
     );
   }

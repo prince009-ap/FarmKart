@@ -57,63 +57,71 @@
 
       <!-- Farmer Action Controls Bar -->
       <div *ngIf="o.status !== 'COMPLETED'" class="pt-3 border-t border-emerald-800/60 space-y-3">
-        <span class="text-xs font-bold text-emerald-200 block">Fulfillment Action & Status Transition:</span>
+        
+        <!-- Status Specific Helper Labels -->
+        <div *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'PICKUP'" class="text-xs font-extrabold text-amber-300 flex items-center gap-1.5">
+          <mat-icon class="!w-4 !h-4 text-sm">storefront</mat-icon> Ready for customer pickup
+        </div>
+
+        <div *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'DELIVERY'" class="text-xs font-extrabold text-amber-300 flex items-center gap-1.5">
+          <mat-icon class="!w-4 !h-4 text-sm">local_shipping</mat-icon> Ready for dispatch
+        </div>
         
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Step 1 -> Ready for Pickup -->
+          <!-- Step 1 -> Mark Ready for Pickup -->
           <button
             *ngIf="o.status === 'CONFIRMED'"
             type="button"
             mat-flat-button
-            (click)="updateStatus('READY_FOR_PICKUP')"
+            (click)="openConfirmModal('READY_FOR_PICKUP')"
             [disabled]="isUpdating()"
             class="!bg-sky-600 hover:!bg-sky-700 !text-white !rounded-xl text-xs font-extrabold"
           >
             <mat-icon>check_circle</mat-icon> Mark Ready for Pickup
           </button>
 
-          <!-- Step 2 -> Dispatched (Delivery) -->
+          <!-- Step 2 -> Dispatch Order (Delivery Mode Only) -->
           <button
             *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'DELIVERY'"
             type="button"
             mat-flat-button
-            (click)="updateStatus('DISPATCHED')"
+            (click)="openConfirmModal('DISPATCHED')"
             [disabled]="isUpdating()"
-            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold"
+            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold uppercase"
           >
-            <mat-icon>local_shipping</mat-icon> Mark Dispatched
+            <mat-icon>local_shipping</mat-icon> Dispatch Order
           </button>
 
-          <!-- Step 2 -> Picked Up (Pickup) -->
+          <!-- Step 2 -> Mark as Picked Up (Pickup Mode Only) -->
           <button
             *ngIf="o.status === 'READY_FOR_PICKUP' && o.fulfillmentMode === 'PICKUP'"
             type="button"
             mat-flat-button
-            (click)="updateStatus('PICKED_UP')"
+            (click)="openConfirmModal('PICKED_UP')"
             [disabled]="isUpdating()"
-            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold"
+            class="!bg-amber-600 hover:!bg-amber-700 !text-white !rounded-xl text-xs font-extrabold uppercase"
           >
-            <mat-icon>storefront</mat-icon> Mark Picked Up
+            <mat-icon>storefront</mat-icon> Mark as Picked Up
           </button>
 
-          <!-- Step 3 -> Delivered (Delivery) -->
+          <!-- Step 3 -> Mark Delivered (Delivery Mode Only) -->
           <button
             *ngIf="o.status === 'DISPATCHED' && o.fulfillmentMode === 'DELIVERY'"
             type="button"
             mat-flat-button
-            (click)="updateStatus('DELIVERED')"
+            (click)="openConfirmModal('DELIVERED')"
             [disabled]="isUpdating()"
             class="!bg-indigo-600 hover:!bg-indigo-700 !text-white !rounded-xl text-xs font-extrabold"
           >
             <mat-icon>task_alt</mat-icon> Mark Delivered
           </button>
 
-          <!-- Step 4 -> Completed -->
+          <!-- Step 4 -> Mark Completed -->
           <button
             *ngIf="o.status === 'DELIVERED' || o.status === 'PICKED_UP'"
             type="button"
             mat-flat-button
-            (click)="updateStatus('COMPLETED')"
+            (click)="openConfirmModal('COMPLETED')"
             [disabled]="isUpdating()"
             class="!bg-emerald-500 hover:!bg-emerald-600 !text-white !rounded-xl text-xs font-extrabold"
           >
@@ -402,6 +410,49 @@
 
       </div>
 
+    </div>
+  </div>
+
+  <!-- CONFIRMATION MODAL OVERLAY -->
+  <div *ngIf="showConfirmModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl max-w-md w-full space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+          <mat-icon>help_outline</mat-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ pendingStatusTitle() }}</h3>
+          <p class="text-xs text-slate-500">Order #{{ order()?.orderNumber }}</p>
+        </div>
+      </div>
+
+      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+        {{ pendingStatusPrompt() }}
+      </p>
+
+      <div *ngIf="actionNote().trim()" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs italic text-slate-600 dark:text-slate-300">
+        Note: "{{ actionNote() }}"
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button
+          type="button"
+          mat-button
+          (click)="cancelConfirmModal()"
+          class="!text-slate-600 dark:!text-slate-400 font-bold"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          mat-flat-button
+          (click)="confirmStatusUpdate()"
+          class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-extrabold"
+        >
+          {{ pendingConfirmButtonText() }}
+        </button>
+      </div>
     </div>
   </div>
 

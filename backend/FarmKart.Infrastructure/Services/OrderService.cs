@@ -570,6 +570,12 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
             throw new ArgumentException($"Invalid status '{request.NewStatus}'.");
         }
 
+        // Rule 8: Customer CANNOT perform Farmer fulfillment actions (ReadyForPickup, Dispatched, PickedUp, Delivered)
+        if (!isFarmer && nextStatus != OrderStatus.Completed)
+        {
+            throw new UnauthorizedAccessException("Customer is not authorized to perform farmer fulfillment actions.");
+        }
+
         if (order.Status == OrderStatus.Completed)
         {
             throw new InvalidOperationException("Completed orders cannot be modified.");
@@ -598,6 +604,86 @@ public sealed class OrderService(FarmKartDbContext dbContext) : IOrderService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return MapOrderToResponse(order, order.Auction);
+    }
+
+    public async Task<CustomerOrderTrackingResponse> GetCustomerOrderTrackingAsync(
+        Guid customerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var customerProfile = await dbContext.CustomerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == customerUserId, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Customer profile not found for authenticated user.");
+
+        var order = await dbContext.AuctionOrders
+            .AsNoTracking()
+            .Include(o => o.Crop)
+                .ThenInclude(c => c.Images)
+            .Include(o => o.FarmerProfile)
+            .Include(o => o.StatusHistories)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order is null || order.CustomerProfileId != customerProfile.Id)
+        {
+            throw new KeyNotFoundException($"Order with ID '{orderId}' was not found.");
+        }
+
+        var primaryImg = order.Crop.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+            ?? order.Crop.Images.FirstOrDefault()?.ImageUrl;
+
+        var allocMan = AuctionPricingConstants.ConvertKgToMan(order.AllocatedQuantityKg);
+
+        var timeline = order.StatusHistories
+            .OrderBy(h => h.ChangedAtUtc)
+            .Select(h => new OrderStatusHistoryResponse(
+                HistoryId: h.Id,
+                PreviousStatus: FormatStatusString(h.PreviousStatus),
+                NewStatus: FormatStatusString(h.NewStatus),
+                ChangedAtUtc: h.ChangedAtUtc,
+                ChangedByUserId: h.ChangedByUserId,
+                Note: h.Note
+            )).ToList();
+
+        var currentStatusStr = FormatStatusString(order.Status);
+        var statusMessage = order.Status switch
+        {
+            OrderStatus.Confirmed => "Your order has been confirmed.",
+            OrderStatus.ReadyForPickup => "Your order is ready for pickup/dispatch.",
+            OrderStatus.PickedUp => "Your order has been picked up.",
+            OrderStatus.Dispatched => "Your order is on its way.",
+            OrderStatus.Delivered => "Your order has been delivered.",
+            OrderStatus.Completed => "Your order is completed.",
+            _ => "Your order is being processed."
+        };
+
+        return new CustomerOrderTrackingResponse(
+            OrderId: order.Id,
+            OrderNumber: order.OrderNumber,
+            AuctionId: order.AuctionId,
+            CropName: order.Crop.CropName,
+            CropType: order.Crop.CropType,
+            Variety: order.Crop.Variety,
+            PrimaryImageUrl: primaryImg,
+            QuantityKg: order.AllocatedQuantityKg,
+            QuantityMan: allocMan,
+            FulfillmentMode: order.FulfillmentMode.ToString().ToUpperInvariant(),
+            CurrentStatus: currentStatusStr,
+            StatusMessage: statusMessage,
+            FarmerName: order.FarmerProfile?.FullName ?? order.FarmerProfile?.FarmName ?? "Farmer",
+            FarmLocation: order.FarmerProfile?.FarmLocation ?? "",
+            DeliveryAddress: order.DeliveryAddress,
+            DeliveryCity: order.DeliveryCity,
+            DeliveryState: order.DeliveryState,
+            DeliveryPincode: order.DeliveryPincode,
+            ContactName: order.ContactName,
+            ContactPhone: order.ContactPhone,
+            PickupLocation: order.PickupLocation ?? order.FarmerProfile?.FarmLocation ?? "",
+            PickupDate: order.PickupDate,
+            ExpectedDeliveryDate: order.ExpectedDeliveryDate,
+            OrderDateUtc: order.CreatedAtUtc,
+            StatusHistory: timeline
+        );
     }
 
     public async Task<CustomerOrderDetailResponse> UpdateCustomerOrderFulfillmentAsync(

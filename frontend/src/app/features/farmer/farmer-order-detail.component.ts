@@ -30,6 +30,13 @@ export class FarmerOrderDetailComponent implements OnInit {
   actionError = signal<string | null>(null);
   actionNote = signal<string>('');
 
+  // Confirmation Modal Signals
+  showConfirmModal = signal<boolean>(false);
+  pendingTargetStatus = signal<string | null>(null);
+  pendingStatusTitle = signal<string>('');
+  pendingStatusPrompt = signal<string>('');
+  pendingConfirmButtonText = signal<string>('');
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -58,6 +65,55 @@ export class FarmerOrderDetailComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  openConfirmModal(targetStatus: string): void {
+    const ord = this.order();
+    if (!ord) return;
+
+    this.pendingTargetStatus.set(targetStatus);
+    this.actionError.set(null);
+
+    if (targetStatus === 'PICKED_UP') {
+      this.pendingStatusTitle.set('Confirm Handover');
+      this.pendingStatusPrompt.set('Confirm that this order has been handed over to the customer?');
+      this.pendingConfirmButtonText.set('Confirm Pickup');
+    } else if (targetStatus === 'DISPATCHED') {
+      this.pendingStatusTitle.set('Confirm Dispatch');
+      this.pendingStatusPrompt.set('Confirm that this order has been dispatched?');
+      this.pendingConfirmButtonText.set('Confirm Dispatch');
+    } else if (targetStatus === 'READY_FOR_PICKUP') {
+      this.pendingStatusTitle.set('Mark Order Ready');
+      this.pendingStatusPrompt.set('Confirm that this order is ready for customer pickup/dispatch?');
+      this.pendingConfirmButtonText.set('Confirm Ready');
+    } else if (targetStatus === 'DELIVERED') {
+      this.pendingStatusTitle.set('Mark Order Delivered');
+      this.pendingStatusPrompt.set('Confirm that this order has been delivered to the customer?');
+      this.pendingConfirmButtonText.set('Confirm Delivered');
+    } else if (targetStatus === 'COMPLETED') {
+      this.pendingStatusTitle.set('Complete Order');
+      this.pendingStatusPrompt.set('Confirm that this order is completed and finalized?');
+      this.pendingConfirmButtonText.set('Confirm Completed');
+    } else {
+      this.pendingStatusTitle.set('Confirm Action');
+      this.pendingStatusPrompt.set('Confirm changing order status?');
+      this.pendingConfirmButtonText.set('Confirm');
+    }
+
+    this.showConfirmModal.set(true);
+  }
+
+  cancelConfirmModal(): void {
+    this.showConfirmModal.set(false);
+    this.pendingTargetStatus.set(null);
+  }
+
+  confirmStatusUpdate(): void {
+    const targetStatus = this.pendingTargetStatus();
+    if (!targetStatus) return;
+
+    this.showConfirmModal.set(false);
+    this.updateStatus(targetStatus);
   }
 
   updateStatus(targetStatus: string): void {

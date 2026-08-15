@@ -358,6 +358,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'orders/:id/track',
+        loadComponent: () =>
+          import('./features/customer/customer-order-tracking.component').then(
+            (module) => module.CustomerOrderTrackingComponent,
+          ),
+      },
+      {
         path: 'notifications',
         data: { title: 'Notifications' },
         loadComponent: () =>

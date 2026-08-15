@@ -46,6 +46,9 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <a mat-flat-button [routerLink]="['/customer/orders', o.orderId, 'track']" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-extrabold">
+            <mat-icon>route</mat-icon> TRACK ORDER
+          </a>
           <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider">
             ✓ {{ o.status }}
           </span>

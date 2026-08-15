@@ -76,4 +76,12 @@ public interface IOrderService
         Guid orderId,
         UpdateFulfillmentDetailsRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves order tracking information and timeline for an order owned by the authenticated customer.
+    /// </summary>
+    Task<CustomerOrderTrackingResponse> GetCustomerOrderTrackingAsync(
+        Guid customerUserId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
 }

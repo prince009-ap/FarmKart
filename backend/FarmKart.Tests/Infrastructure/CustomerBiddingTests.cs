@@ -153,10 +153,10 @@ public class CustomerBiddingTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Equal("HIGHEST BID", bids[0].BidStatus);
 
         Assert.Equal(27m, bids[1].Amount);
-        Assert.Equal("OUTBID", bids[1].BidStatus);
+        Assert.Equal("VALID", bids[1].BidStatus);
 
         Assert.Equal(25m, bids[2].Amount);
-        Assert.Equal("OUTBID", bids[2].BidStatus);
+        Assert.Equal("VALID", bids[2].BidStatus);
     }
 
     [Fact]

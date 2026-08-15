@@ -114,3 +114,31 @@ public sealed record UpdateFulfillmentDetailsRequest(
     DateTime? PickupDate = null,
     DateTime? ExpectedDeliveryDate = null
 );
+
+public sealed record CustomerOrderTrackingResponse(
+    Guid OrderId,
+    string OrderNumber,
+    Guid AuctionId,
+    string CropName,
+    string CropType,
+    string? Variety,
+    string? PrimaryImageUrl,
+    decimal QuantityKg,
+    decimal QuantityMan,
+    string FulfillmentMode,
+    string CurrentStatus,
+    string StatusMessage,
+    string FarmerName,
+    string? FarmLocation,
+    string? DeliveryAddress,
+    string? DeliveryCity,
+    string? DeliveryState,
+    string? DeliveryPincode,
+    string? ContactName,
+    string? ContactPhone,
+    string? PickupLocation,
+    DateTime? PickupDate,
+    DateTime? ExpectedDeliveryDate,
+    DateTime OrderDateUtc,
+    IReadOnlyList<OrderStatusHistoryResponse> StatusHistory
+);

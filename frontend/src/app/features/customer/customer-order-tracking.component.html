@@ -1,0 +1,323 @@
+<div class="app-page animate-fk-rise space-y-6 max-w-4xl mx-auto">
+  
+  <!-- Back Button -->
+  <div>
+    <a mat-button [routerLink]="['/customer/orders', tracking()?.orderId || '']" class="!text-slate-600 dark:!text-slate-300 font-bold">
+      <mat-icon class="!w-4 !h-4 text-base">arrow_back</mat-icon> Back to Order Details
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="py-20 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold text-slate-500">Loading order tracking...</p>
+  </div>
+
+  <!-- Error State (404 / 403) -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-8 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-center space-y-4 max-w-md mx-auto shadow-sm">
+    <mat-icon class="text-rose-500 !w-12 !h-12 text-5xl">lock</mat-icon>
+    <h2 class="text-base font-bold text-rose-800 dark:text-rose-300">{{ errorMessage() }}</h2>
+    <a mat-flat-button [routerLink]="['/customer/orders']" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
+      <mat-icon>shopping_bag</mat-icon> Return to My Orders
+    </a>
+  </div>
+
+  <!-- TRACKING CONTENT -->
+  <div *ngIf="!isLoading() && !errorMessage() && tracking() as t" class="space-y-6">
+    
+    <!-- Top Tracking Banner -->
+    <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-lg space-y-4 border border-emerald-800/50">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider">
+              Order Tracking
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/20 border border-sky-400/40 text-sky-200 uppercase">
+              {{ t.fulfillmentMode === 'PICKUP' ? '📦 Farm Pickup' : '🚚 Home Delivery' }}
+            </span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+            Track Order #{{ t.orderNumber }}
+          </h1>
+          <p class="text-xs text-emerald-200/80 font-medium">
+            Placed on {{ t.orderDateUtc | date:'fullDate' }}
+          </p>
+        </div>
+
+        <div class="text-right space-y-1">
+          <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider block">
+            Status: {{ t.currentStatus }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Friendly Status Highlight Box -->
+      <div class="p-4 rounded-2xl bg-emerald-900/60 border border-emerald-700/60 flex items-center gap-3">
+        <mat-icon class="text-amber-400 !w-8 !h-8 text-3xl">local_shipping</mat-icon>
+        <div>
+          <h2 class="text-sm font-black text-amber-300 uppercase tracking-wide">Current Order Status</h2>
+          <p class="text-sm font-bold text-white">{{ t.statusMessage }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Tracking Timeline Card -->
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
+      <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+        <mat-icon class="text-emerald-600">route</mat-icon> Order Status Timeline
+      </h2>
+
+      <!-- Visual Step Progress Bar (Delivery Mode) -->
+      <div *ngIf="t.fulfillmentMode === 'DELIVERY'" class="space-y-4">
+        
+        <div class="relative flex items-center justify-between">
+          <!-- Step 1: Confirmed -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/5">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('CONFIRMED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('CONFIRMED') ? '✓' : '1' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Confirmed</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('CONFIRMED') ? (getStepTimestamp('CONFIRMED') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 2: Ready for Pickup -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/5">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('READY_FOR_PICKUP') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('READY_FOR_PICKUP') ? '✓' : '2' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Ready Pickup</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('READY_FOR_PICKUP') ? (getStepTimestamp('READY_FOR_PICKUP') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 3: Dispatched -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/5">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('DISPATCHED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('DISPATCHED') ? '✓' : '3' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Dispatched</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('DISPATCHED') ? (getStepTimestamp('DISPATCHED') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 4: Delivered -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/5">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('DELIVERED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('DELIVERED') ? '✓' : '4' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Delivered</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('DELIVERED') ? (getStepTimestamp('DELIVERED') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 5: Completed -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/5">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('COMPLETED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('COMPLETED') ? '✓' : '5' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Completed</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('COMPLETED') ? (getStepTimestamp('COMPLETED') | date:'shortTime') : '' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Step Progress Bar (Pickup Mode) -->
+      <div *ngIf="t.fulfillmentMode === 'PICKUP'" class="space-y-4">
+        
+        <div class="relative flex items-center justify-between">
+          <!-- Step 1: Confirmed -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/4">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('CONFIRMED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('CONFIRMED') ? '✓' : '1' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Confirmed</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('CONFIRMED') ? (getStepTimestamp('CONFIRMED') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 2: Ready for Pickup -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/4">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('READY_FOR_PICKUP') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('READY_FOR_PICKUP') ? '✓' : '2' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Ready Pickup</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('READY_FOR_PICKUP') ? (getStepTimestamp('READY_FOR_PICKUP') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 3: Picked Up -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/4">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('PICKED_UP') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('PICKED_UP') ? '✓' : '3' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Picked Up</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('PICKED_UP') ? (getStepTimestamp('PICKED_UP') | date:'shortTime') : '' }}</span>
+          </div>
+
+          <!-- Step 4: Completed -->
+          <div class="flex flex-col items-center text-center z-10 space-y-1 w-1/4">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-all"
+              [ngClass]="isStepCompleted('COMPLETED') ? 'bg-emerald-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'"
+            >
+              {{ isStepCompleted('COMPLETED') ? '✓' : '4' }}
+            </div>
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200">Completed</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ getStepTimestamp('COMPLETED') ? (getStepTimestamp('COMPLETED') | date:'shortTime') : '' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Status History Logs -->
+      <div *ngIf="t.statusHistory && t.statusHistory.length > 0" class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300 block">Detailed Audit Timeline</span>
+        <div *ngFor="let h of t.statusHistory" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs flex items-start justify-between gap-3">
+          <div>
+            <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ h.previousStatus }} → {{ h.newStatus }}</span>
+            <p *ngIf="h.note" class="text-[11px] text-slate-500 italic mt-0.5">"{{ h.note }}"</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400 shrink-0">{{ h.changedAtUtc | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 Column Breakdown Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Left: Crop & Fulfillment Details -->
+      <div class="space-y-6">
+        
+        <!-- Crop Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <mat-icon class="text-amber-500">eco</mat-icon> Purchased Crop Details
+          </h2>
+
+          <div class="flex items-center gap-4">
+            <div class="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
+              <img
+                *ngIf="t.primaryImageUrl"
+                [src]="t.primaryImageUrl"
+                [alt]="t.cropName"
+                (error)="onImageError()"
+                class="w-full h-full object-cover"
+              />
+              <div *ngIf="!t.primaryImageUrl" class="flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <mat-icon class="!w-10 !h-10 text-4xl">eco</mat-icon>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 uppercase">
+                {{ t.cropType }}
+              </span>
+              <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ t.cropName }}</h3>
+              <p *ngIf="t.variety" class="text-xs text-slate-500">Variety: <strong class="text-slate-700 dark:text-slate-300">{{ t.variety }}</strong></p>
+              <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Quantity: {{ t.quantityKg }} Kg ({{ t.quantityMan }} Man)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fulfillment Information Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <mat-icon class="text-teal-600">{{ t.fulfillmentMode === 'PICKUP' ? 'storefront' : 'local_shipping' }}</mat-icon> Fulfillment Information
+          </h2>
+
+          <div *ngIf="t.fulfillmentMode === 'DELIVERY'" class="space-y-3 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Mode</span>
+              <span class="font-extrabold text-sky-600 dark:text-sky-400">Home Delivery</span>
+            </div>
+            <div *ngIf="t.contactName" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Recipient Contact</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ t.contactName }} ({{ t.contactPhone }})</span>
+            </div>
+            <div *ngIf="t.deliveryAddress" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Delivery Address</span>
+              <span class="font-bold text-slate-900 dark:text-white text-right max-w-xs">{{ t.deliveryAddress }}</span>
+            </div>
+            <div *ngIf="t.deliveryCity" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">City / State / Pincode</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ t.deliveryCity }}, {{ t.deliveryState }} - {{ t.deliveryPincode }}</span>
+            </div>
+            <div *ngIf="t.expectedDeliveryDate" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Expected Delivery Date</span>
+              <span class="font-extrabold text-amber-600 dark:text-amber-400">{{ t.expectedDeliveryDate | date:'fullDate' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="t.fulfillmentMode === 'PICKUP'" class="space-y-3 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Mode</span>
+              <span class="font-extrabold text-amber-600 dark:text-amber-400">Farm Pickup</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Pickup Location</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ t.pickupLocation }}</span>
+            </div>
+            <div *ngIf="t.pickupDate" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Scheduled Pickup Date</span>
+              <span class="font-bold text-amber-700 dark:text-amber-300">{{ t.pickupDate | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Farmer Information & Quick Actions -->
+      <div class="space-y-6">
+        
+        <!-- Farmer Contact Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <mat-icon class="text-emerald-600">person</mat-icon> Farmer Information
+          </h2>
+
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Farmer Name</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ t.farmerName }}</span>
+            </div>
+            <div *ngIf="t.farmLocation" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 font-semibold">Farm Location</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ t.farmLocation }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Link -->
+        <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded-3xl border border-emerald-200 dark:border-emerald-900/60 p-6 space-y-3 text-center">
+          <mat-icon class="text-emerald-600 !w-10 !h-10 text-4xl">inventory_2</mat-icon>
+          <h3 class="text-sm font-extrabold text-emerald-900 dark:text-emerald-200">Need full order breakdown?</h3>
+          <p class="text-xs text-emerald-800/80 dark:text-emerald-300/80">View invoice breakdown, allocated quantities, and payment details.</p>
+          <a mat-flat-button [routerLink]="['/customer/orders', t.orderId]" class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-extrabold">
+            <mat-icon>receipt</mat-icon> View Full Order Details
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

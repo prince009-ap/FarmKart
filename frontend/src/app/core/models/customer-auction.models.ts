@@ -268,3 +268,31 @@ export interface CustomerPaymentHistory {
   createdAtUtc: string;
   paidAtUtc?: string | null;
 }
+
+export interface CustomerOrderTracking {
+  orderId: string;
+  orderNumber: string;
+  auctionId: string;
+  cropName: string;
+  cropType: string;
+  variety?: string | null;
+  primaryImageUrl?: string | null;
+  quantityKg: number;
+  quantityMan: number;
+  fulfillmentMode: 'DELIVERY' | 'PICKUP' | string;
+  currentStatus: string;
+  statusMessage: string;
+  farmerName: string;
+  farmLocation?: string | null;
+  deliveryAddress?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryPincode?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  pickupLocation?: string | null;
+  pickupDate?: string | null;
+  expectedDeliveryDate?: string | null;
+  orderDateUtc: string;
+  statusHistory: OrderStatusHistoryItem[];
+}
