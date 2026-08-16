@@ -56,6 +56,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'farmers/:farmerId',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/farmer/farmer-public-profile.component').then(
+        (module) => module.FarmerPublicProfileComponent,
+      ),
+  },
+  {
     path: 'farmer',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Farmer'] },
@@ -224,6 +232,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/farmer/coming-soon.component').then(
             (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'farmers/:farmerId',
+        loadComponent: () =>
+          import('./features/farmer/farmer-public-profile.component').then(
+            (module) => module.FarmerPublicProfileComponent,
           ),
       },
       {
@@ -493,6 +508,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-my-rentals.component').then(
             (module) => module.CustomerMyRentalsComponent,
+          ),
+      },
+      {
+        path: 'farmers/:farmerId',
+        loadComponent: () =>
+          import('./features/farmer/farmer-public-profile.component').then(
+            (module) => module.FarmerPublicProfileComponent,
           ),
       },
       {

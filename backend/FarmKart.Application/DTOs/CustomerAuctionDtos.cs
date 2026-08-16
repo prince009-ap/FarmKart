@@ -25,7 +25,8 @@ public sealed record CustomerAuctionResponse(
     string? Description,
     DateTime CreatedAtUtc,
     DateTime ServerTimeUtc,
-    bool IsFavorited = false
+    bool IsFavorited = false,
+    string? FarmerUserId = null
 );
 
 public sealed record PagedCustomerAuctionResponse(

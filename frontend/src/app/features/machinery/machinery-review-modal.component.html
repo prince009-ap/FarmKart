@@ -1,0 +1,77 @@
+<div class="bg-slate-900 text-slate-100 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 border border-slate-800 shadow-2xl relative">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div>
+      <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <mat-icon class="text-amber-400">rate_review</mat-icon>
+        {{ data.existingReview ? 'Edit Machinery Review' : 'Rate & Review Machinery' }}
+      </h2>
+      <p class="text-xs text-slate-400 mt-1">
+        {{ data.machineryName }} • Booked {{ data.startDate }} to {{ data.endDate }}
+      </p>
+    </div>
+    <button mat-icon-button class="!text-slate-400 hover:!text-white" mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="bg-rose-950/60 border border-rose-800/60 rounded-xl p-3 text-xs text-rose-200">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Interactive Rating Stars -->
+  <div class="space-y-2 text-center py-2">
+    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Overall Rating</label>
+    <div class="flex items-center justify-center gap-2" (mouseleave)="clearHover()">
+      @for (star of [1, 2, 3, 4, 5]; track star) {
+        <button
+          type="button"
+          (click)="setRating(star)"
+          (mouseenter)="setHoverRating(star)"
+          class="p-1 transition-transform transform hover:scale-125 focus:outline-none">
+          <mat-icon
+            class="!w-8 !h-8 text-3xl transition-colors"
+            [ngClass]="{
+              'text-amber-400': (hoverRating() || rating()) >= star,
+              'text-slate-700': (hoverRating() || rating()) < star
+            }">
+            star
+          </mat-icon>
+        </button>
+      }
+    </div>
+    <span class="text-xs font-bold text-amber-400">
+      {{ (hoverRating() || rating()) }} Out of 5 Stars
+    </span>
+  </div>
+
+  <!-- Review Comment -->
+  <div class="space-y-2">
+    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Feedback / Comment (Optional)</label>
+    <textarea
+      [(ngModel)]="comment"
+      rows="4"
+      maxlength="1000"
+      placeholder="Share your experience regarding machinery performance, maintenance, or owner behavior..."
+      class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors">
+    </textarea>
+    <div class="text-right text-[10px] text-slate-500">
+      {{ comment().length }} / 1000 characters
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+    <button mat-button class="!text-slate-400 hover:!text-white !rounded-xl text-xs" mat-dialog-close [disabled]="submitting()">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      class="!bg-emerald-600 hover:!bg-emerald-500 !text-white !rounded-xl text-xs font-bold px-6"
+      (click)="submitReview()"
+      [disabled]="submitting()">
+      {{ submitting() ? 'Submitting...' : (data.existingReview ? 'Update Review' : 'Submit Review') }}
+    </button>
+  </div>
+</div>

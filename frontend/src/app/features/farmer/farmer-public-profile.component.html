@@ -1,0 +1,310 @@
+<div class="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="flex flex-col items-center justify-center py-20 space-y-4">
+        <mat-spinner diameter="48" color="accent"></mat-spinner>
+        <p class="text-slate-400 text-sm">Loading farmer profile...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="bg-rose-950/60 border border-rose-800/60 rounded-2xl p-8 text-center space-y-4">
+        <mat-icon class="!w-12 !h-12 text-4xl text-rose-400">error</mat-icon>
+        <h3 class="text-xl font-bold text-white">Farmer Profile Not Found</h3>
+        <p class="text-rose-200 text-sm max-w-md mx-auto">{{ error() }}</p>
+        <button mat-raised-button color="accent" class="!rounded-xl" [routerLink]="[getRolePrefix(), 'auctions']">
+          Back to Marketplace
+        </button>
+      </div>
+    }
+
+    <!-- Profile View -->
+    @if (!loading() && profile(); as p) {
+
+      <!-- Header Card -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+          <!-- Farmer Details -->
+          <div class="flex items-start gap-5">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-3xl font-black shadow-lg shrink-0">
+              {{ p.fullName.charAt(0) }}
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-3 flex-wrap">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ p.fullName }}</h1>
+                @if (p.farmName) {
+                  <span class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold px-3 py-1 rounded-full">
+                    🌾 {{ p.farmName }}
+                  </span>
+                }
+              </div>
+
+              <!-- Location & Member Since -->
+              <div class="flex items-center gap-4 text-xs sm:text-sm text-slate-400 flex-wrap">
+                @if (p.location || p.city || p.state) {
+                  <span class="flex items-center gap-1">
+                    <mat-icon class="!w-4 !h-4 !text-sm text-emerald-400">location_on</mat-icon>
+                    {{ p.city ? p.city + ', ' : '' }}{{ p.state || p.location }}
+                  </span>
+                }
+                <span class="flex items-center gap-1">
+                  <mat-icon class="!w-4 !h-4 !text-sm text-slate-400">calendar_today</mat-icon>
+                  Member since {{ p.memberSinceUtc | date:'MMM yyyy' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating & Reviews Badge -->
+          <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shrink-0 shadow-lg">
+            <div class="text-center">
+              <div class="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
+                <span>{{ p.averageRating > 0 ? p.averageRating : 'N/A' }}</span>
+                <mat-icon class="!w-6 !h-6 text-2xl text-amber-400">star</mat-icon>
+              </div>
+              <p class="text-xs text-slate-400 font-medium mt-0.5">Farmer Rating</p>
+            </div>
+            <div class="h-10 w-px bg-slate-700"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ p.totalReviews }}</div>
+              <p class="text-xs text-slate-400 font-medium mt-0.5">Verified Reviews</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="space-y-10">
+
+        <!-- Active Auctions Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-2">
+              <mat-icon class="text-emerald-400">gavel</mat-icon>
+              <h2 class="text-xl font-bold text-white">Auctions</h2>
+              <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full font-semibold">
+                {{ p.activeAuctions.length }}
+              </span>
+            </div>
+
+            <!-- Auction Filters -->
+            <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+              @for (f of ['All', 'Live', 'Upcoming', 'Ended']; track f) {
+                <button
+                  type="button"
+                  (click)="auctionFilter.set(f === 'All' ? 'All' : f === 'Live' ? 'Live' : f === 'Upcoming' ? 'Upcoming' : 'Ended')"
+                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors"
+                  [ngClass]="{
+                    'bg-emerald-600 text-white shadow': auctionFilter() === f,
+                    'text-slate-400 hover:text-white': auctionFilter() !== f
+                  }">
+                  {{ f }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Auctions Grid -->
+          @if (filteredAuctions().length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              @for (auc of filteredAuctions(); track auc.auctionId) {
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+                  <div class="relative h-44 bg-slate-950 overflow-hidden">
+                    @if (auc.primaryImageUrl) {
+                      <img [src]="auc.primaryImageUrl" [alt]="auc.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    } @else {
+                      <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-900/80">
+                        <mat-icon class="!w-10 !h-10 text-4xl">eco</mat-icon>
+                        <span class="text-xs mt-1">No Image</span>
+                      </div>
+                    }
+
+                    <span [class]="getAuctionStatusClass(auc.status) + ' absolute top-3 right-3 text-xs font-extrabold px-3 py-1 rounded-full border shadow-lg uppercase tracking-wider'">
+                      {{ auc.status }}
+                    </span>
+                  </div>
+
+                  <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 class="font-bold text-lg text-white group-hover:text-emerald-300 transition-colors truncate">
+                        {{ auc.title }}
+                      </h3>
+                      <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ auc.cropName }} ({{ auc.cropType }})</p>
+                    </div>
+
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-850 flex items-center justify-between text-xs">
+                      <div>
+                        <span class="text-slate-400 block text-[10px]">Starting Price</span>
+                        <span class="text-emerald-400 font-bold text-base">₹{{ auc.startingPrice }}</span>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-slate-400 block text-[10px]">Quantity</span>
+                        <span class="text-white font-semibold">{{ auc.totalQuantity }} {{ auc.unit }}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      mat-flat-button
+                      class="!bg-emerald-600 hover:!bg-emerald-500 !text-white !rounded-xl w-full text-xs font-bold"
+                      [routerLink]="[getRolePrefix(), 'auctions', auc.auctionId]">
+                      View Auction
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 text-center text-slate-400 text-sm">
+              No auctions found for filter '{{ auctionFilter() }}'.
+            </div>
+          }
+        </div>
+
+        <!-- Listed Machinery Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-2">
+              <mat-icon class="text-emerald-400">agriculture</mat-icon>
+              <h2 class="text-xl font-bold text-white">Listed Machinery</h2>
+              <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full font-semibold">
+                {{ p.machinery.length }}
+              </span>
+            </div>
+
+            <!-- Machinery Filters -->
+            <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+              @for (f of ['All', 'Available', 'Rented', 'Unavailable']; track f) {
+                <button
+                  type="button"
+                  (click)="machineryFilter.set(f === 'All' ? 'All' : f === 'Available' ? 'Available' : f === 'Rented' ? 'Rented' : 'Unavailable')"
+                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors"
+                  [ngClass]="{
+                    'bg-emerald-600 text-white shadow': machineryFilter() === f,
+                    'text-slate-400 hover:text-white': machineryFilter() !== f
+                  }">
+                  {{ f }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Machinery Grid -->
+          @if (filteredMachinery().length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              @for (m of filteredMachinery(); track m.machineryId) {
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+                  <div class="relative h-44 bg-slate-950 overflow-hidden">
+                    @if (m.primaryImageUrl) {
+                      <img [src]="m.primaryImageUrl" [alt]="m.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    } @else {
+                      <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-900/80">
+                        <mat-icon class="!w-10 !h-10 text-4xl">agriculture</mat-icon>
+                        <span class="text-xs mt-1">No Image</span>
+                      </div>
+                    }
+
+                    <span [class]="getMachineryStatusClass(m.availabilityStatus) + ' absolute top-3 right-3 text-xs font-extrabold px-3 py-1 rounded-full border shadow-lg uppercase tracking-wider'">
+                      {{ m.availabilityStatus }}
+                    </span>
+                  </div>
+
+                  <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="font-bold text-lg text-white group-hover:text-emerald-300 transition-colors truncate">
+                          {{ m.name }}
+                        </h3>
+                        <div class="flex items-center gap-1 text-amber-400 font-bold text-xs shrink-0">
+                          <mat-icon class="!w-3.5 !h-3.5 text-xs">star</mat-icon>
+                          <span>{{ m.averageRating > 0 ? m.averageRating : 'N/A' }}</span>
+                          <span class="text-slate-500 font-normal">({{ m.reviewCount }})</span>
+                        </div>
+                      </div>
+                      <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ m.category }} • {{ m.brand }} {{ m.model }}</p>
+                    </div>
+
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-850 flex items-center justify-between text-xs">
+                      <div>
+                        <span class="text-slate-400 block text-[10px]">Rent / Day</span>
+                        <span class="text-emerald-400 font-bold text-base">₹{{ m.dailyRent }}</span>
+                      </div>
+                      @if (m.driverAvailable) {
+                        <span class="bg-sky-500/10 text-sky-300 border border-sky-500/20 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                          Driver Available
+                        </span>
+                      }
+                    </div>
+
+                    <button
+                      mat-flat-button
+                      class="!bg-emerald-600 hover:!bg-emerald-500 !text-white !rounded-xl w-full text-xs font-bold"
+                      [routerLink]="[getRolePrefix(), 'machinery', m.machineryId]">
+                      View Machinery
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 text-center text-slate-400 text-sm">
+              No machinery listed by this farmer.
+            </div>
+          }
+        </div>
+
+        <!-- Customer Reviews Section -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <mat-icon class="text-amber-400">rate_review</mat-icon>
+            <h2 class="text-xl font-bold text-white">Customer Reviews</h2>
+            <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full font-semibold">
+              {{ p.reviews.length }}
+            </span>
+          </div>
+
+          @if (p.reviews.length > 0) {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              @for (r of p.reviews; track r.reviewId) {
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-3 shadow-lg">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-bold text-white text-sm">{{ r.reviewerName }}</span>
+                    <div class="flex items-center gap-0.5 text-amber-400">
+                      @for (star of getStarArray(r.rating); track $index) {
+                        <mat-icon class="!w-4 !h-4 !text-sm">star</mat-icon>
+                      }
+                    </div>
+                  </div>
+
+                  @if (r.comment) {
+                    <p class="text-xs text-slate-300 italic leading-relaxed">
+                      "{{ r.comment }}"
+                    </p>
+                  }
+
+                  <p class="text-[10px] text-slate-500 text-right">
+                    {{ r.createdAtUtc | date:'mediumDate' }}
+                  </p>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 text-center text-slate-400 text-sm">
+              No customer reviews submitted yet.
+            </div>
+          }
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+</div>

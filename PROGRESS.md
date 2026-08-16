@@ -52,6 +52,7 @@
   - [x] Phase 8.2: Wishlist / Favorites Module (WishlistItem entity in Communication.cs, WishlistItemType enum for Crop/Auction/Machinery extensibility, unique index on UserId+ItemType+ItemId for DB-level duplicate prevention, Claims-authenticated user isolation, AddAsync idempotent add, RemoveAsync, GetWishlistAsync enriched with live crop/auction data, GetCountAsync, CustomerWishlistController /api/customer/wishlist, WishlistButtonComponent ♡/♥ toggle, CustomerWishlistComponent at /customer/wishlist with All/Crop/Auction tab filtering, My Wishlist nav item in customer shell)
   - [x] Phase 8.3: Advanced Search & Filters Module (Case-insensitive partial search across crop name, variety, crop type, and farmer name; Min & Max PricePerMan ₹/Man range filter; Min & Max QuantityKg range filter; Ending Soon 24h filter; Status & Category filters; Combined AND logic; Page-based backend pagination with PagedCustomerAuctionResponse; 300ms debounced search input; IsFavorited wishlist state injection into marketplace cards; Clear All Filters button; 16 integration tests passing in WishlistAndSearchTests & Angular build succeeded)
   - [x] Phase 8.4: Machinery Rental Marketplace (Complete production-ready bi-directional machinery marketplace allowing both Farmers and Customers to own, list, and rent machinery; Driver options with DriverAvailable toggle, DriverChargePerDay, and renter choice 'I will drive myself' vs 'I want a driver'; Server-side price breakdown & snapshot calculations for RentPerDay, DriverChargePerDay, MachineryAmount, DriverAmount, TotalAmount, and TotalPayableAmount; Full IQueryable database-side filtering across Name, Brand, Model, Category, Location, City, State, Owner Name, Min/Max Rent, Driver Available, Date Availability range, Sorting, and Pagination; Concurrency protection with database transactions; Role-based claim isolation & self-rental prevention; Full Angular UI with search/filters, driver selection radio controls, price breakdown summary, My Machinery management for both roles, My Rentals tracking, and navigation links in both shells; 30 backend integration tests passing in MachineryRentalMarketplaceTests & 25 frontend vitest specs passing)
+  - [x] Phase 8.5: Farmer Public Profile + Machinery Ratings & Reviews (Public Farmer Profile page at /farmers/:farmerId showing Farmer Name, Farm Name, Location, Member Since date, Average Farmer Rating (calculated ONLY from crop order reviews), Verified Reviews, Active Auctions with status filter tabs, and Listed Machinery owned by this farmer; Machinery Ratings & Reviews reusing generic Review entity with ReviewEntityType.MachineryRental; Renter eligibility validation on completed rentals; Owner-authorized machinery review management endpoint GET /api/my-machinery/{id}/reviews verifying machinery.OwnerUserId == authenticatedUserId; Unified My Reviews endpoint GET /api/my-reviews with tabbed separation for CROP REVIEWS and MACHINERY REVIEWS with dynamic DB counts for both Farmers and Customers; Owner review dialog in My Machinery management; 501/501 total backend tests passing & Angular build succeeded)
 - [ ] Phase 9: Real-time chat and notifications with SignalR
 - [ ] Phase 10: AI service integration and intelligent assistant features
 - [ ] Phase 11: Test expansion, hardening, and deployment readiness
@@ -488,6 +489,27 @@
 - [x] **Automated Tests**:
   - Backend integration tests in `FarmerAuctionManagementTests.cs` (4/4 passing).
   - Frontend unit tests for `FarmerAuctionsComponent`, `FarmerAuctionDetailComponent`, and `FarmerAuctionBidsComponent` (**217 / 217 total frontend unit tests passing**).
+
+## Phase 8.5 Deliverables — Farmer Public Profile + Machinery Ratings & Reviews
+
+- [x] **Farmer Public Profile Backend**:
+  - Implemented `IFarmerProfileService` / `FarmerProfileService` retrieving public farmer profile data: Farmer Name, Farm Name, Location (City, State), Member Since Date, Average Farmer Rating (calculated ONLY from Crop Order Reviews), Verified Reviews list, Active Auctions list, and Listed Machinery owned strictly by this farmer (`Machinery.OwnerUserId == FarmerUserId`).
+  - Sensitive information (passwords, auth data, payment details, private emails) is strictly omitted.
+  - Exposed `GET /api/farmers/{farmerId}/profile` in `FarmerProfileController.cs`.
+- [x] **Machinery Ratings & Reviews Backend**:
+  - Reused existing Phase 8.1 `Review` entity using `ReviewEntityType.MachineryRental` and `RelatedEntityId = rentalId`.
+  - Implemented `IMachineryReviewService` / `MachineryReviewService` validating completed rental eligibility, renter-only authorization, 1-5 rating range enforcement, duplicate review prevention, owner-authorized machinery review management (`GET /api/my-machinery/{id}/reviews` verifying `machinery.OwnerUserId == authenticatedUserId`), and unified My Reviews (`GET /api/my-reviews`).
+  - Exposed endpoints in `MachineryReviewController.cs`.
+- [x] **Frontend UI & Components**:
+  - Created `FarmerPublicProfileComponent` (`/customer/farmers/:farmerId` & `/farmer/farmers/:farmerId`) with header profile card, average rating badge, filter tabs for Active Auctions (`All`, `Live`, `Upcoming`, `Ended`), filter tabs for Listed Machinery (`All`, `Available`, `Rented`, `Unavailable`), and Customer Reviews grid.
+  - Created `OwnerMachineryReviewsDialogComponent` allowing machinery owners (Farmers and Customers) to view received reviews directly from `My Machinery`.
+  - Updated `CustomerReviewsComponent` and `FarmerReviewsComponent` with tabbed filter buttons (`All`, `Crop Reviews`, `Machinery Reviews`), metric summary cards, and dynamic empty states.
+  - Updated `CustomerMachineryDetailComponent` displaying owner's Farmer Profile link and Machinery Reviews & Ratings section.
+  - Updated `CustomerMyRentalsComponent` adding `[ RATE MACHINERY ]` button for completed rentals.
+- [x] **Automated Integration Tests**:
+  - 8 integration tests in `FarmerProfileAndMachineryReviewTests.cs` (100% passing). Total backend suite: 501 / 501 tests passing.
+  - Verified backend build (`dotnet build`) and Angular frontend build (`npx ng build`).
+
 
 
 

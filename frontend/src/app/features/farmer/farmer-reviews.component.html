@@ -4,11 +4,13 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-black tracking-tight">Customer Reviews</h1>
-        <p class="text-sm text-slate-400">Reviews left by customers for your completed orders.</p>
+        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+          <span>⭐ My Reviews</span>
+        </h1>
+        <p class="text-sm text-slate-400">View received Crop reviews and your Machinery Rental reviews.</p>
       </div>
       <a routerLink="/farmer/orders" mat-button class="!text-slate-400 hover:!text-white flex items-center gap-1">
-        <mat-icon>arrow_back</mat-icon> Back to Orders
+        <mat-icon>arrow_back</mat-icon> Back to Dashboard
       </a>
     </div>
 
@@ -27,48 +29,94 @@
       </div>
     }
 
-    <!-- Summary Card -->
     @if (!isLoading() && summary()) {
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-center gap-8">
-        <div class="text-center space-y-1">
-          <p class="text-5xl font-black text-amber-400">{{ summary()!.averageRating.toFixed(1) }}</p>
-          <div class="flex items-center justify-center gap-0.5 mt-1">
-            @for (star of [1,2,3,4,5]; track star) {
-              <mat-icon class="!text-lg !w-5 !h-5" [class]="star <= summary()!.averageRating ? '!text-amber-400' : '!text-slate-700'">
-                {{ star <= summary()!.averageRating ? 'star' : 'star_border' }}
-              </mat-icon>
-            }
-          </div>
-          <p class="text-xs text-slate-400 font-semibold">Average Rating</p>
+      <!-- Metric Summary Banner -->
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center space-y-1">
+          <p class="text-2xl font-black text-amber-400">{{ summary()!.totalCount }}</p>
+          <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Reviews</p>
         </div>
-        <div class="h-16 border-l border-slate-800"></div>
-        <div class="text-center space-y-1">
-          <p class="text-4xl font-black text-white">{{ summary()!.totalReviews }}</p>
-          <p class="text-xs text-slate-400 font-semibold">Total Reviews</p>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center space-y-1">
+          <p class="text-2xl font-black text-emerald-400">{{ summary()!.cropCount }}</p>
+          <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Crop Reviews</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center space-y-1">
+          <p class="text-2xl font-black text-cyan-400">{{ summary()!.machineryCount }}</p>
+          <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Machinery Reviews</p>
         </div>
       </div>
 
-      <!-- Empty Reviews -->
-      @if (summary()!.recentReviews.length === 0) {
-        <div class="text-center py-12 space-y-3">
+      <!-- Filter Tabs -->
+      <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+        <button
+          (click)="setTab('ALL')"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+          [class]="selectedTab() === 'ALL' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'">
+          All ({{ summary()!.totalCount }})
+        </button>
+        <button
+          (click)="setTab('CROP')"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+          [class]="selectedTab() === 'CROP' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'">
+          🌾 Crop Reviews ({{ summary()!.cropCount }})
+        </button>
+        <button
+          (click)="setTab('MACHINERY')"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+          [class]="selectedTab() === 'MACHINERY' ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'">
+          🚜 Machinery Reviews ({{ summary()!.machineryCount }})
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      @if (filteredReviews().length === 0) {
+        <div class="text-center py-16 space-y-3 bg-slate-900/40 rounded-3xl border border-slate-800/80 p-8">
           <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">rate_review</mat-icon>
-          <p class="text-slate-400 font-semibold">No reviews yet. Complete more orders to receive reviews!</p>
+          <p class="text-slate-400 font-semibold text-base">
+            @if (selectedTab() === 'CROP') { No crop reviews yet. }
+            @else if (selectedTab() === 'MACHINERY') { No machinery reviews yet. }
+            @else { No reviews yet. }
+          </p>
         </div>
       }
 
       <!-- Review Cards -->
-      @if (summary()!.recentReviews.length > 0) {
+      @if (filteredReviews().length > 0) {
         <div class="space-y-4">
-          <h2 class="text-sm font-black uppercase tracking-wider text-slate-400">Recent Reviews</h2>
-          @for (review of summary()!.recentReviews; track review.reviewId) {
+          @for (review of filteredReviews(); track review.reviewId) {
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 hover:border-slate-700 transition-colors">
+
+              <!-- Top Row -->
               <div class="flex items-start justify-between">
-                <div class="space-y-0.5">
-                  <p class="font-bold text-white text-sm">{{ review.cropName }}
-                    <span class="ml-2 text-xs font-normal text-slate-500 font-mono">#{{ review.orderNumber }}</span>
-                  </p>
-                  <p class="text-xs text-slate-400">by <span class="font-semibold text-slate-300">{{ review.customerName }}</span></p>
+                <div class="flex gap-3 items-center">
+                  @if (review.primaryImageUrl) {
+                    <img [src]="review.primaryImageUrl" alt="Item" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                  } @else {
+                    <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl">
+                      {{ review.reviewType === 'CROP' ? '🌾' : '🚜' }}
+                    </div>
+                  }
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-white text-sm">
+                        {{ review.reviewType === 'CROP' ? review.cropName : review.machineryName }}
+                      </span>
+                      <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md border"
+                            [class]="review.reviewType === 'CROP' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300' : 'bg-cyan-950/80 border-cyan-800 text-cyan-300'">
+                        {{ review.reviewType }}
+                      </span>
+                    </div>
+
+                    @if (review.reviewType === 'CROP') {
+                      <p class="text-xs text-slate-400">{{ review.canEdit ? 'Farmer' : 'Customer' }}: <span class="text-slate-300 font-semibold">{{ review.targetName }}</span></p>
+                      <p class="font-mono text-xs text-slate-500">Order #{{ review.orderNumber }}</p>
+                    } @else {
+                      <p class="text-xs text-slate-400">{{ review.canEdit ? 'Owner' : 'Renter' }}: <span class="text-slate-300 font-semibold">{{ review.targetName }}</span></p>
+                      <p class="font-mono text-xs text-slate-500">Rental #{{ review.rentalNumber }}</p>
+                    }
+                  </div>
                 </div>
+
                 <!-- Star Display -->
                 <div class="flex items-center gap-0.5">
                   @for (star of [1,2,3,4,5]; track star) {
@@ -79,13 +127,17 @@
                 </div>
               </div>
 
+              <!-- Comment -->
               @if (review.comment) {
                 <p class="text-sm text-slate-300 bg-slate-950/60 px-3 py-2 rounded-xl border border-slate-800 italic">
                   "{{ review.comment }}"
                 </p>
               }
 
-              <p class="text-xs text-slate-500">{{ review.createdAtUtc | date:'mediumDate' }}</p>
+              <!-- Footer Row -->
+              <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                <span>Date: {{ review.createdAtUtc | date:'mediumDate' }}</span>
+              </div>
             </div>
           }
         </div>

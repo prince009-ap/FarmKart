@@ -526,7 +526,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             Description: auction.CropListing.Description ?? crop.Description,
             CreatedAtUtc: auction.CreatedAtUtc,
             ServerTimeUtc: now,
-            IsFavorited: isFavorited
+            IsFavorited: isFavorited,
+            FarmerUserId: farmer?.UserId.ToString()
         );
     }
 }

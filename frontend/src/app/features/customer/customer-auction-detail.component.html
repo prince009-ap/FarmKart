@@ -198,7 +198,16 @@
             </div>
             <div class="text-xs">
               <span class="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider block">Farmer & Location</span>
-              <p class="font-extrabold text-slate-900 dark:text-white text-sm">{{ auc.farmerName }}</p>
+              @if (auc.farmerUserId) {
+                <a [routerLink]="getFarmerProfileRoute(auc.farmerUserId)"
+                   class="font-extrabold text-sky-600 dark:text-sky-400 hover:underline text-sm flex items-center gap-1"
+                   title="View Farmer Public Profile">
+                  {{ auc.farmerName }}
+                  <mat-icon class="!w-4 !h-4 text-xs">open_in_new</mat-icon>
+                </a>
+              } @else {
+                <p class="font-extrabold text-slate-900 dark:text-white text-sm">{{ auc.farmerName }}</p>
+              }
               <p class="text-slate-500 font-medium">{{ auc.farmLocation }}</p>
             </div>
           </div>

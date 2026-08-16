@@ -28,3 +28,32 @@ export interface FarmerRatingSummaryResponse {
   totalReviews: number;
   recentReviews: OrderReviewResponse[];
 }
+
+export interface UnifiedReviewItemResponse {
+  reviewId: string;
+  reviewType: 'CROP' | 'MACHINERY';
+  rating: number;
+  comment?: string;
+  createdAtUtc: string;
+  updatedAtUtc?: string;
+  orderId?: string;
+  orderNumber?: string;
+  cropName?: string;
+  cropType?: string;
+  rentalId?: string;
+  rentalNumber?: string;
+  machineryId?: string;
+  machineryName?: string;
+  targetName?: string;
+  primaryImageUrl?: string | null;
+  canEdit: boolean;
+}
+
+export interface UserMyReviewsSummaryResponse {
+  totalCount: number;
+  cropCount: number;
+  machineryCount: number;
+  allReviews: UnifiedReviewItemResponse[];
+  cropReviews: UnifiedReviewItemResponse[];
+  machineryReviews: UnifiedReviewItemResponse[];
+}

@@ -5,8 +5,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MachineryService } from '../../core/services/machinery.service';
+import { MachineryReviewService } from '../../core/services/machinery-review.service';
 import { MachineryRentalResponse, MachineryRentalStatus } from '../../core/models/machinery.models';
+import { MachineryReviewModalComponent, MachineryReviewModalData } from '../machinery/machinery-review-modal.component';
 
 @Component({
   selector: 'app-customer-my-rentals',
@@ -17,14 +20,17 @@ import { MachineryRentalResponse, MachineryRentalStatus } from '../../core/model
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './customer-my-rentals.component.html'
 })
 export class CustomerMyRentalsComponent implements OnInit {
   private readonly machineryService = inject(MachineryService);
+  private readonly reviewService = inject(MachineryReviewService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   get marketplaceRoute(): string {
     return this.router.url.includes('/farmer/') ? '/farmer/machinery/marketplace' : '/customer/machinery';
@@ -102,6 +108,40 @@ export class CustomerMyRentalsComponent implements OnInit {
       },
       error: (err) => {
         this.snackBar.open(err?.error?.message || 'Failed to cancel rental.', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  openReviewModal(rental: MachineryRentalResponse): void {
+    this.reviewService.getRentalReview(rental.id).subscribe({
+      next: (existingRev) => {
+        this.showModal(rental, existingRev);
+      },
+      error: () => {
+        this.showModal(rental, undefined);
+      }
+    });
+  }
+
+  private showModal(rental: MachineryRentalResponse, existingRev?: any): void {
+    const dialogRef = this.dialog.open<MachineryReviewModalComponent, MachineryReviewModalData>(
+      MachineryReviewModalComponent,
+      {
+        data: {
+          rentalId: rental.id,
+          machineryName: rental.machineryName,
+          startDate: rental.startDate,
+          endDate: rental.endDate,
+          existingReview: existingRev
+        },
+        width: '480px',
+        panelClass: 'custom-dialog-container'
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+        this.loadRentals();
       }
     });
   }

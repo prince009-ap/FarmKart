@@ -22,6 +22,7 @@ export interface CustomerAuction {
   createdAtUtc: string;
   serverTimeUtc: string;
   isFavorited?: boolean;
+  farmerUserId?: string;
 }
 
 export interface CustomerAuctionFilter {

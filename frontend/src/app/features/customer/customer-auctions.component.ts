@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -34,8 +34,14 @@ import { WishlistButtonComponent } from '../../shared/wishlist-button.component'
 })
 export class CustomerAuctionsComponent implements OnInit, OnDestroy {
   private readonly auctionService = inject(CustomerAuctionService);
+  private readonly router = inject(Router);
   private searchSubject = new Subject<string>();
   private searchSub?: Subscription;
+
+  getFarmerProfileRoute(farmerUserId: string): string {
+    const prefix = this.router.url.includes('/farmer/') ? '/farmer' : '/customer';
+    return `${prefix}/farmers/${farmerUserId}`;
+  }
 
   auctions = signal<CustomerAuction[]>([]);
   isLoading = signal<boolean>(true);

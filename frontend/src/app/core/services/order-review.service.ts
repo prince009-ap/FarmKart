@@ -6,7 +6,8 @@ import {
   CreateOrderReviewRequest,
   UpdateOrderReviewRequest,
   OrderReviewResponse,
-  FarmerRatingSummaryResponse
+  FarmerRatingSummaryResponse,
+  UserMyReviewsSummaryResponse
 } from '../models/order-review.models';
 
 @Injectable({
@@ -53,6 +54,17 @@ export class OrderReviewService {
         ...r,
         primaryImageUrl: this.resolveImageUrl(r.primaryImageUrl)
       })))
+    );
+  }
+
+  getUnifiedMyReviews(): Observable<UserMyReviewsSummaryResponse> {
+    return this.http.get<UserMyReviewsSummaryResponse>(`${this.apiUrl}/my-reviews`).pipe(
+      map(res => ({
+        ...res,
+        allReviews: res.allReviews.map(r => ({ ...r, primaryImageUrl: this.resolveImageUrl(r.primaryImageUrl) })),
+        cropReviews: res.cropReviews.map(r => ({ ...r, primaryImageUrl: this.resolveImageUrl(r.primaryImageUrl) })),
+        machineryReviews: res.machineryReviews.map(r => ({ ...r, primaryImageUrl: this.resolveImageUrl(r.primaryImageUrl) }))
+      }))
     );
   }
 

@@ -68,11 +68,16 @@
           <!-- Main Info -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
             <div>
-              <div class="flex items-center gap-2 mb-1">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
                 <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black uppercase px-3 py-0.5 rounded-full">
                   {{ m.category }}
                 </span>
-                <span class="text-xs text-slate-400">Listed by <strong class="text-slate-200">{{ m.ownerName }}</strong></span>
+                <span class="text-xs text-slate-400">
+                  Listed by 
+                  <a [routerLink]="farmerProfileRoute" class="text-emerald-400 font-bold hover:underline">
+                    {{ m.ownerName }}
+                  </a>
+                </span>
                 @if (m.isOwnedByCurrentUser) {
                   <span class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">Your Listing</span>
                 }
@@ -133,6 +138,65 @@
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Description</p>
                 <p class="text-sm text-slate-300 whitespace-pre-line leading-relaxed">{{ m.description }}</p>
               </div>
+            }
+
+            <!-- Owner Profile Info Banner -->
+            <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-black text-lg">
+                  {{ m.ownerName ? m.ownerName.charAt(0).toUpperCase() : '👨‍🌾' }}
+                </div>
+                <div>
+                  <p class="text-[10px] text-slate-400 uppercase font-bold">Machinery Owner</p>
+                  <a [routerLink]="farmerProfileRoute" class="font-extrabold text-white hover:text-amber-400 hover:underline text-sm flex items-center gap-1">
+                    {{ m.ownerName }}
+                    <mat-icon class="!w-4 !h-4 text-xs text-amber-400">open_in_new</mat-icon>
+                  </a>
+                </div>
+              </div>
+              <a [routerLink]="farmerProfileRoute" mat-stroked-button class="!border-slate-700 !text-amber-400 hover:!border-amber-500 !rounded-xl text-xs font-bold">
+                View Owner Public Profile
+              </a>
+            </div>
+          </div>
+
+          <!-- Machinery Reviews & Ratings Section -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <mat-icon class="text-amber-400">rate_review</mat-icon>
+                <h3 class="text-lg font-bold text-white">Machinery Reviews & Ratings</h3>
+              </div>
+              @if (reviewsSummary(); as s) {
+                <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                  <mat-icon class="!w-5 !h-5 text-amber-400">star</mat-icon>
+                  <span class="text-white font-bold text-sm">{{ s.averageRating > 0 ? s.averageRating : 'N/A' }}</span>
+                  <span class="text-xs text-slate-400">({{ s.totalReviews }} reviews)</span>
+                </div>
+              }
+            </div>
+
+            @if (reviewsSummary() && reviewsSummary()!.recentReviews.length > 0) {
+              <div class="space-y-3">
+                @for (r of reviewsSummary()!.recentReviews; track r.reviewId) {
+                  <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-xs text-slate-200">{{ r.reviewerName }}</span>
+                      <div class="flex items-center text-amber-400">
+                        @for (star of getStarArray(r.rating); track $index) {
+                          <mat-icon class="!w-3.5 !h-3.5 !text-xs">star</mat-icon>
+                        }
+                      </div>
+                    </div>
+                    @if (r.comment) {
+                      <p class="text-xs text-slate-300 italic">"{{ r.comment }}"</p>
+                    }
+                    <p class="text-[10px] text-slate-500 text-right">{{ r.createdAtUtc | date:'mediumDate' }}</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-xs text-slate-500 italic py-2">No reviews submitted for this machinery yet.</p>
             }
           </div>
 

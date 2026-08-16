@@ -7,7 +7,7 @@
         <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
           <span class="text-amber-500">🚜</span> My Listed Machinery
         </h1>
-        <p class="text-sm text-slate-400">Manage your machinery listings and incoming rental bookings.</p>
+        <p class="text-sm text-slate-400">Manage your machinery listings, view received reviews, and incoming bookings.</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -105,16 +105,22 @@
 
               <!-- Action Bar -->
               <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                <button
+                  (click)="viewReviews(m.id, m.name)"
+                  mat-button
+                  class="!text-amber-400 hover:!text-amber-300 border border-slate-800 !rounded-xl text-xs font-bold flex-1">
+                  <mat-icon class="!w-4 !h-4 !text-sm">star</mat-icon> Reviews
+                </button>
                 <a [routerLink]="getEditRoute(m.id)"
                    mat-button
-                   class="!text-slate-300 hover:!text-white flex-1 border border-slate-700 !rounded-xl text-xs font-bold">
+                   class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
                   <mat-icon class="!w-4 !h-4 !text-sm">edit</mat-icon> Edit
                 </a>
                 <button
                   (click)="deleteMachinery(m.id, m.name)"
                   mat-button
                   class="!text-rose-400 hover:!text-rose-300 border border-slate-800 !rounded-xl text-xs">
-                  <mat-icon class="!w-4 !h-4 !text-sm">delete</mat-icon> Delete
+                  <mat-icon class="!w-4 !h-4 !text-sm">delete</mat-icon>
                 </button>
               </div>
             </div>

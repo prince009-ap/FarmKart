@@ -5,8 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MachineryService } from '../../core/services/machinery.service';
 import { MachineryResponse } from '../../core/models/machinery.models';
+import { OwnerMachineryReviewsDialogComponent } from '../machinery/owner-machinery-reviews-dialog.component';
 
 @Component({
   selector: 'app-my-machinery',
@@ -17,7 +19,8 @@ import { MachineryResponse } from '../../core/models/machinery.models';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './my-machinery.component.html'
 })
@@ -25,6 +28,7 @@ export class MyMachineryComponent implements OnInit {
   private readonly machineryService = inject(MachineryService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   machineryList = signal<MachineryResponse[]>([]);
   isLoading = signal<boolean>(true);
@@ -59,6 +63,13 @@ export class MyMachineryComponent implements OnInit {
         this.errorMessage.set('Failed to load your machinery listings.');
         this.isLoading.set(false);
       }
+    });
+  }
+
+  viewReviews(machineryId: string, machineryName: string): void {
+    this.dialog.open(OwnerMachineryReviewsDialogComponent, {
+      width: '500px',
+      data: { machineryId, machineryName }
     });
   }
 

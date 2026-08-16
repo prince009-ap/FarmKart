@@ -39,6 +39,11 @@ export class CustomerAuctionDetailComponent implements OnInit {
   bidError = signal<string | null>(null);
   bidSuccess = signal<string | null>(null);
 
+  getFarmerProfileRoute(farmerUserId: string): string {
+    const prefix = this.router.url.includes('/farmer/') ? '/farmer' : '/customer';
+    return `${prefix}/farmers/${farmerUserId}`;
+  }
+
   minNextBid = computed(() => {
     const auc = this.auction();
     if (!auc) return 0;

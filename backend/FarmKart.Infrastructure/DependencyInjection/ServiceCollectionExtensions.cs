@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentOrderBackfillService, PaymentOrderBackfillService>();
         services.AddScoped<IMachineryService, MachineryService>();
         services.AddScoped<IMachineryRentalService, MachineryRentalService>();
+        services.AddScoped<IMachineryReviewService, MachineryReviewService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

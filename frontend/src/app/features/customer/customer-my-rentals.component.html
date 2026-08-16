@@ -167,6 +167,16 @@
                 </button>
               }
 
+              <!-- Rate Machinery Action for Renter when Completed -->
+              @if (r.rentalStatus === 'Completed') {
+                <button
+                  (click)="openReviewModal(r)"
+                  mat-flat-button
+                  class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold flex items-center gap-1">
+                  <mat-icon class="!w-4 !h-4 !text-sm">star</mat-icon> Rate & Review Machinery
+                </button>
+              }
+
               <!-- Remove History Action for Completed or Cancelled -->
               @if (r.rentalStatus === 'Completed' || r.rentalStatus === 'Cancelled') {
                 <button

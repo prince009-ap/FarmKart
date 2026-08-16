@@ -7,7 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MachineryService } from '../../core/services/machinery.service';
+import { MachineryReviewService } from '../../core/services/machinery-review.service';
 import { MachineryResponse, MachineryAvailabilityResponse } from '../../core/models/machinery.models';
+import { MachineryRatingSummaryResponse } from '../../core/models/machinery-review.models';
 import { WishlistButtonComponent } from '../../shared/wishlist-button.component';
 
 @Component({
@@ -29,10 +31,12 @@ export class CustomerMachineryDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly machineryService = inject(MachineryService);
+  private readonly reviewService = inject(MachineryReviewService);
   private readonly snackBar = inject(MatSnackBar);
 
   machinery = signal<MachineryResponse | null>(null);
   availability = signal<MachineryAvailabilityResponse | null>(null);
+  reviewsSummary = signal<MachineryRatingSummaryResponse | null>(null);
   isLoading = signal<boolean>(true);
   isBooking = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
@@ -61,6 +65,12 @@ export class CustomerMachineryDetailComponent implements OnInit {
 
   get myRentalsRoute(): string {
     return this.router.url.includes('/farmer/') ? '/farmer/my-rentals' : '/customer/my-rentals';
+  }
+
+  get farmerProfileRoute(): string {
+    const m = this.machinery();
+    const prefix = this.router.url.includes('/farmer/') ? '/farmer' : '/customer';
+    return `${prefix}/farmers/${m?.ownerUserId}`;
   }
 
   ngOnInit(): void {
@@ -93,6 +103,11 @@ export class CustomerMachineryDetailComponent implements OnInit {
 
     this.machineryService.getAvailability(id).subscribe({
       next: (a) => this.availability.set(a),
+      error: () => {}
+    });
+
+    this.reviewService.getMachineryReviews(id).subscribe({
+      next: (res) => this.reviewsSummary.set(res),
       error: () => {}
     });
   }
@@ -197,5 +212,10 @@ export class CustomerMachineryDetailComponent implements OnInit {
 
   selectImage(index: number): void {
     this.selectedImageIndex.set(index);
+  }
+
+  getStarArray(rating: number): number[] {
+    const full = Math.floor(rating);
+    return Array(full).fill(0);
   }
 }
