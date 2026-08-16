@@ -38,6 +38,11 @@ public sealed class MachineryService : IMachineryService
             .Include(m => m.Images)
             .Where(m => m.IsActive && m.AvailabilityStatus != MachineryAvailabilityStatus.Unavailable);
 
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            query = query.Where(m => m.OwnerUserId != currentUserId);
+        }
+
         // Combined Search (Name, Brand, Model, Category, Location, City, State)
         var searchTerm = filter.Search ?? filter.Name;
         if (!string.IsNullOrWhiteSpace(searchTerm))

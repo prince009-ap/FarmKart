@@ -140,6 +140,33 @@ public class NotificationService : INotificationService
         }
     }
 
+    public async Task DeleteNotificationAsync(Guid userId, Guid notificationId, CancellationToken cancellationToken = default)
+    {
+        var recipientUserId = userId.ToString();
+        var notification = await _dbContext.Notifications
+            .SingleOrDefaultAsync(n => n.Id == notificationId && n.RecipientUserId == recipientUserId, cancellationToken);
+
+        if (notification != null)
+        {
+            _dbContext.Notifications.Remove(notification);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task ClearNotificationsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var recipientUserId = userId.ToString();
+        var notifications = await _dbContext.Notifications
+            .Where(n => n.RecipientUserId == recipientUserId)
+            .ToListAsync(cancellationToken);
+
+        if (notifications.Count > 0)
+        {
+            _dbContext.Notifications.RemoveRange(notifications);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     private static NotificationResponse ToResponse(Notification n) => new(
         Id: n.Id,
         Title: n.Title,

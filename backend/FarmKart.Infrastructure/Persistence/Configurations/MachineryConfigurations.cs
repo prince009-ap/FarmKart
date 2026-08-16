@@ -82,6 +82,7 @@ public sealed class MachineryRentalConfiguration : IEntityTypeConfiguration<Mach
         builder.Property(r => r.SecurityDepositSnapshot).HasPrecision(18, 2);
         builder.Property(r => r.TotalRentAmount).HasPrecision(18, 2);
         builder.Property(r => r.TotalPayableAmount).HasPrecision(18, 2);
+        builder.Property(r => r.OverdueCharge).HasPrecision(18, 2).HasDefaultValue(0);
         builder.Property(r => r.PaymentTransactionRef).HasMaxLength(200);
         builder.Property(r => r.CancellationReason).HasMaxLength(500);
 

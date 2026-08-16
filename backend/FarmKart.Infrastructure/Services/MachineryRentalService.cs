@@ -221,6 +221,25 @@ public sealed class MachineryRentalService : IMachineryRentalService
 
         ValidateStateTransition(rental.RentalStatus, targetStatus, isOwner, isRenter);
 
+        if (targetStatus == RentalStatus.RentedOut)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (today < rental.StartDate)
+            {
+                throw new InvalidOperationException($"Cannot handover machinery before the rental start date. The booked start date is {rental.StartDate:dd-MM-yyyy}.");
+            }
+
+            var hasActiveHandover = await _db.MachineryRentals
+                .AnyAsync(r => r.MachineryId == rental.MachineryId
+                            && r.Id != rental.Id
+                            && r.RentalStatus == RentalStatus.RentedOut, cancellationToken);
+
+            if (hasActiveHandover)
+            {
+                throw new InvalidOperationException("Cannot handover machinery. The previous rental is currently out on rent (RentedOut) and has not been returned yet.");
+            }
+        }
+
         rental.RentalStatus = targetStatus;
         if (targetStatus == RentalStatus.Cancelled && !string.IsNullOrWhiteSpace(request.CancellationReason))
             rental.CancellationReason = request.CancellationReason.Trim();
@@ -230,6 +249,20 @@ public sealed class MachineryRentalService : IMachineryRentalService
 
         if (targetStatus == RentalStatus.Completed)
             rental.CompletedAtUtc = DateTime.UtcNow;
+
+        if (targetStatus == RentalStatus.Returned || targetStatus == RentalStatus.Completed)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (today > rental.EndDate)
+            {
+                var overdueDays = today.DayNumber - rental.EndDate.DayNumber;
+                var dailyRate = rental.RentPerDaySnapshot + (rental.DriverRequired ? rental.DriverChargePerDaySnapshot : 0m);
+                var overdueCharge = overdueDays * dailyRate;
+
+                rental.OverdueDays = overdueDays;
+                rental.OverdueCharge = overdueCharge;
+            }
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -352,6 +385,8 @@ public sealed class MachineryRentalService : IMachineryRentalService
             ReturnedAtUtc: r.ReturnedAtUtc,
             CompletedAtUtc: r.CompletedAtUtc,
             CancellationReason: r.CancellationReason,
+            OverdueDays: r.OverdueDays,
+            OverdueCharge: r.OverdueCharge,
             CreatedAtUtc: r.CreatedAtUtc,
             UpdatedAtUtc: r.UpdatedAtUtc
         );

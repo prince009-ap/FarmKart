@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -23,7 +23,12 @@ import { MachineryRentalResponse, MachineryRentalStatus } from '../../core/model
 })
 export class CustomerMyRentalsComponent implements OnInit {
   private readonly machineryService = inject(MachineryService);
+  private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
+
+  get marketplaceRoute(): string {
+    return this.router.url.includes('/farmer/') ? '/farmer/machinery/marketplace' : '/customer/machinery';
+  }
 
   rentals = signal<MachineryRentalResponse[]>([]);
   isLoading = signal<boolean>(true);
@@ -99,6 +104,12 @@ export class CustomerMyRentalsComponent implements OnInit {
         this.snackBar.open(err?.error?.message || 'Failed to cancel rental.', 'Close', { duration: 4000 });
       }
     });
+  }
+
+  removeHistoryRecord(rentalId: string): void {
+    if (!confirm('Remove this completed/cancelled rental record from your history view?')) return;
+    this.rentals.update(list => list.filter(r => r.id !== rentalId));
+    this.snackBar.open('Rental record removed from history view.', 'Close', { duration: 3000 });
   }
 
   getStatusBadgeClass(status: MachineryRentalStatus): string {

@@ -80,6 +80,8 @@ public sealed class MachineryRental : BaseEntity
     public DateTime? ReturnedAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; }
     public string? CancellationReason { get; set; }
+    public int OverdueDays { get; set; }
+    public decimal OverdueCharge { get; set; }
 
     public ICollection<MachineryDamageReport> DamageReports { get; set; } = [];
 }

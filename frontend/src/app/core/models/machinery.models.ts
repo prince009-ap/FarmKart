@@ -151,6 +151,8 @@ export interface MachineryRentalResponse {
   returnedAtUtc?: string;
   completedAtUtc?: string;
   cancellationReason?: string;
+  overdueDays?: number;
+  overdueCharge?: number;
   createdAtUtc: string;
   updatedAtUtc: string;
 }

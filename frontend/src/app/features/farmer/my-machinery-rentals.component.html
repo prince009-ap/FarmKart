@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <a routerLink="/farmer/machinery" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-2">
+        <a [routerLink]="backLink" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-2">
           <mat-icon class="!w-4 !h-4 !text-sm">arrow_back</mat-icon> Back to My Machinery
         </a>
         <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
@@ -135,6 +135,14 @@
               </div>
             }
 
+            <!-- Overdue Late Return Charge -->
+            @if (r.overdueCharge && r.overdueCharge > 0) {
+              <div class="p-2.5 bg-amber-950/60 border border-amber-800/80 rounded-xl text-amber-300 text-xs flex items-center gap-2">
+                <mat-icon class="!w-4 !h-4 !text-sm text-amber-400">warning</mat-icon>
+                <span><strong>Late Return Charge:</strong> +₹{{ r.overdueCharge }} ({{ r.overdueDays }} day(s) overdue after {{ r.endDate }}).</span>
+              </div>
+            }
+
             <!-- Owner Action State Machine Controls -->
             <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-800/60">
 
@@ -190,6 +198,17 @@
                   class="!text-rose-400 hover:!text-rose-300 text-xs"
                 >
                   Reject / Cancel
+                </button>
+              }
+
+              <!-- Remove History Action for Completed or Cancelled -->
+              @if (r.rentalStatus === 'Completed' || r.rentalStatus === 'Cancelled') {
+                <button
+                  (click)="removeHistoryRecord(r.id)"
+                  mat-button
+                  class="!text-slate-400 hover:!text-rose-400 text-xs flex items-center gap-1"
+                >
+                  <mat-icon class="!w-4 !h-4 !text-sm">delete_outline</mat-icon> Remove History
                 </button>
               }
             </div>

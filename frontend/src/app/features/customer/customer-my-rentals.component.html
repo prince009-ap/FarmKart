@@ -9,7 +9,7 @@
         </h1>
         <p class="text-sm text-slate-400">Track and manage machinery you have booked for rent.</p>
       </div>
-      <a routerLink="/customer/machinery" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
+      <a [routerLink]="marketplaceRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
         Browse Machinery
       </a>
     </div>
@@ -64,7 +64,7 @@
         <p class="text-slate-400 font-semibold text-base">No rental bookings found.</p>
         <p class="text-xs text-slate-500">Rent machinery for harvesting, tilling, or seeding from nearby owners!</p>
         <div class="pt-2">
-          <a routerLink="/customer/machinery" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
+          <a [routerLink]="marketplaceRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
             Explore Marketplace
           </a>
         </div>
@@ -134,6 +134,14 @@
               </div>
             }
 
+            <!-- Overdue Late Return Charge -->
+            @if (r.overdueCharge && r.overdueCharge > 0) {
+              <div class="p-2.5 bg-amber-950/60 border border-amber-800/80 rounded-xl text-amber-300 text-xs flex items-center gap-2">
+                <mat-icon class="!w-4 !h-4 !text-sm text-amber-400">warning</mat-icon>
+                <span><strong>Late Return Fee:</strong> +₹{{ r.overdueCharge }} ({{ r.overdueDays }} day(s) overdue after {{ r.endDate }}). No refund for early return.</span>
+              </div>
+            }
+
             <!-- Actions Bar -->
             <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-800/60">
 
@@ -156,6 +164,17 @@
                   class="!text-rose-400 hover:!text-rose-300 text-xs"
                 >
                   Cancel Booking
+                </button>
+              }
+
+              <!-- Remove History Action for Completed or Cancelled -->
+              @if (r.rentalStatus === 'Completed' || r.rentalStatus === 'Cancelled') {
+                <button
+                  (click)="removeHistoryRecord(r.id)"
+                  mat-button
+                  class="!text-slate-400 hover:!text-rose-400 text-xs flex items-center gap-1"
+                >
+                  <mat-icon class="!w-4 !h-4 !text-sm">delete_outline</mat-icon> Remove History
                 </button>
               }
             </div>

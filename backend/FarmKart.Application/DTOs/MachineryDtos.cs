@@ -159,6 +159,8 @@ public sealed record MachineryRentalResponse(
     DateTime? ReturnedAtUtc,
     DateTime? CompletedAtUtc,
     string? CancellationReason,
+    int OverdueDays,
+    decimal OverdueCharge,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc
 );

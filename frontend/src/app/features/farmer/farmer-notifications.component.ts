@@ -89,16 +89,55 @@ export class FarmerNotificationsComponent implements OnInit {
     });
   }
 
+  deleteNotification(notif: NotificationResponse, event: Event): void {
+    event.stopPropagation();
+    this.notificationService.deleteNotification(notif.id).subscribe({
+      next: () => {
+        this.notifications.update(list => list.filter(n => n.id !== notif.id));
+        if (!notif.isRead) {
+          this.unreadCount.update(c => Math.max(0, c - 1));
+        }
+        this.snackBar.open('Notification deleted.', 'Close', { duration: 2500 });
+      },
+      error: () => {
+        this.snackBar.open('Failed to delete notification.', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  clearAllHistory(): void {
+    if (this.notifications().length === 0) return;
+    if (!confirm('Are you sure you want to clear all notification history?')) return;
+
+    this.notificationService.clearAllNotifications().subscribe({
+      next: () => {
+        this.notifications.set([]);
+        this.unreadCount.set(0);
+        this.snackBar.open('All notification history cleared.', 'Close', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Failed to clear notification history.', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
   navigateToTarget(notif: NotificationResponse): void {
     this.markAsRead(notif);
+    const title = notif.title.toLowerCase();
 
     if (notif.relatedOrderId) {
       this.router.navigate(['/farmer/orders', notif.relatedOrderId]);
     } else if (notif.relatedAuctionId) {
       this.router.navigate(['/farmer/auctions', notif.relatedAuctionId]);
-    } else if (notif.title.toLowerCase().includes('order')) {
+    } else if (title.includes('machinery') || title.includes('rental') || title.includes('booking')) {
+      if (title.includes('new machinery booking') || title.includes('new booking') || title.includes('received') || title.includes('incoming')) {
+        this.router.navigate(['/farmer/machinery/rentals']);
+      } else {
+        this.router.navigate(['/farmer/my-rentals']);
+      }
+    } else if (title.includes('order')) {
       this.router.navigate(['/farmer/orders']);
-    } else if (notif.title.toLowerCase().includes('auction')) {
+    } else if (title.includes('auction')) {
       this.router.navigate(['/farmer/auctions']);
     }
   }
@@ -107,6 +146,9 @@ export class FarmerNotificationsComponent implements OnInit {
     const title = notif.title.toLowerCase();
     const type = notif.notificationType.toLowerCase();
 
+    if (title.includes('machinery') || title.includes('rental') || title.includes('booking') || type.includes('machinery')) {
+      return 'agriculture';
+    }
     if (title.includes('order') || type.includes('order')) {
       return 'shopping_bag';
     }

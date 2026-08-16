@@ -352,10 +352,11 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test16_Search_By_Name_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"search16_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Super Cultivator 3000", "Cultivator", "Fieldking", "C1", 2022, "Desc", 1000, 200, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"search16_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Super Cultivator 3000", "Cultivator", "Fieldking", "C1", 2022, "Desc", 1000, 200, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
 
-        var searchRes = await client.GetAsync("/api/machinery?search=cultivator");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"search16_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var searchRes = await searchClient.GetAsync("/api/machinery?search=cultivator");
         var paged = await searchRes.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);
@@ -365,10 +366,11 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test17_Search_By_Brand_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"search17_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Power Seed Drill", "Seed Drill", "Fieldking", "SD2", 2022, "Desc", 1200, 300, false, false, false, 0, null, null, null, "Anand", "Anand", "Gujarat", "388001"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"search17_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Power Seed Drill", "Seed Drill", "Fieldking", "SD2", 2022, "Desc", 1200, 300, false, false, false, 0, null, null, null, "Anand", "Anand", "Gujarat", "388001"));
 
-        var searchRes = await client.GetAsync("/api/machinery?brand=fieldking");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"search17_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var searchRes = await searchClient.GetAsync("/api/machinery?brand=fieldking");
         var paged = await searchRes.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);
@@ -378,10 +380,11 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test18_Search_By_Model_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"search18_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Heavy Duty Tractor", "Tractor", "Eicher", "XTR-99", 2023, "Desc", 1800, 400, false, false, false, 0, null, null, null, "Surat", "Surat", "Gujarat", "395001"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"search18_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Heavy Duty Tractor", "Tractor", "Eicher", "XTR-99", 2023, "Desc", 1800, 400, false, false, false, 0, null, null, null, "Surat", "Surat", "Gujarat", "395001"));
 
-        var searchRes = await client.GetAsync("/api/machinery?search=xtr-99");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"search18_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var searchRes = await searchClient.GetAsync("/api/machinery?search=xtr-99");
         var paged = await searchRes.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);
@@ -391,10 +394,11 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test19_Category_Filter_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"cat19_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Rotavator Pro", "Rotavator", "Shaktiman", "R1", 2022, "Desc", 1100, 300, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"cat19_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Rotavator Pro", "Rotavator", "Shaktiman", "R1", 2022, "Desc", 1100, 300, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
 
-        var res = await client.GetAsync("/api/machinery?category=Rotavator");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"cat19_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var res = await searchClient.GetAsync("/api/machinery?category=Rotavator");
         var paged = await res.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);
@@ -467,10 +471,11 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test24_Multiple_Filters_Work_Together()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"multi24_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest(Name: "Specific Tractor", Category: "Tractor", Brand: "John Deere", Model: "JD1", ManufacturingYear: 2022, Description: "Desc", DailyRent: 1600, SecurityDeposit: 400, IsDriverIncluded: false, IsFuelIncluded: false, DriverAvailable: true, DriverChargePerDay: 400, Location: "Morbi Road", City: "Morbi", State: "Gujarat", Pincode: "363641"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"multi24_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest(Name: "Specific Tractor", Category: "Tractor", Brand: "John Deere", Model: "JD1", ManufacturingYear: 2022, Description: "Desc", DailyRent: 1600, SecurityDeposit: 400, IsDriverIncluded: false, IsFuelIncluded: false, DriverAvailable: true, DriverChargePerDay: 400, Location: "Morbi Road", City: "Morbi", State: "Gujarat", Pincode: "363641"));
 
-        var res = await client.GetAsync("/api/machinery?search=specific&category=Tractor&minRentPerDay=1000&maxRentPerDay=2000&driverAvailable=true&city=Morbi");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"multi24_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var res = await searchClient.GetAsync("/api/machinery?search=specific&category=Tractor&minRentPerDay=1000&maxRentPerDay=2000&driverAvailable=true&city=Morbi");
         var paged = await res.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);
@@ -481,15 +486,16 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test25_Sorting_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"sort25_{Guid.NewGuid()}@test.com", Roles.Farmer);
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Cheap Tool", "Plough", "P1", "M1", 2020, "Desc", 400, 100, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
-        await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Expensive Tool", "Harvester", "H1", "M2", 2023, "Desc", 4500, 1000, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"sort25_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Cheap Tool", "Plough", "P1", "M1", 2020, "Desc", 400, 100, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
+        await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest("Expensive Tool", "Harvester", "H1", "M2", 2023, "Desc", 4500, 1000, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
 
-        var resAsc = await client.GetAsync("/api/machinery?sortBy=priceAsc");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"sort25_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var resAsc = await searchClient.GetAsync("/api/machinery?sortBy=priceAsc");
         var pagedAsc = await resAsc.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
         Assert.True(pagedAsc!.Items.First().DailyRent <= pagedAsc.Items.Last().DailyRent);
 
-        var resDesc = await client.GetAsync("/api/machinery?sortBy=priceDesc");
+        var resDesc = await searchClient.GetAsync("/api/machinery?sortBy=priceDesc");
         var pagedDesc = await resDesc.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
         Assert.True(pagedDesc!.Items.First().DailyRent >= pagedDesc.Items.Last().DailyRent);
     }
@@ -497,13 +503,14 @@ public class MachineryRentalMarketplaceTests : IClassFixture<WebApplicationFacto
     [Fact]
     public async Task Test26_Pagination_Works()
     {
-        var (client, _) = await GetAuthenticatedClientAsync($"page26_{Guid.NewGuid()}@test.com", Roles.Farmer);
+        var (ownerClient, _) = await GetAuthenticatedClientAsync($"page26_owner_{Guid.NewGuid()}@test.com", Roles.Farmer);
         for (int i = 1; i <= 5; i++)
         {
-            await client.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest($"Page Tool {i}", "Other", "B1", "M1", 2022, "Desc", 1000 + i * 100, 200, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
+            await ownerClient.PostAsJsonAsync("/api/my-machinery", new CreateMachineryRequest($"Page Tool {i}", "Other", "B1", "M1", 2022, "Desc", 1000 + i * 100, 200, false, false, false, 0, null, null, null, "Rajkot", "Rajkot", "Gujarat", "360005"));
         }
 
-        var res = await client.GetAsync("/api/machinery?page=1&pageSize=2");
+        var (searchClient, _) = await GetAuthenticatedClientAsync($"page26_renter_{Guid.NewGuid()}@test.com", Roles.Customer);
+        var res = await searchClient.GetAsync("/api/machinery?page=1&pageSize=2");
         var paged = await res.Content.ReadFromJsonAsync<PagedMachineryResponse>(JsonOptions);
 
         Assert.NotNull(paged);

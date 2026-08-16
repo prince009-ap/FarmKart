@@ -55,6 +55,14 @@ export class CustomerMachineryDetailComponent implements OnInit {
 
   minStartDate = new Date().toISOString().split('T')[0];
 
+  get backLink(): string {
+    return this.router.url.includes('/farmer/') ? '/farmer/machinery/marketplace' : '/customer/machinery';
+  }
+
+  get myRentalsRoute(): string {
+    return this.router.url.includes('/farmer/') ? '/farmer/my-rentals' : '/customer/my-rentals';
+  }
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -178,7 +186,7 @@ export class CustomerMachineryDetailComponent implements OnInit {
       next: (res) => {
         this.isBooking.set(false);
         this.snackBar.open('Rental booked successfully!', 'Close', { duration: 4000 });
-        this.router.navigate(['/customer/my-rentals']);
+        this.router.navigate([this.myRentalsRoute]);
       },
       error: (err) => {
         this.isBooking.set(false);

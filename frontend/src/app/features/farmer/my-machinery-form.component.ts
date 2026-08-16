@@ -61,6 +61,10 @@ export class MyMachineryFormComponent implements OnInit {
   state = signal<string>('');
   pincode = signal<string>('');
 
+  get backLink(): string {
+    return this.router.url.includes('/customer/') ? '/customer/my-machinery' : '/farmer/machinery';
+  }
+
   // Image Upload State
   existingImages = signal<any[]>([]);
   selectedFile = signal<File | null>(null);

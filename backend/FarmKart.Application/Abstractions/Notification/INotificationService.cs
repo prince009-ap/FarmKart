@@ -24,4 +24,6 @@ public interface INotificationService
     Task<UnreadNotificationCountResponse> GetUnreadCountAsync(Guid userId);
     Task<NotificationResponse> MarkAsReadAsync(Guid userId, Guid notificationId);
     Task MarkAllAsReadAsync(Guid userId);
+    Task DeleteNotificationAsync(Guid userId, Guid notificationId, CancellationToken cancellationToken = default);
+    Task ClearNotificationsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

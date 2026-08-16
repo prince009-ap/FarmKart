@@ -68,6 +68,30 @@ public sealed class NotificationsController(INotificationService notificationSer
         return Ok(new { message = "All notifications marked as read." });
     }
 
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteNotification(Guid id, CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        await notificationService.DeleteNotificationAsync(userId, id, cancellationToken);
+        return Ok(new { message = "Notification deleted." });
+    }
+
+    [HttpDelete("clear-all")]
+    public async Task<IActionResult> ClearAllNotifications(CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is not { } userId)
+        {
+            return Unauthorized();
+        }
+
+        await notificationService.ClearNotificationsAsync(userId, cancellationToken);
+        return Ok(new { message = "All notifications cleared." });
+    }
+
     private Guid? GetCurrentUserId()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
