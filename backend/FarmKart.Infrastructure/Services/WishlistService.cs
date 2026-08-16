@@ -14,9 +14,6 @@ public sealed class WishlistService(FarmKartDbContext dbContext) : IWishlistServ
         if (string.IsNullOrWhiteSpace(userId))
             throw new UnauthorizedAccessException("User not authenticated.");
 
-        if (request.ItemType == WishlistItemType.Machinery)
-            throw new InvalidOperationException("Machinery wishlist support is coming in a future phase.");
-
         await ValidateItemExistsAsync(request.ItemType, request.ItemId, cancellationToken);
 
         var existing = await dbContext.WishlistItems
@@ -115,9 +112,10 @@ public sealed class WishlistService(FarmKartDbContext dbContext) : IWishlistServ
 
         var cropCount = groups.FirstOrDefault(g => g.Type == WishlistItemType.Crop)?.Count ?? 0;
         var auctionCount = groups.FirstOrDefault(g => g.Type == WishlistItemType.Auction)?.Count ?? 0;
+        var machineryCount = groups.FirstOrDefault(g => g.Type == WishlistItemType.Machinery)?.Count ?? 0;
         var total = groups.Sum(g => g.Count);
 
-        return new WishlistCountResponse { Total = total, CropCount = cropCount, AuctionCount = auctionCount };
+        return new WishlistCountResponse { Total = total, CropCount = cropCount, AuctionCount = auctionCount, MachineryCount = machineryCount };
     }
 
     public async Task<WishlistStatusResponse> GetItemStatusAsync(string userId, WishlistItemType itemType, Guid itemId, CancellationToken cancellationToken = default)
@@ -192,6 +190,15 @@ public sealed class WishlistService(FarmKartDbContext dbContext) : IWishlistServ
                 throw new InvalidOperationException("Ended or cancelled auctions cannot be added to wishlist.");
             }
         }
+        else if (itemType == WishlistItemType.Machinery)
+        {
+            var machineryExists = await dbContext.Machinery
+                .AsNoTracking()
+                .AnyAsync(m => m.Id == itemId && m.IsActive, cancellationToken);
+
+            if (!machineryExists)
+                throw new KeyNotFoundException($"Machinery with ID '{itemId}' was not found or is inactive.");
+        }
         else
         {
             throw new ArgumentException($"Unsupported item type: {itemType}");
@@ -231,7 +238,7 @@ public sealed class WishlistService(FarmKartDbContext dbContext) : IWishlistServ
                 IsAuctionExpired = false, IsItemAvailable = crop.Status != CropStatus.Archived
             };
         }
-        else // Auction
+        else if (item.ItemType == WishlistItemType.Auction)
         {
             var auction = await dbContext.Auctions
                 .AsNoTracking()
@@ -271,6 +278,53 @@ public sealed class WishlistService(FarmKartDbContext dbContext) : IWishlistServ
                 AuctionStartTimeUtc = auction.StartTimeUtc, AuctionEndTimeUtc = auction.EndTimeUtc,
                 ServerTimeUtc = now,
                 IsAuctionExpired = false, IsItemAvailable = true
+            };
+        }
+        else if (item.ItemType == WishlistItemType.Machinery)
+        {
+            var machinery = await dbContext.Machinery
+                .AsNoTracking()
+                .Include(m => m.Images)
+                .FirstOrDefaultAsync(m => m.Id == item.ItemId, cancellationToken);
+
+            if (machinery == null || !machinery.IsActive)
+            {
+                return new WishlistItemResponse
+                {
+                    Id = item.Id, ItemType = item.ItemType, ItemId = item.ItemId, CreatedAtUtc = item.CreatedAtUtc,
+                    IsItemAvailable = false
+                };
+            }
+
+            // Resolve owner name
+            var ownerGuid = Guid.TryParse(machinery.OwnerUserId, out var og) ? og : Guid.Empty;
+            var ownerName = (await dbContext.FarmerProfiles.AsNoTracking()
+                .FirstOrDefaultAsync(fp => fp.UserId == ownerGuid, cancellationToken))?.FullName
+                ?? (await dbContext.CustomerProfiles.AsNoTracking()
+                .FirstOrDefaultAsync(cp => cp.UserId == ownerGuid, cancellationToken))?.FullName
+                ?? "Owner";
+
+            var primaryImage = machinery.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                ?? machinery.Images.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).FirstOrDefault();
+
+            return new WishlistItemResponse
+            {
+                Id = item.Id, ItemType = item.ItemType, ItemId = item.ItemId, CreatedAtUtc = item.CreatedAtUtc,
+                MachineryName = machinery.Name,
+                MachineryCategory = machinery.Category,
+                MachineryStatus = machinery.AvailabilityStatus.ToString(),
+                MachineryDailyRent = machinery.DailyRent,
+                MachineryPrimaryImageUrl = primaryImage,
+                MachineryOwnerName = ownerName,
+                IsItemAvailable = true
+            };
+        }
+        else // Unknown type - return as unavailable
+        {
+            return new WishlistItemResponse
+            {
+                Id = item.Id, ItemType = item.ItemType, ItemId = item.ItemId, CreatedAtUtc = item.CreatedAtUtc,
+                IsItemAvailable = false
             };
         }
     }

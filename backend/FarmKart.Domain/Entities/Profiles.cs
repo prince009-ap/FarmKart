@@ -12,14 +12,10 @@ public sealed class FarmerProfile : ProfileBase
 
     public ICollection<Job> Jobs { get; set; } = [];
     public ICollection<WorkerPayment> WorkerPayments { get; set; } = [];
-    public ICollection<Machinery> OwnedMachinery { get; set; } = [];
-    public ICollection<MachineryRentalRequest> MachineryRentalRequestsAsRenter { get; set; } = [];
-    public ICollection<MachineryRentalRequest> MachineryRentalRequestsAsOwner { get; set; } = [];
-    public ICollection<MachineryRental> MachineryRentalsAsOwner { get; set; } = [];
-    public ICollection<MachineryRental> MachineryRentalsAsRenter { get; set; } = [];
     public ICollection<Crop> Crops { get; set; } = [];
     public ICollection<CropListing> CropListings { get; set; } = [];
     public ICollection<Auction> Auctions { get; set; } = [];
+
 }
 
 public sealed class WorkerProfile : ProfileBase

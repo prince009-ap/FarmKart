@@ -30,12 +30,21 @@ export interface WishlistItemResponse {
   serverTimeUtc?: string;
   isAuctionExpired?: boolean;
   isItemAvailable?: boolean;
+
+  // Enriched Machinery fields
+  machineryName?: string;
+  machineryCategory?: string;
+  machineryStatus?: string;
+  machineryDailyRent?: number;
+  machineryPrimaryImageUrl?: string | null;
+  machineryOwnerName?: string;
 }
 
 export interface WishlistCountResponse {
   total: number;
   cropCount: number;
   auctionCount: number;
+  machineryCount: number;
 }
 
 export interface WishlistStatusResponse {

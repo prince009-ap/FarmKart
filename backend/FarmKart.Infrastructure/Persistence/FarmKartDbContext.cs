@@ -21,10 +21,8 @@ public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> option
     public DbSet<WorkerAssignment> WorkerAssignments => Set<WorkerAssignment>();
     public DbSet<Attendance> Attendances => Set<Attendance>();
     public DbSet<WorkerPayment> WorkerPayments => Set<WorkerPayment>();
-    public DbSet<MachineryCategory> MachineryCategories => Set<MachineryCategory>();
     public DbSet<Machinery> Machinery => Set<Machinery>();
     public DbSet<MachineryImage> MachineryImages => Set<MachineryImage>();
-    public DbSet<MachineryRentalRequest> MachineryRentalRequests => Set<MachineryRentalRequest>();
     public DbSet<MachineryRental> MachineryRentals => Set<MachineryRental>();
     public DbSet<MachineryDamageReport> MachineryDamageReports => Set<MachineryDamageReport>();
     public DbSet<MachineryDamageReportImage> MachineryDamageReportImages => Set<MachineryDamageReportImage>();

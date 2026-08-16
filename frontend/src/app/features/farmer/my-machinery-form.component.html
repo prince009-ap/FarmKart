@@ -1,0 +1,224 @@
+<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
+  <div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <a routerLink="/farmer/machinery" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-2">
+          <mat-icon class="!w-4 !h-4 !text-sm">arrow_back</mat-icon> Back to My Machinery
+        </a>
+        <h1 class="text-2xl font-black tracking-tight">
+          {{ isEditMode() ? 'Edit Machinery Listing' : 'List New Machinery' }}
+        </h1>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Name -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 mb-1">Machinery Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="name"
+            placeholder="e.g. John Deere 5050D Tractor 50HP"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Category *</label>
+          <select
+            [(ngModel)]="category"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+          >
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Brand -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Brand / Make</label>
+          <input
+            type="text"
+            [(ngModel)]="brand"
+            placeholder="e.g. John Deere, Mahindra, Kubota"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Model -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Model Number</label>
+          <input
+            type="text"
+            [(ngModel)]="model"
+            placeholder="e.g. 5050D"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Manufacturing Year -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Manufacturing Year</label>
+          <input
+            type="number"
+            [(ngModel)]="manufacturingYear"
+            placeholder="e.g. 2022"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Daily Rent -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Daily Rent (₹/day) *</label>
+          <input
+            type="number"
+            [(ngModel)]="dailyRent"
+            placeholder="e.g. 2500"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Security Deposit -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Security Deposit (₹)</label>
+          <input
+            type="number"
+            [(ngModel)]="securityDeposit"
+            placeholder="e.g. 1000"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Location -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 mb-1">Pickup Address / Location *</label>
+          <input
+            type="text"
+            [(ngModel)]="location"
+            placeholder="e.g. Farm No 12, Kalawad Road"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- City & State -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">City</label>
+          <input
+            type="text"
+            [(ngModel)]="city"
+            placeholder="e.g. Rajkot"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">State</label>
+          <input
+            type="text"
+            [(ngModel)]="state"
+            placeholder="e.g. Gujarat"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Description -->
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-400 mb-1">Description / Notes</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="description"
+            placeholder="Provide details about condition, attachments available (rotavator, trolley), working hours, etc."
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="sm:col-span-2 flex items-center gap-6 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              [(ngModel)]="isDriverIncluded"
+              class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0"
+            />
+            <span>Driver Included with Machinery</span>
+          </label>
+
+          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+            <input
+              type="checkbox"
+              [(ngModel)]="isFuelIncluded"
+              class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0"
+            />
+            <span>Fuel Included in Rent</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Save Action -->
+      <div class="pt-4 border-t border-slate-800 flex justify-end">
+        <button
+          [disabled]="isSaving()"
+          (click)="saveMachinery()"
+          mat-flat-button
+          class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold px-6 py-2.5"
+        >
+          {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update Machinery' : 'Save & Continue to Images') }}
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Image Upload Section (Edit Mode Only) -->
+    @if (isEditMode() && machineryId()) {
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <mat-icon class="text-amber-500">photo_library</mat-icon> Machinery Photos (Max 5)
+        </h2>
+
+        <!-- Image Upload Button -->
+        @if (existingImages().length < 5) {
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer bg-slate-950 hover:bg-slate-800 border border-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors">
+              <mat-icon class="!w-4 !h-4 !text-sm">upload</mat-icon> Choose Photo
+              <input type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden" />
+            </label>
+            @if (isUploadingImage()) {
+              <span class="text-xs text-amber-400 flex items-center gap-1">
+                <mat-spinner diameter="16"></mat-spinner> Uploading...
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Existing Photos Grid -->
+        @if (existingImages().length > 0) {
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            @for (img of existingImages(); track img.id) {
+              <div class="relative h-28 bg-slate-950 border border-slate-800 rounded-xl overflow-hidden group">
+                <img [src]="img.imageUrl" class="w-full h-full object-cover">
+                @if (img.isPrimary) {
+                  <span class="absolute top-1 left-1 bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase">
+                    Primary
+                  </span>
+                }
+                <button
+                  (click)="deleteImage(img.id)"
+                  class="absolute top-1 right-1 bg-rose-950/80 text-rose-300 p-1 rounded-full hover:bg-rose-900 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <mat-icon class="!w-3 !h-3 !text-xs">delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

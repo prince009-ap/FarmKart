@@ -27,7 +27,7 @@ export class CustomerWishlistComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
-  selectedTab = signal<'All' | 'Crop' | 'Auction'>('All');
+  selectedTab = signal<'All' | 'Crop' | 'Auction' | 'Machinery'>('All');
 
   constructor(private wishlistService: WishlistService) {}
 
@@ -58,13 +58,13 @@ export class CustomerWishlistComponent implements OnInit {
     });
   }
 
-  onTabChange(tab: 'All' | 'Crop' | 'Auction'): void {
+  onTabChange(tab: 'All' | 'Crop' | 'Auction' | 'Machinery'): void {
     this.selectedTab.set(tab);
     this.loadWishlist();
   }
 
   onItemRemoved(itemId: string): void {
     this.items.set(this.items().filter(i => i.itemId !== itemId));
-    this.loadWishlist(); // refresh counts
+    this.loadWishlist();
   }
 }

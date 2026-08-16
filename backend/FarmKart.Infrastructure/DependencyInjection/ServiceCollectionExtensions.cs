@@ -1,6 +1,7 @@
 using FarmKart.Application.Abstractions.Authentication;
 using FarmKart.Application.Abstractions.Customer;
 using FarmKart.Application.Abstractions.Farmer;
+using FarmKart.Application.Abstractions.Machinery;
 using FarmKart.Application.Abstractions.Notification;
 using FarmKart.Application.Abstractions.Worker;
 using FarmKart.Application.Abstractions.Persistence;
@@ -58,6 +59,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrderReviewService, OrderReviewService>();
         services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IPaymentOrderBackfillService, PaymentOrderBackfillService>();
+        services.AddScoped<IMachineryService, MachineryService>();
+        services.AddScoped<IMachineryRentalService, MachineryRentalService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

@@ -56,11 +56,9 @@ These are application profiles only. They store business-facing profile data and
 
 ### Machinery Rental Domain
 
-- `MachineryCategory`
-- `Machinery`
+- `Machinery` (owned by ApplicationUser: Farmer or Customer)
 - `MachineryImage`
-- `MachineryRentalRequest`
-- `MachineryRental`
+- `MachineryRental` (direct booking with full status lifecycle: Booked → Confirmed → ReadyForHandover → RentedOut → Returned → Completed / Cancelled)
 - `MachineryDamageReport`
 - `MachineryDamageReportImage`
 
@@ -95,7 +93,7 @@ These are application profiles only. They store business-facing profile data and
 - Worker profiles connect to skills, job applications, assignments, attendance, and worker payments.
 - Customer profiles connect to bids, orders, and auction wins.
 - Jobs accept many applications and can create many worker assignments.
-- Machinery supports farmer-to-farmer rental requests, approved rentals, and damage reports.
+- Farmers and Customers can list and rent machinery with date availability tracking, mock payment, and status lifecycle.
 - Crops can have many images and many sale listings.
 - Crop listings can participate in orders or, when configured for auction, own one auction.
 - Auctions collect many bids and can finalize one auction winner.

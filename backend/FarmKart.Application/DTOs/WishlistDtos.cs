@@ -37,6 +37,14 @@ public sealed record WishlistItemResponse
     public DateTime? ServerTimeUtc { get; init; }
     public bool IsAuctionExpired { get; init; }
     public bool IsItemAvailable { get; init; } = true;
+
+    // Enriched Machinery fields
+    public string? MachineryName { get; init; }
+    public string? MachineryCategory { get; init; }
+    public string? MachineryStatus { get; init; }
+    public decimal? MachineryDailyRent { get; init; }
+    public string? MachineryPrimaryImageUrl { get; init; }
+    public string? MachineryOwnerName { get; init; }
 }
 
 public sealed record WishlistCountResponse
@@ -44,6 +52,7 @@ public sealed record WishlistCountResponse
     public int Total { get; init; }
     public int CropCount { get; init; }
     public int AuctionCount { get; init; }
+    public int MachineryCount { get; init; }
 }
 
 public sealed record WishlistStatusResponse

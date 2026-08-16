@@ -60,21 +60,23 @@ public enum MachineryAvailabilityStatus
     Unavailable = 5
 }
 
-public enum RentalRequestStatus
-{
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    Cancelled = 4
-}
 
+/// <summary>
+/// Rental status lifecycle for MachineryRental.
+/// Owner advances: Booked → Confirmed → ReadyForHandover → RentedOut.
+/// Renter marks: RentedOut → Returned.
+/// Owner completes: Returned → Completed.
+/// Either party can cancel from Booked or Confirmed.
+/// </summary>
 public enum RentalStatus
 {
-    Upcoming = 1,
-    Active = 2,
-    Completed = 3,
-    Cancelled = 4,
-    Disputed = 5
+    Booked = 1,
+    Confirmed = 2,
+    ReadyForHandover = 3,
+    RentedOut = 4,
+    Returned = 5,
+    Completed = 6,
+    Cancelled = 7
 }
 
 public enum DamageReportStatus

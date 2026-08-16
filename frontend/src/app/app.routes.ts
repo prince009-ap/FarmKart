@@ -171,10 +171,30 @@ export const routes: Routes = [
       },
       {
         path: 'machinery',
-        data: { title: 'Machinery' },
         loadComponent: () =>
-          import('./features/farmer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/farmer/my-machinery.component').then(
+            (module) => module.MyMachineryComponent,
+          ),
+      },
+      {
+        path: 'machinery/new',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-form.component').then(
+            (module) => module.MyMachineryFormComponent,
+          ),
+      },
+      {
+        path: 'machinery/rentals',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-rentals.component').then(
+            (module) => module.MyMachineryRentalsComponent,
+          ),
+      },
+      {
+        path: 'machinery/:id/edit',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-form.component').then(
+            (module) => module.MyMachineryFormComponent,
           ),
       },
       {
@@ -403,6 +423,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-notifications.component').then(
             (module) => module.CustomerNotificationsComponent,
+          ),
+      },
+      {
+        path: 'machinery',
+        loadComponent: () =>
+          import('./features/customer/customer-machinery.component').then(
+            (module) => module.CustomerMachineryComponent,
+          ),
+      },
+      {
+        path: 'machinery/:id',
+        loadComponent: () =>
+          import('./features/customer/customer-machinery-detail.component').then(
+            (module) => module.CustomerMachineryDetailComponent,
+          ),
+      },
+      {
+        path: 'my-rentals',
+        loadComponent: () =>
+          import('./features/customer/customer-my-rentals.component').then(
+            (module) => module.CustomerMyRentalsComponent,
           ),
       },
       {

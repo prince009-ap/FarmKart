@@ -1,0 +1,167 @@
+<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+          <mat-icon class="text-amber-500">receipt_long</mat-icon> My Machinery Rentals
+        </h1>
+        <p class="text-sm text-slate-400">Track and manage machinery you have booked for rent.</p>
+      </div>
+      <a routerLink="/customer/machinery" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
+        Browse Machinery
+      </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+      <button
+        (click)="onTabChange('All')"
+        [class]="selectedTab() === 'All' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors">
+        All Bookings
+      </button>
+      <button
+        (click)="onTabChange('Active')"
+        [class]="selectedTab() === 'Active' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors">
+        Active
+      </button>
+      <button
+        (click)="onTabChange('Completed')"
+        [class]="selectedTab() === 'Completed' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors">
+        Completed
+      </button>
+      <button
+        (click)="onTabChange('Cancelled')"
+        [class]="selectedTab() === 'Cancelled' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors">
+        Cancelled
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center py-16">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (!isLoading() && errorMessage()) {
+      <div class="p-4 bg-red-950/60 border border-red-800 rounded-2xl text-red-300 text-sm flex items-center gap-2">
+        <mat-icon class="text-red-400">error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && !errorMessage() && filterRentals().length === 0) {
+      <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
+        <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">receipt_long</mat-icon>
+        <p class="text-slate-400 font-semibold text-base">No rental bookings found.</p>
+        <p class="text-xs text-slate-500">Rent machinery for harvesting, tilling, or seeding from nearby owners!</p>
+        <div class="pt-2">
+          <a routerLink="/customer/machinery" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
+            Explore Marketplace
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Rentals Cards List -->
+    @if (!isLoading() && filterRentals().length > 0) {
+      <div class="space-y-4">
+        @for (r of filterRentals(); track r.id) {
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-slate-700 transition-colors">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-3">
+                @if (r.machineryPrimaryImageUrl) {
+                  <img [src]="r.machineryPrimaryImageUrl" [alt]="r.machineryName" class="w-14 h-14 rounded-xl object-cover border border-slate-700 shrink-0">
+                } @else {
+                  <div class="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">🚜</div>
+                }
+
+                <div>
+                  <h3 class="font-bold text-white text-base">{{ r.machineryName }}</h3>
+                  <p class="text-xs text-slate-400">Category: <span class="text-amber-400 font-semibold">{{ r.machineryCategory }}</span> • Owner: <span class="text-slate-200">{{ r.ownerName }}</span></p>
+                </div>
+              </div>
+
+              <!-- Status Pill -->
+              <span [class]="getStatusBadgeClass(r.rentalStatus)" class="text-xs font-black uppercase px-3 py-1 rounded-full border self-start sm:self-auto">
+                {{ r.rentalStatus }}
+              </span>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Rental Dates</p>
+                <p class="font-bold text-slate-200 font-mono">{{ r.startDate }} to {{ r.endDate }}</p>
+                <p class="text-[10px] text-slate-400">({{ r.rentalDays }} {{ r.rentalDays === 1 ? 'day' : 'days' }})</p>
+              </div>
+
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Total Paid</p>
+                <p class="font-black text-amber-400 font-mono text-sm">₹{{ r.totalPayableAmount }}</p>
+                <p class="text-[10px] text-slate-400">Rent: ₹{{ r.totalRentAmount }} | Deposit: ₹{{ r.securityDepositSnapshot }}</p>
+              </div>
+
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Payment Status</p>
+                <p class="font-bold text-emerald-400">{{ r.paymentStatus }}</p>
+                @if (r.paymentTransactionRef) {
+                  <p class="text-[10px] text-slate-500 truncate font-mono">{{ r.paymentTransactionRef }}</p>
+                }
+              </div>
+
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Booked On</p>
+                <p class="font-bold text-slate-300 font-mono">{{ r.createdAtUtc | date:'shortDate' }}</p>
+              </div>
+            </div>
+
+            <!-- Cancellation Reason if any -->
+            @if (r.cancellationReason) {
+              <div class="p-2.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-rose-300 text-xs">
+                <strong>Reason:</strong> {{ r.cancellationReason }}
+              </div>
+            }
+
+            <!-- Actions Bar -->
+            <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-800/60">
+
+              <!-- Return Action for Renter when machinery is RentedOut -->
+              @if (r.rentalStatus === 'RentedOut') {
+                <button
+                  (click)="returnRental(r.id)"
+                  mat-flat-button
+                  class="!bg-purple-600 hover:!bg-purple-500 !text-white !rounded-xl text-xs font-bold"
+                >
+                  <mat-icon class="!w-4 !h-4 !text-sm">assignment_return</mat-icon> Mark Machinery Returned
+                </button>
+              }
+
+              <!-- Cancel Action for Renter if Booked or Confirmed -->
+              @if (r.rentalStatus === 'Booked' || r.rentalStatus === 'Confirmed') {
+                <button
+                  (click)="cancelRental(r.id)"
+                  mat-button
+                  class="!text-rose-400 hover:!text-rose-300 text-xs"
+                >
+                  Cancel Booking
+                </button>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>
