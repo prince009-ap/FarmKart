@@ -23,11 +23,22 @@ public sealed class CustomerAuctionsController(
         [FromQuery] string? status,
         [FromQuery] string? location,
         [FromQuery] string? sortBy,
-        CancellationToken cancellationToken)
+        [FromQuery] decimal? minPricePerMan,
+        [FromQuery] decimal? maxPricePerMan,
+        [FromQuery] decimal? minQuantityKg,
+        [FromQuery] decimal? maxQuantityKg,
+        [FromQuery] bool? endingSoon,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var filter = new CustomerAuctionFilterRequest(search, category, status, location, sortBy);
-        var auctions = await customerAuctionService.GetMarketplaceAuctionsAsync(filter, cancellationToken);
-        return Ok(auctions);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var filter = new CustomerAuctionFilterRequest(
+            search, category, status, location, sortBy,
+            minPricePerMan, maxPricePerMan, minQuantityKg, maxQuantityKg,
+            endingSoon, page, pageSize);
+        var result = await customerAuctionService.GetMarketplaceAuctionsAsync(filter, userId, cancellationToken);
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]

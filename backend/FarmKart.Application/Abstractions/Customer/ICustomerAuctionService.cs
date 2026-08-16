@@ -4,8 +4,9 @@ namespace FarmKart.Application.Abstractions.Customer;
 
 public interface ICustomerAuctionService
 {
-    Task<IReadOnlyList<CustomerAuctionResponse>> GetMarketplaceAuctionsAsync(
+    Task<PagedCustomerAuctionResponse> GetMarketplaceAuctionsAsync(
         CustomerAuctionFilterRequest filter,
+        string? userId = null,
         CancellationToken cancellationToken = default);
 
     Task<CustomerAuctionResponse> GetAuctionByIdAsync(

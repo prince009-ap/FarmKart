@@ -234,3 +234,13 @@ public enum CropStockTransactionType
     Correction = 3
 }
 
+/// <summary>
+/// Discriminator for WishlistItem. Machinery prepared for Phase 8.4.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum WishlistItemType
+{
+    Crop = 1,
+    Auction = 2,
+    Machinery = 3
+}

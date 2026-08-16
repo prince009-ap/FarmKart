@@ -13,11 +13,16 @@ namespace FarmKart.Infrastructure.Services;
 public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICustomerAuctionService
 {
 
-    public async Task<IReadOnlyList<CustomerAuctionResponse>> GetMarketplaceAuctionsAsync(
+    public async Task<PagedCustomerAuctionResponse> GetMarketplaceAuctionsAsync(
         CustomerAuctionFilterRequest? filter = null,
+        string? userId = null,
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
+        filter ??= new CustomerAuctionFilterRequest();
+        int page = Math.Max(1, filter.Page);
+        int pageSize = Math.Clamp(filter.PageSize, 1, 100);
+        var endingSoonThreshold = now.AddHours(24);
 
         var query = dbContext.Auctions
             .AsNoTracking()
@@ -28,69 +33,118 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
                 .ThenInclude(l => l.Crop)
                     .ThenInclude(c => c.Images)
             .Include(a => a.FarmerProfile)
-            .Where(a => a.AuctionStatus != AuctionStatus.Cancelled && a.AuctionStatus != AuctionStatus.Draft);
+            .Where(a => a.AuctionStatus != AuctionStatus.Cancelled && a.AuctionStatus != AuctionStatus.Draft)
+            .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(filter?.Search))
+        // --- Search (crop name, variety, cropType, farmer name) ---
+        if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.Trim().ToLower();
             query = query.Where(a =>
                 a.CropListing.Crop.CropName.ToLower().Contains(search) ||
                 (a.CropListing.Crop.Variety != null && a.CropListing.Crop.Variety.ToLower().Contains(search)) ||
-                a.CropListing.Crop.CropType.ToLower().Contains(search));
+                a.CropListing.Crop.CropType.ToLower().Contains(search) ||
+                (a.FarmerProfile != null && a.FarmerProfile.FullName.ToLower().Contains(search)) ||
+                (a.CropListing.Crop.FarmerProfile != null && a.CropListing.Crop.FarmerProfile.FullName.ToLower().Contains(search)));
         }
 
-        if (!string.IsNullOrWhiteSpace(filter?.Category))
+        // --- Category filter ---
+        if (!string.IsNullOrWhiteSpace(filter.Category))
         {
             var category = filter.Category.Trim().ToLower();
             query = query.Where(a => a.CropListing.Crop.CropType.ToLower() == category);
         }
 
-        if (!string.IsNullOrWhiteSpace(filter?.Location))
+        // --- Location filter (FarmLocation textual) ---
+        if (!string.IsNullOrWhiteSpace(filter.Location))
         {
             var location = filter.Location.Trim().ToLower();
             query = query.Where(a =>
-                (a.FarmerProfile != null && a.FarmerProfile.FarmLocation.ToLower().Contains(location)) ||
-                (a.CropListing.Crop.FarmerProfile != null && a.CropListing.Crop.FarmerProfile.FarmLocation.ToLower().Contains(location)));
+                (a.FarmerProfile != null && a.FarmerProfile.FarmLocation != null && a.FarmerProfile.FarmLocation.ToLower().Contains(location)) ||
+                (a.CropListing.Crop.FarmerProfile != null && a.CropListing.Crop.FarmerProfile.FarmLocation != null && a.CropListing.Crop.FarmerProfile.FarmLocation.ToLower().Contains(location)));
         }
 
-        if (!string.IsNullOrWhiteSpace(filter?.Status))
+        // --- Price per Man filter (StartingPrice maps to StartingBidPrice in DTO) ---
+        if (filter.MinPricePerMan.HasValue)
+        {
+            query = query.Where(a => a.StartingPrice >= filter.MinPricePerMan.Value);
+        }
+        if (filter.MaxPricePerMan.HasValue)
+        {
+            query = query.Where(a => a.StartingPrice <= filter.MaxPricePerMan.Value);
+        }
+
+        // --- Quantity filter (CropListing.QuantityForSale in Kg) ---
+        if (filter.MinQuantityKg.HasValue)
+        {
+            query = query.Where(a => a.CropListing.QuantityForSale >= filter.MinQuantityKg.Value);
+        }
+        if (filter.MaxQuantityKg.HasValue)
+        {
+            query = query.Where(a => a.CropListing.QuantityForSale <= filter.MaxQuantityKg.Value);
+        }
+
+        // --- Ending Soon filter (live + ending within 24h) ---
+        if (filter.EndingSoon == true)
+        {
+            query = query.Where(a => a.StartTimeUtc <= now && a.EndTimeUtc > now && a.EndTimeUtc <= endingSoonThreshold);
+        }
+
+        // --- Status filter (overrides EndingSoon if both provided) ---
+        if (!string.IsNullOrWhiteSpace(filter.Status))
         {
             var status = filter.Status.Trim().ToUpper();
-            if (status == "LIVE")
+            switch (status)
             {
-                query = query.Where(a => a.StartTimeUtc <= now && now <= a.EndTimeUtc);
-            }
-            else if (status == "UPCOMING")
-            {
-                query = query.Where(a => now < a.StartTimeUtc);
-            }
-            else if (status == "ENDED")
-            {
-                query = query.Where(a => now > a.EndTimeUtc);
+                case "LIVE":
+                    query = query.Where(a => a.StartTimeUtc <= now && now <= a.EndTimeUtc);
+                    break;
+                case "UPCOMING":
+                    query = query.Where(a => now < a.StartTimeUtc);
+                    break;
+                case "ENDED":
+                    query = query.Where(a => now > a.EndTimeUtc);
+                    break;
+                case "ENDING_SOON":
+                    query = query.Where(a => a.StartTimeUtc <= now && a.EndTimeUtc > now && a.EndTimeUtc <= endingSoonThreshold);
+                    break;
             }
         }
 
-        var auctions = await query.ToListAsync(cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(filter?.SortBy))
+        // --- Sorting (applied before pagination) ---
+        var sortBy = (filter.SortBy ?? "newest").Trim().ToLower();
+        query = sortBy switch
         {
-            var sortBy = filter.SortBy.Trim().ToLower();
-            auctions = sortBy switch
-            {
-                "ending_soon" => auctions.OrderBy(a => a.EndTimeUtc).ToList(),
-                "price_low" => auctions.OrderBy(a => a.StartingPrice).ToList(),
-                "price_high" => auctions.OrderByDescending(a => a.StartingPrice).ToList(),
-                "highest_bid" => auctions.OrderByDescending(a => a.CurrentHighestBid).ToList(),
-                "newest" => auctions.OrderByDescending(a => a.CreatedAtUtc).ToList(),
-                _ => auctions.OrderBy(a => a.EndTimeUtc).ToList()
-            };
-        }
-        else
+            "ending_soon" => query.OrderBy(a => a.EndTimeUtc),
+            "price_asc"   => query.OrderBy(a => a.StartingPrice),
+            "price_desc"  => query.OrderByDescending(a => a.StartingPrice),
+            "highest_bid" => query.OrderByDescending(a => a.CurrentHighestBid),
+            "oldest"      => query.OrderBy(a => a.CreatedAtUtc),
+            _             => query.OrderByDescending(a => a.CreatedAtUtc)  // newest
+        };
+
+        // --- Pagination ---
+        var totalCount = await query.CountAsync(cancellationToken);
+        var auctions = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        // --- Wishlist state injection ---
+        HashSet<Guid> favoritedIds = [];
+        if (!string.IsNullOrWhiteSpace(userId))
         {
-            auctions = auctions.OrderBy(a => a.EndTimeUtc).ToList();
+            favoritedIds = (await dbContext.WishlistItems
+                .AsNoTracking()
+                .Where(w => w.UserId == userId && w.ItemType == Domain.Enums.WishlistItemType.Auction)
+                .Select(w => w.ItemId)
+                .ToListAsync(cancellationToken)).ToHashSet();
         }
 
-        return auctions.Select(a => MapToResponse(a, now)).ToList();
+        var items = auctions.Select(a => MapToResponse(a, now, favoritedIds.Contains(a.Id))).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedCustomerAuctionResponse(items, totalCount, page, pageSize, totalPages);
     }
 
     public async Task<CustomerAuctionResponse> GetAuctionByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -419,7 +473,7 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
         return result;
     }
 
-    private static CustomerAuctionResponse MapToResponse(Auction auction, DateTime now)
+    private static CustomerAuctionResponse MapToResponse(Auction auction, DateTime now, bool isFavorited = false)
     {
         var crop = auction.CropListing.Crop;
         var farmer = crop.FarmerProfile ?? auction.FarmerProfile;
@@ -471,7 +525,8 @@ public sealed class CustomerAuctionService(FarmKartDbContext dbContext) : ICusto
             Images: images,
             Description: auction.CropListing.Description ?? crop.Description,
             CreatedAtUtc: auction.CreatedAtUtc,
-            ServerTimeUtc: now
+            ServerTimeUtc: now,
+            IsFavorited: isFavorited
         );
     }
 }

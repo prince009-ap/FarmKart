@@ -9,7 +9,8 @@ import {
   CustomerAuction,
   CustomerAuctionFilter,
   CustomerMyBid,
-  CustomerPaymentHistory
+  CustomerPaymentHistory,
+  PagedAuctions
 } from '../../core/models/customer-auction.models';
 
 @Injectable({
@@ -34,20 +35,30 @@ export class CustomerAuctionService {
     return `${this.serverBaseUrl}${cleanPath}`;
   }
 
-  getMarketplaceAuctions(filter?: CustomerAuctionFilter): Observable<CustomerAuction[]> {
+  getMarketplaceAuctions(filter?: CustomerAuctionFilter): Observable<PagedAuctions> {
     let params = new HttpParams();
     if (filter?.search) params = params.set('search', filter.search);
     if (filter?.category) params = params.set('category', filter.category);
     if (filter?.status) params = params.set('status', filter.status);
     if (filter?.location) params = params.set('location', filter.location);
     if (filter?.sortBy) params = params.set('sortBy', filter.sortBy);
+    if (filter?.minPricePerMan !== undefined && filter?.minPricePerMan !== null) params = params.set('minPricePerMan', filter.minPricePerMan.toString());
+    if (filter?.maxPricePerMan !== undefined && filter?.maxPricePerMan !== null) params = params.set('maxPricePerMan', filter.maxPricePerMan.toString());
+    if (filter?.minQuantityKg !== undefined && filter?.minQuantityKg !== null) params = params.set('minQuantityKg', filter.minQuantityKg.toString());
+    if (filter?.maxQuantityKg !== undefined && filter?.maxQuantityKg !== null) params = params.set('maxQuantityKg', filter.maxQuantityKg.toString());
+    if (filter?.endingSoon !== undefined && filter?.endingSoon !== null) params = params.set('endingSoon', filter.endingSoon.toString());
+    if (filter?.page) params = params.set('page', filter.page.toString());
+    if (filter?.pageSize) params = params.set('pageSize', filter.pageSize.toString());
 
-    return this.http.get<CustomerAuction[]>(this.apiUrl, { params }).pipe(
-      map(auctions => auctions.map(a => ({
-        ...a,
-        primaryImageUrl: this.resolveImageUrl(a.primaryImageUrl),
-        images: (a.images || []).map(img => this.resolveImageUrl(img) || img)
-      })))
+    return this.http.get<PagedAuctions>(this.apiUrl, { params }).pipe(
+      map(res => ({
+        ...res,
+        items: (res.items || []).map(a => ({
+          ...a,
+          primaryImageUrl: this.resolveImageUrl(a.primaryImageUrl),
+          images: (a.images || []).map(img => this.resolveImageUrl(img) || img)
+        }))
+      }))
     );
   }
 

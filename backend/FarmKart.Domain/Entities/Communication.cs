@@ -51,3 +51,14 @@ public sealed class Review : BaseEntity
     public ReviewEntityType RelatedEntityType { get; set; }
     public Guid? RelatedEntityId { get; set; }
 }
+
+/// <summary>
+/// Generic customer wishlist entry. ItemType discriminates between Crop, Auction, Machinery (Phase 8.4).
+/// </summary>
+public sealed class WishlistItem : BaseEntity
+{
+    /// <summary>ApplicationUser.Id — derived from auth, never trusted from frontend.</summary>
+    public string UserId { get; set; } = string.Empty;
+    public WishlistItemType ItemType { get; set; }
+    public Guid ItemId { get; set; }
+}

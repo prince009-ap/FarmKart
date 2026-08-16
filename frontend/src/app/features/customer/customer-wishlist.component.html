@@ -1,0 +1,178 @@
+<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+          <mat-icon class="text-rose-500 !w-7 !h-7 text-2xl">favorite</mat-icon>
+          My Wishlist
+          @if (counts() && counts()!.total > 0) {
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+              {{ counts()!.total }}
+            </span>
+          }
+        </h1>
+        <p class="text-sm text-slate-400">Saved crops and auctions you are interested in.</p>
+      </div>
+      <a routerLink="/customer/auctions" mat-button class="!text-slate-400 hover:!text-white flex items-center gap-1">
+        <mat-icon>shopping_bag</mat-icon> Browse Marketplace
+      </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+      <button
+        (click)="onTabChange('All')"
+        [class]="selectedTab() === 'All' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
+        All
+        @if (counts()) {
+          <span class="text-[10px] opacity-75">({{ counts()!.total }})</span>
+        }
+      </button>
+
+      <button
+        (click)="onTabChange('Auction')"
+        [class]="selectedTab() === 'Auction' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
+        🏷️ Auctions
+        @if (counts()) {
+          <span class="text-[10px] opacity-75">({{ counts()!.auctionCount }})</span>
+        }
+      </button>
+
+      <button
+        (click)="onTabChange('Crop')"
+        [class]="selectedTab() === 'Crop' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
+        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
+        🌾 Crops
+        @if (counts()) {
+          <span class="text-[10px] opacity-75">({{ counts()!.cropCount }})</span>
+        }
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center py-16">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (!isLoading() && errorMessage()) {
+      <div class="p-4 bg-red-950/60 border border-red-800 rounded-2xl text-red-300 text-sm flex items-center gap-2">
+        <mat-icon class="text-red-400">error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && !errorMessage() && items().length === 0) {
+      <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
+        <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">favorite_border</mat-icon>
+        <p class="text-slate-400 font-semibold text-base">Your wishlist is empty.</p>
+        <p class="text-xs text-slate-500">Save auctions or crops to keep track of interesting items!</p>
+        <div class="pt-2">
+          <a routerLink="/customer/auctions" mat-flat-button class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-bold">
+            Explore Marketplace
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Wishlist Item Grid -->
+    @if (!isLoading() && items().length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        @for (item of items(); track item.id) {
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative flex flex-col justify-between hover:border-slate-700 transition-colors">
+
+            <!-- Item Type Badge & Heart Button -->
+            <div class="flex items-center justify-between">
+              <span [class]="item.itemType === 'Auction' ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'"
+                    class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border">
+                {{ item.itemType === 'Auction' ? '🏷️ Auction' : '🌾 Crop' }}
+              </span>
+
+              <app-wishlist-button
+                [itemType]="item.itemType"
+                [itemId]="item.itemId"
+                [isFavoritedInitial]="true"
+                (favoritedChange)="onItemRemoved(item.itemId)"
+              ></app-wishlist-button>
+            </div>
+
+            <!-- Image & Primary Info -->
+            <div class="flex items-start gap-3">
+              @if (item.primaryImageUrl) {
+                <img [src]="item.primaryImageUrl" [alt]="item.cropName || 'Crop'" class="w-16 h-16 rounded-xl object-cover border border-slate-700 shrink-0">
+              } @else {
+                <div class="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">🌾</div>
+              }
+
+              <div class="space-y-0.5 overflow-hidden">
+                <p class="font-bold text-white text-sm truncate">{{ item.cropName || 'Crop Listing' }}</p>
+                @if (item.variety) {
+                  <p class="text-xs text-slate-400 font-mono">{{ item.variety }}</p>
+                }
+                @if (item.farmerName) {
+                  <p class="text-xs text-slate-400">by <span class="text-slate-300 font-semibold">{{ item.farmerName }}</span></p>
+                }
+              </div>
+            </div>
+
+            <!-- Auction Specific Details -->
+            @if (item.itemType === 'Auction') {
+              <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+                <div class="flex justify-between items-center text-slate-400">
+                  <span>Starting Price:</span>
+                  <span class="font-bold text-amber-400 font-mono">₹{{ item.startingBidPrice }} / Man</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400">
+                  <span>Highest Bid:</span>
+                  <span class="font-bold text-emerald-400 font-mono">₹{{ item.currentHighestBid || item.startingBidPrice }} / Man</span>
+                </div>
+
+                <!-- Expired vs Active Status -->
+                <div class="pt-1 flex items-center justify-between border-t border-slate-800/60 text-[11px]">
+                  @if (item.isAuctionExpired) {
+                    <span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-bold border border-slate-700">
+                      Ended
+                    </span>
+                  } @else {
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                      {{ item.auctionStatus || 'LIVE' }}
+                    </span>
+                  }
+
+                  @if (item.quantityMan) {
+                    <span class="text-slate-400 font-mono">{{ item.quantityMan }} Man ({{ item.quantityKg }} Kg)</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Unavailable Item Warning -->
+            @if (!item.isItemAvailable) {
+              <div class="p-2 bg-amber-950/40 border border-amber-800/60 rounded-xl text-amber-300 text-xs flex items-center gap-1.5">
+                <mat-icon class="!text-sm !w-4 !h-4 text-amber-400">warning</mat-icon>
+                <span>Item unavailable or deleted</span>
+              </div>
+            }
+
+            <!-- Action Button -->
+            @if (item.itemType === 'Auction' && item.isItemAvailable) {
+              <a [routerLink]="['/customer/auctions', item.itemId]"
+                 mat-flat-button
+                 class="!w-full !bg-sky-600 hover:!bg-sky-500 !text-white !rounded-xl text-xs font-extrabold">
+                View Auction Details
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

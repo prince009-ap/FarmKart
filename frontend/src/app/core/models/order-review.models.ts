@@ -16,7 +16,7 @@ export interface OrderReviewResponse {
   farmerName: string;
   cropName: string;
   cropType?: string;
-  primaryImageUrl?: string;
+  primaryImageUrl?: string | null;
   rating: number;
   comment?: string;
   createdAtUtc: string;

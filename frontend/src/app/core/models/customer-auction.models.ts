@@ -21,6 +21,7 @@ export interface CustomerAuction {
   description?: string | null;
   createdAtUtc: string;
   serverTimeUtc: string;
+  isFavorited?: boolean;
 }
 
 export interface CustomerAuctionFilter {
@@ -29,6 +30,21 @@ export interface CustomerAuctionFilter {
   status?: string;
   location?: string;
   sortBy?: string;
+  minPricePerMan?: number;
+  maxPricePerMan?: number;
+  minQuantityKg?: number;
+  maxQuantityKg?: number;
+  endingSoon?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PagedAuctions {
+  items: CustomerAuction[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface AuctionBid {

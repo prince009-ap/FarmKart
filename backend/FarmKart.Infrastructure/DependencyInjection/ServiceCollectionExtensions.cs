@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FarmKart.Application.Abstractions.Customer.ICustomerPaymentService, CustomerPaymentService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IOrderReviewService, OrderReviewService>();
+        services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IPaymentOrderBackfillService, PaymentOrderBackfillService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 

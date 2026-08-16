@@ -385,6 +385,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'wishlist',
+        loadComponent: () =>
+          import('./features/customer/customer-wishlist.component').then(
+            (module) => module.CustomerWishlistComponent,
+          ),
+      },
+      {
         path: 'reviews',
         loadComponent: () =>
           import('./features/customer/customer-reviews.component').then(

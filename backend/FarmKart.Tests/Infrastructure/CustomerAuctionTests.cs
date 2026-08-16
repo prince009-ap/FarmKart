@@ -177,11 +177,11 @@ public class CustomerAuctionTests : IClassFixture<WebApplicationFactory<Program>
         var res = await client.GetAsync("/api/customer/auctions");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
-        var list = await res.Content.ReadFromJsonAsync<List<CustomerAuctionResponse>>();
-        Assert.NotNull(list);
-        Assert.NotEmpty(list);
+        var paged = await res.Content.ReadFromJsonAsync<PagedCustomerAuctionResponse>();
+        Assert.NotNull(paged);
+        Assert.NotEmpty(paged.Items);
 
-        var item = list.FirstOrDefault(a => a.CropName == "Basmati Rice");
+        var item = paged.Items.FirstOrDefault(a => a.CropName == "Basmati Rice");
         Assert.NotNull(item);
         Assert.Equal("LIVE", item.Status);
         Assert.Equal(40m, item.StartingBidPrice);
@@ -196,9 +196,9 @@ public class CustomerAuctionTests : IClassFixture<WebApplicationFactory<Program>
         var res = await client.GetAsync("/api/customer/auctions");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
-        var list = await res.Content.ReadFromJsonAsync<List<CustomerAuctionResponse>>();
-        Assert.NotNull(list);
-        Assert.DoesNotContain(list, a => a.CropName == "Cancelled Wheat");
+        var paged = await res.Content.ReadFromJsonAsync<PagedCustomerAuctionResponse>();
+        Assert.NotNull(paged);
+        Assert.DoesNotContain(paged.Items, a => a.CropName == "Cancelled Wheat");
     }
 
     [Fact]
@@ -210,10 +210,10 @@ public class CustomerAuctionTests : IClassFixture<WebApplicationFactory<Program>
         var res = await client.GetAsync("/api/customer/auctions?search=Mango");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
-        var list = await res.Content.ReadFromJsonAsync<List<CustomerAuctionResponse>>();
-        Assert.NotNull(list);
-        Assert.Single(list);
-        Assert.Equal("Golden Mango", list[0].CropName);
+        var paged = await res.Content.ReadFromJsonAsync<PagedCustomerAuctionResponse>();
+        Assert.NotNull(paged);
+        Assert.Single(paged.Items);
+        Assert.Equal("Golden Mango", paged.Items[0].CropName);
     }
 
     [Fact]
@@ -225,9 +225,9 @@ public class CustomerAuctionTests : IClassFixture<WebApplicationFactory<Program>
         var res = await client.GetAsync("/api/customer/auctions?category=Vegetable");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
-        var list = await res.Content.ReadFromJsonAsync<List<CustomerAuctionResponse>>();
-        Assert.NotNull(list);
-        Assert.Contains(list, a => a.CropName == "Fresh Tomato");
+        var paged = await res.Content.ReadFromJsonAsync<PagedCustomerAuctionResponse>();
+        Assert.NotNull(paged);
+        Assert.Contains(paged.Items, a => a.CropName == "Fresh Tomato");
     }
 
     [Fact]
@@ -239,9 +239,9 @@ public class CustomerAuctionTests : IClassFixture<WebApplicationFactory<Program>
         var res = await client.GetAsync("/api/customer/auctions?status=UPCOMING");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
 
-        var list = await res.Content.ReadFromJsonAsync<List<CustomerAuctionResponse>>();
-        Assert.NotNull(list);
-        Assert.Contains(list, a => a.CropName == "Upcoming Corn" && a.Status == "UPCOMING");
+        var paged = await res.Content.ReadFromJsonAsync<PagedCustomerAuctionResponse>();
+        Assert.NotNull(paged);
+        Assert.Contains(paged.Items, a => a.CropName == "Upcoming Corn" && a.Status == "UPCOMING");
     }
 
     [Fact]

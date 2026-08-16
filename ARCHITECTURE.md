@@ -87,6 +87,7 @@ These are application profiles only. They store business-facing profile data and
 - `Message`
 - `Notification`
 - `Review`
+- `WishlistItem`
 
 ## Main Relationships
 

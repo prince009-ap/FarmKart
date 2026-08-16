@@ -24,15 +24,31 @@ public sealed record CustomerAuctionResponse(
     IReadOnlyList<string> Images,
     string? Description,
     DateTime CreatedAtUtc,
-    DateTime ServerTimeUtc
+    DateTime ServerTimeUtc,
+    bool IsFavorited = false
+);
+
+public sealed record PagedCustomerAuctionResponse(
+    IReadOnlyList<CustomerAuctionResponse> Items,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages
 );
 
 public sealed record CustomerAuctionFilterRequest(
     string? Search = null,
     string? Category = null,
-    string? Status = null,
+    string? Status = null,       // All | LIVE | UPCOMING | ENDED | ENDING_SOON
     string? Location = null,
-    string? SortBy = null
+    string? SortBy = null,       // newest | oldest | price_asc | price_desc | ending_soon | highest_bid
+    decimal? MinPricePerMan = null,
+    decimal? MaxPricePerMan = null,
+    decimal? MinQuantityKg = null,
+    decimal? MaxQuantityKg = null,
+    bool? EndingSoon = null,     // true = auction ending within 24h
+    int Page = 1,
+    int PageSize = 20
 );
 
 public sealed record PlaceBidRequest(

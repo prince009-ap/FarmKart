@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -7,9 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CustomerAuctionService } from './customer-auction.service';
 import { CustomerAuction, CustomerAuctionFilter } from '../../core/models/customer-auction.models';
 import { AuctionCountdownComponent } from '../../shared/auction-countdown.component';
+import { WishlistButtonComponent } from '../../shared/wishlist-button.component';
 
 @Component({
   selector: 'app-customer-auctions',
@@ -23,12 +26,16 @@ import { AuctionCountdownComponent } from '../../shared/auction-countdown.compon
     MatInputModule,
     MatSelectModule,
     MatFormFieldModule,
-    AuctionCountdownComponent
+    MatCheckboxModule,
+    AuctionCountdownComponent,
+    WishlistButtonComponent
   ],
   templateUrl: './customer-auctions.component.html'
 })
-export class CustomerAuctionsComponent implements OnInit {
+export class CustomerAuctionsComponent implements OnInit, OnDestroy {
   private readonly auctionService = inject(CustomerAuctionService);
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   auctions = signal<CustomerAuction[]>([]);
   isLoading = signal<boolean>(true);
@@ -39,18 +46,44 @@ export class CustomerAuctionsComponent implements OnInit {
   selectedCategory = signal<string>('All');
   selectedStatus = signal<string>('All');
   selectedSort = signal<string>('newest');
+  minPrice = signal<number | null>(null);
+  maxPrice = signal<number | null>(null);
+  minQty = signal<number | null>(null);
+  maxQty = signal<number | null>(null);
+  endingSoon = signal<boolean>(false);
 
-  readonly categories = ['All', 'Grain', 'Vegetable', 'Fruit', 'Cash Crop', 'Pulses', 'Oilseeds', 'Spices'];
-  readonly statusOptions = ['All', 'LIVE', 'UPCOMING', 'ENDED'];
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(12);
+  totalPages = signal<number>(1);
+  totalCount = signal<number>(0);
+
+  readonly categories = ['All', 'Grain', 'Cereal', 'Vegetable', 'Fruit', 'Cash Crop', 'Pulses', 'Oilseeds', 'Oilseed', 'Spices', 'Fodder', 'Other'];
+  readonly statusOptions = ['All', 'LIVE', 'UPCOMING', 'ENDED', 'ENDING_SOON'];
   readonly sortOptions = [
     { label: 'Newest Auctions', value: 'newest' },
     { label: 'Ending Soon', value: 'ending_soon' },
     { label: 'Lowest Starting Price', value: 'price_asc' },
-    { label: 'Highest Starting Price', value: 'price_desc' }
+    { label: 'Highest Starting Price', value: 'price_desc' },
+    { label: 'Highest Current Bid', value: 'highest_bid' },
+    { label: 'Oldest Auctions', value: 'oldest' }
   ];
 
   ngOnInit(): void {
+    // 300ms debounce on search input
+    this.searchSub = this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((query) => {
+        this.searchQuery.set(query);
+        this.currentPage.set(1);
+        this.loadAuctions();
+      });
+
     this.loadAuctions();
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
   }
 
   loadAuctions(): void {
@@ -61,12 +94,21 @@ export class CustomerAuctionsComponent implements OnInit {
       search: this.searchQuery().trim() || undefined,
       category: this.selectedCategory() !== 'All' ? this.selectedCategory() : undefined,
       status: this.selectedStatus() !== 'All' ? this.selectedStatus() : undefined,
-      sortBy: this.selectedSort()
+      sortBy: this.selectedSort(),
+      minPricePerMan: this.minPrice() !== null && this.minPrice()! > 0 ? this.minPrice()! : undefined,
+      maxPricePerMan: this.maxPrice() !== null && this.maxPrice()! > 0 ? this.maxPrice()! : undefined,
+      minQuantityKg: this.minQty() !== null && this.minQty()! > 0 ? this.minQty()! : undefined,
+      maxQuantityKg: this.maxQty() !== null && this.maxQty()! > 0 ? this.maxQty()! : undefined,
+      endingSoon: this.endingSoon() ? true : undefined,
+      page: this.currentPage(),
+      pageSize: this.pageSize()
     };
 
     this.auctionService.getMarketplaceAuctions(filter).subscribe({
-      next: (data) => {
-        this.auctions.set(data);
+      next: (res) => {
+        this.auctions.set(res.items);
+        this.totalCount.set(res.totalCount);
+        this.totalPages.set(res.totalPages);
         this.isLoading.set(false);
       },
       error: () => {
@@ -76,23 +118,36 @@ export class CustomerAuctionsComponent implements OnInit {
     });
   }
 
-  onSearchChange(value: string): void {
-    this.searchQuery.set(value);
-    this.loadAuctions();
+  onSearchInput(value: string): void {
+    this.searchSubject.next(value);
   }
 
   onCategoryChange(category: string): void {
     this.selectedCategory.set(category);
+    this.currentPage.set(1);
     this.loadAuctions();
   }
 
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);
+    this.currentPage.set(1);
     this.loadAuctions();
   }
 
   onSortChange(sortBy: string): void {
     this.selectedSort.set(sortBy);
+    this.currentPage.set(1);
+    this.loadAuctions();
+  }
+
+  onFilterChange(): void {
+    this.currentPage.set(1);
+    this.loadAuctions();
+  }
+
+  toggleEndingSoon(): void {
+    this.endingSoon.set(!this.endingSoon());
+    this.currentPage.set(1);
     this.loadAuctions();
   }
 
@@ -101,7 +156,20 @@ export class CustomerAuctionsComponent implements OnInit {
     this.selectedCategory.set('All');
     this.selectedStatus.set('All');
     this.selectedSort.set('newest');
+    this.minPrice.set(null);
+    this.maxPrice.set(null);
+    this.minQty.set(null);
+    this.maxQty.set(null);
+    this.endingSoon.set(false);
+    this.currentPage.set(1);
     this.loadAuctions();
+  }
+
+  goToPage(p: number): void {
+    if (p >= 1 && p <= this.totalPages()) {
+      this.currentPage.set(p);
+      this.loadAuctions();
+    }
   }
 
   getStatusBadgeClass(status: string): string {
