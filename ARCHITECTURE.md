@@ -56,9 +56,9 @@ These are application profiles only. They store business-facing profile data and
 
 ### Machinery Rental Domain
 
-- `Machinery` (owned by ApplicationUser: Farmer or Customer)
+- `Machinery` (Bi-directional marketplace model owned by `ApplicationUser` - Farmers or Customers; includes driver optionality fields `DriverAvailable`, `DriverChargePerDay`, `DriverName`, `DriverPhone`, `DriverNotes`)
 - `MachineryImage`
-- `MachineryRental` (direct booking with full status lifecycle: Booked → Confirmed → ReadyForHandover → RentedOut → Returned → Completed / Cancelled)
+- `MachineryRental` (Direct booking with price snapshots `RentPerDaySnapshot`, `DriverChargePerDaySnapshot`, `DriverRequired`, `MachineryAmount`, `DriverAmount`, `TotalAmount`, `TotalPayableAmount`; status lifecycle: `Booked` → `Confirmed` → `ReadyForHandover` → `RentedOut` → `Returned` → `Completed` / `Cancelled`)
 - `MachineryDamageReport`
 - `MachineryDamageReportImage`
 

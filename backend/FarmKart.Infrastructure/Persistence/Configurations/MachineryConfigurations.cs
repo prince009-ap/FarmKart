@@ -1,5 +1,4 @@
 using FarmKart.Domain.Entities;
-using FarmKart.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,7 +10,7 @@ public sealed class MachineryConfiguration : IEntityTypeConfiguration<Machinery>
     {
         builder.ToTable(table =>
         {
-            table.HasCheckConstraint("CK_Machinery_DailyRent_NonNegative", "[DailyRent] >= 0 AND [SecurityDeposit] >= 0");
+            table.HasCheckConstraint("CK_Machinery_DailyRent_NonNegative", "[DailyRent] >= 0 AND [SecurityDeposit] >= 0 AND [DriverChargePerDay] >= 0");
             table.HasCheckConstraint("CK_Machinery_ManufacturingYear_Range", "[ManufacturingYear] IS NULL OR ([ManufacturingYear] >= 1900 AND [ManufacturingYear] <= 2100)");
         });
 
@@ -25,6 +24,10 @@ public sealed class MachineryConfiguration : IEntityTypeConfiguration<Machinery>
         builder.Property(m => m.Description).HasMaxLength(2000);
         builder.Property(m => m.DailyRent).HasPrecision(18, 2);
         builder.Property(m => m.SecurityDeposit).HasPrecision(18, 2);
+        builder.Property(m => m.DriverChargePerDay).HasPrecision(18, 2).HasDefaultValue(0);
+        builder.Property(m => m.DriverName).HasMaxLength(150);
+        builder.Property(m => m.DriverPhone).HasMaxLength(50);
+        builder.Property(m => m.DriverNotes).HasMaxLength(1000);
         builder.Property(m => m.Location).HasMaxLength(250).IsRequired();
         builder.Property(m => m.City).HasMaxLength(100);
         builder.Property(m => m.State).HasMaxLength(100);
@@ -34,8 +37,7 @@ public sealed class MachineryConfiguration : IEntityTypeConfiguration<Machinery>
         builder.HasIndex(m => m.OwnerUserId);
         builder.HasIndex(m => m.Category);
         builder.HasIndex(m => m.IsActive);
-
-
+        builder.HasIndex(m => m.DriverAvailable);
     }
 }
 
@@ -65,7 +67,7 @@ public sealed class MachineryRentalConfiguration : IEntityTypeConfiguration<Mach
         {
             table.HasCheckConstraint("CK_MachineryRental_DateRange", "[EndDate] >= [StartDate]");
             table.HasCheckConstraint("CK_MachineryRental_RentalDays_Positive", "[RentalDays] > 0");
-            table.HasCheckConstraint("CK_MachineryRental_Amounts_NonNegative", "[TotalRentAmount] >= 0 AND [TotalPayableAmount] >= 0 AND [SecurityDepositSnapshot] >= 0 AND [RentPerDaySnapshot] >= 0");
+            table.HasCheckConstraint("CK_MachineryRental_Amounts_NonNegative", "[TotalRentAmount] >= 0 AND [TotalPayableAmount] >= 0 AND [SecurityDepositSnapshot] >= 0 AND [RentPerDaySnapshot] >= 0 AND [DriverChargePerDaySnapshot] >= 0 AND [MachineryAmount] >= 0 AND [DriverAmount] >= 0 AND [TotalAmount] >= 0");
         });
 
         builder.ConfigureBaseEntity();
@@ -73,6 +75,10 @@ public sealed class MachineryRentalConfiguration : IEntityTypeConfiguration<Mach
         builder.Property(r => r.OwnerUserId).HasMaxLength(128).IsRequired();
         builder.Property(r => r.RenterUserId).HasMaxLength(128).IsRequired();
         builder.Property(r => r.RentPerDaySnapshot).HasPrecision(18, 2);
+        builder.Property(r => r.DriverChargePerDaySnapshot).HasPrecision(18, 2);
+        builder.Property(r => r.MachineryAmount).HasPrecision(18, 2);
+        builder.Property(r => r.DriverAmount).HasPrecision(18, 2);
+        builder.Property(r => r.TotalAmount).HasPrecision(18, 2);
         builder.Property(r => r.SecurityDepositSnapshot).HasPrecision(18, 2);
         builder.Property(r => r.TotalRentAmount).HasPrecision(18, 2);
         builder.Property(r => r.TotalPayableAmount).HasPrecision(18, 2);
@@ -84,13 +90,10 @@ public sealed class MachineryRentalConfiguration : IEntityTypeConfiguration<Mach
         builder.HasIndex(r => r.RenterUserId);
         builder.HasIndex(r => r.RentalStatus);
 
-        // Machinery FK
         builder.HasOne(r => r.Machinery)
             .WithMany(m => m.Rentals)
             .HasForeignKey(r => r.MachineryId)
             .OnDelete(DeleteBehavior.Restrict);
-
-
     }
 }
 

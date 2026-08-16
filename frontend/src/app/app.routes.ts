@@ -170,6 +170,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'machinery/marketplace',
+        loadComponent: () =>
+          import('./features/customer/customer-machinery.component').then(
+            (module) => module.CustomerMachineryComponent,
+          ),
+      },
+      {
+        path: 'machinery/marketplace/:id',
+        loadComponent: () =>
+          import('./features/customer/customer-machinery-detail.component').then(
+            (module) => module.CustomerMachineryDetailComponent,
+          ),
+      },
+      {
         path: 'machinery',
         loadComponent: () =>
           import('./features/farmer/my-machinery.component').then(
@@ -195,6 +209,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/farmer/my-machinery-form.component').then(
             (module) => module.MyMachineryFormComponent,
+          ),
+      },
+      {
+        path: 'my-rentals',
+        loadComponent: () =>
+          import('./features/customer/customer-my-rentals.component').then(
+            (module) => module.CustomerMyRentalsComponent,
           ),
       },
       {
@@ -437,6 +458,34 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-machinery-detail.component').then(
             (module) => module.CustomerMachineryDetailComponent,
+          ),
+      },
+      {
+        path: 'my-machinery',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery.component').then(
+            (module) => module.MyMachineryComponent,
+          ),
+      },
+      {
+        path: 'my-machinery/new',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-form.component').then(
+            (module) => module.MyMachineryFormComponent,
+          ),
+      },
+      {
+        path: 'my-machinery/rentals',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-rentals.component').then(
+            (module) => module.MyMachineryRentalsComponent,
+          ),
+      },
+      {
+        path: 'my-machinery/:id/edit',
+        loadComponent: () =>
+          import('./features/farmer/my-machinery-form.component').then(
+            (module) => module.MyMachineryFormComponent,
           ),
       },
       {

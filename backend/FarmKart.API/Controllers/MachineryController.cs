@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FarmKart.Application.Abstractions.Machinery;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,10 @@ namespace FarmKart.API.Controllers;
 
 /// <summary>
 /// Public machinery browse and owner machinery management.
+/// Accessible by both Farmers and Customers.
 /// </summary>
 [ApiController]
-[Authorize]
+[Authorize(Roles = $"{Roles.Farmer},{Roles.Customer}")]
 public sealed class MachineryController(
     IMachineryService machineryService) : ControllerBase
 {

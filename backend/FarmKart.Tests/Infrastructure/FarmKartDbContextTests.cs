@@ -32,7 +32,7 @@ public class FarmKartDbContextTests
 
         Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<WorkerPayment>(nameof(WorkerPayment.FarmerProfile))!.DeleteBehavior);
         Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<WorkerPayment>(nameof(WorkerPayment.WorkerAssignment))!.DeleteBehavior);
-        Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<MachineryRental>(nameof(MachineryRental.OwnerFarmerProfile))!.DeleteBehavior);
+        Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<MachineryRental>(nameof(MachineryRental.Machinery))!.DeleteBehavior);
         Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<OrderItem>(nameof(OrderItem.Order))!.DeleteBehavior);
         Assert.Equal(DeleteBehavior.Restrict, FindForeignKey<Bid>(nameof(Bid.Auction))!.DeleteBehavior);
 

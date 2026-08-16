@@ -43,11 +43,14 @@ export class CustomerMachineryDetailComponent implements OnInit {
   // Booking Form State
   startDate = signal<string>('');
   endDate = signal<string>('');
+  driverRequired = signal<boolean>(false);
   paymentMethod = signal<string>('Upi');
 
   // Calculated Financials
   calculatedDays = signal<number>(0);
-  calculatedTotalRent = signal<number>(0);
+  calculatedMachineryAmount = signal<number>(0);
+  calculatedDriverAmount = signal<number>(0);
+  calculatedTotalAmount = signal<number>(0);
   calculatedTotalPayable = signal<number>(0);
 
   minStartDate = new Date().toISOString().split('T')[0];
@@ -70,6 +73,9 @@ export class CustomerMachineryDetailComponent implements OnInit {
       next: (m) => {
         this.machinery.set(m);
         this.isLoading.set(false);
+        if (m.isOwnedByCurrentUser) {
+          this.bookingError.set('You own this machinery listing and cannot rent it.');
+        }
       },
       error: () => {
         this.errorMessage.set('Machinery not found or unavailable.');
@@ -83,15 +89,38 @@ export class CustomerMachineryDetailComponent implements OnInit {
     });
   }
 
+  onDriverOptionChanged(required: boolean): void {
+    const m = this.machinery();
+    if (m && !m.driverAvailable && required) {
+      this.driverRequired.set(false);
+      return;
+    }
+    this.driverRequired.set(required);
+    this.recalculateFinancials();
+  }
+
   onDatesChanged(): void {
+    this.recalculateFinancials();
+  }
+
+  recalculateFinancials(): void {
     this.bookingError.set(null);
+    const m = this.machinery();
+
+    if (m?.isOwnedByCurrentUser) {
+      this.bookingError.set('You own this machinery listing and cannot rent it.');
+      this.calculatedDays.set(0);
+      return;
+    }
+
     const start = this.startDate();
     const end = this.endDate();
-    const m = this.machinery();
 
     if (!start || !end || !m) {
       this.calculatedDays.set(0);
-      this.calculatedTotalRent.set(0);
+      this.calculatedMachineryAmount.set(0);
+      this.calculatedDriverAmount.set(0);
+      this.calculatedTotalAmount.set(0);
       this.calculatedTotalPayable.set(0);
       return;
     }
@@ -121,17 +150,21 @@ export class CustomerMachineryDetailComponent implements OnInit {
     const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-    const totalRent = days * m.dailyRent;
-    const totalPayable = totalRent + m.securityDeposit;
+    const machineryAmount = days * m.dailyRent;
+    const driverAmount = (m.driverAvailable && this.driverRequired()) ? (days * m.driverChargePerDay) : 0;
+    const totalAmount = machineryAmount + driverAmount;
+    const totalPayable = totalAmount + m.securityDeposit;
 
     this.calculatedDays.set(days);
-    this.calculatedTotalRent.set(totalRent);
+    this.calculatedMachineryAmount.set(machineryAmount);
+    this.calculatedDriverAmount.set(driverAmount);
+    this.calculatedTotalAmount.set(totalAmount);
     this.calculatedTotalPayable.set(totalPayable);
   }
 
   confirmBooking(): void {
     const m = this.machinery();
-    if (!m || !this.startDate() || !this.endDate() || this.calculatedDays() <= 0) return;
+    if (!m || !this.startDate() || !this.endDate() || this.calculatedDays() <= 0 || m.isOwnedByCurrentUser) return;
 
     this.isBooking.set(true);
     this.bookingError.set(null);
@@ -139,6 +172,7 @@ export class CustomerMachineryDetailComponent implements OnInit {
     this.machineryService.bookRental(m.id, {
       startDate: this.startDate(),
       endDate: this.endDate(),
+      driverRequired: this.driverRequired(),
       paymentMethod: this.paymentMethod()
     }).subscribe({
       next: (res) => {

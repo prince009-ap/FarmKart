@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MachineryService } from '../../core/services/machinery.service';
-import { MACHINERY_CATEGORIES, MachineryResponse } from '../../core/models/machinery.models';
+import { MACHINERY_CATEGORIES } from '../../core/models/machinery.models';
 
 @Component({
   selector: 'app-my-machinery-form',
@@ -48,6 +48,14 @@ export class MyMachineryFormComponent implements OnInit {
   securityDeposit = signal<number | undefined>(undefined);
   isDriverIncluded = signal<boolean>(false);
   isFuelIncluded = signal<boolean>(false);
+
+  // Driver Settings
+  driverAvailable = signal<boolean>(false);
+  driverChargePerDay = signal<number | undefined>(undefined);
+  driverName = signal<string>('');
+  driverPhone = signal<string>('');
+  driverNotes = signal<string>('');
+
   location = signal<string>('');
   city = signal<string>('');
   state = signal<string>('');
@@ -81,6 +89,11 @@ export class MyMachineryFormComponent implements OnInit {
         this.securityDeposit.set(m.securityDeposit);
         this.isDriverIncluded.set(m.isDriverIncluded);
         this.isFuelIncluded.set(m.isFuelIncluded);
+        this.driverAvailable.set(m.driverAvailable || false);
+        this.driverChargePerDay.set(m.driverChargePerDay || undefined);
+        this.driverName.set(m.driverName || '');
+        this.driverPhone.set(m.driverPhone || '');
+        this.driverNotes.set(m.driverNotes || '');
         this.location.set(m.location);
         this.city.set(m.city || '');
         this.state.set(m.state || '');
@@ -95,9 +108,22 @@ export class MyMachineryFormComponent implements OnInit {
     });
   }
 
+  private navigateBack(): void {
+    if (this.router.url.includes('/customer/')) {
+      this.router.navigate(['/customer/my-machinery']);
+    } else {
+      this.router.navigate(['/farmer/machinery']);
+    }
+  }
+
   saveMachinery(): void {
     if (!this.name() || !this.category() || !this.dailyRent() || !this.location()) {
       this.snackBar.open('Please fill out all required fields.', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (this.driverAvailable() && (this.driverChargePerDay() == null || this.driverChargePerDay()! < 0)) {
+      this.snackBar.open('Please specify a valid driver charge per day.', 'Close', { duration: 3000 });
       return;
     }
 
@@ -115,15 +141,20 @@ export class MyMachineryFormComponent implements OnInit {
         securityDeposit: this.securityDeposit(),
         isDriverIncluded: this.isDriverIncluded(),
         isFuelIncluded: this.isFuelIncluded(),
+        driverAvailable: this.driverAvailable(),
+        driverChargePerDay: this.driverAvailable() ? (this.driverChargePerDay() || 0) : 0,
+        driverName: this.driverName() || undefined,
+        driverPhone: this.driverPhone() || undefined,
+        driverNotes: this.driverNotes() || undefined,
         location: this.location(),
         city: this.city() || undefined,
         state: this.state() || undefined,
         pincode: this.pincode() || undefined
       }).subscribe({
-        next: (m) => {
+        next: () => {
           this.isSaving.set(false);
           this.snackBar.open('Machinery updated successfully!', 'Close', { duration: 3000 });
-          this.router.navigate(['/farmer/machinery']);
+          this.navigateBack();
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -142,6 +173,11 @@ export class MyMachineryFormComponent implements OnInit {
         securityDeposit: this.securityDeposit() || 0,
         isDriverIncluded: this.isDriverIncluded(),
         isFuelIncluded: this.isFuelIncluded(),
+        driverAvailable: this.driverAvailable(),
+        driverChargePerDay: this.driverAvailable() ? (this.driverChargePerDay() || 0) : 0,
+        driverName: this.driverName() || undefined,
+        driverPhone: this.driverPhone() || undefined,
+        driverNotes: this.driverNotes() || undefined,
         location: this.location(),
         city: this.city() || undefined,
         state: this.state() || undefined,
@@ -150,7 +186,8 @@ export class MyMachineryFormComponent implements OnInit {
         next: (m) => {
           this.isSaving.set(false);
           this.snackBar.open('Machinery created! You can now upload images.', 'Close', { duration: 3000 });
-          this.router.navigate(['/farmer/machinery', m.id, 'edit']);
+          const basePath = this.router.url.includes('/customer/') ? '/customer/my-machinery' : '/farmer/machinery';
+          this.router.navigate([basePath, m.id, 'edit']);
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -175,7 +212,7 @@ export class MyMachineryFormComponent implements OnInit {
 
     this.isUploadingImage.set(true);
     this.machineryService.uploadImage(id, file).subscribe({
-      next: (img) => {
+      next: () => {
         this.isUploadingImage.set(false);
         this.selectedFile.set(null);
         this.snackBar.open('Image uploaded successfully!', 'Close', { duration: 3000 });

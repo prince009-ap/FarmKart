@@ -108,7 +108,9 @@
               <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase font-bold">Total Paid</p>
                 <p class="font-black text-amber-400 font-mono text-sm">₹{{ r.totalPayableAmount }}</p>
-                <p class="text-[10px] text-slate-400">Rent: ₹{{ r.totalRentAmount }} | Deposit: ₹{{ r.securityDepositSnapshot }}</p>
+                <p class="text-[10px] text-slate-400">
+                  Rent: ₹{{ r.machineryAmount || r.totalRentAmount }} | Driver: {{ r.driverRequired ? ('₹' + (r.driverAmount || 0)) : 'Self-Drive' }} | Deposit: ₹{{ r.securityDepositSnapshot }}
+                </p>
               </div>
 
               <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">

@@ -20,6 +20,14 @@ public sealed class Machinery : BaseEntity
     public decimal SecurityDeposit { get; set; }
     public bool IsDriverIncluded { get; set; }
     public bool IsFuelIncluded { get; set; }
+
+    // Enhanced Driver Options
+    public bool DriverAvailable { get; set; }
+    public decimal DriverChargePerDay { get; set; }
+    public string? DriverName { get; set; }
+    public string? DriverPhone { get; set; }
+    public string? DriverNotes { get; set; }
+
     public MachineryAvailabilityStatus AvailabilityStatus { get; set; } = MachineryAvailabilityStatus.Available;
     public string Location { get; set; } = string.Empty;
     public string? City { get; set; }
@@ -53,10 +61,18 @@ public sealed class MachineryRental : BaseEntity
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public int RentalDays { get; set; }
+
+    // Price Snapshots
     public decimal RentPerDaySnapshot { get; set; }
+    public decimal DriverChargePerDaySnapshot { get; set; }
+    public bool DriverRequired { get; set; }
+    public decimal MachineryAmount { get; set; }
+    public decimal DriverAmount { get; set; }
+    public decimal TotalAmount { get; set; }
     public decimal SecurityDepositSnapshot { get; set; }
     public decimal TotalRentAmount { get; set; }
     public decimal TotalPayableAmount { get; set; }
+
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public string? PaymentTransactionRef { get; set; }
     public PaymentMethod? PaymentMethod { get; set; }
@@ -67,7 +83,6 @@ public sealed class MachineryRental : BaseEntity
 
     public ICollection<MachineryDamageReport> DamageReports { get; set; } = [];
 }
-
 
 /// <summary>
 /// Damage reports: stored in DB but Phase 8.4 API is out of scope.

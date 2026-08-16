@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FarmKart.Application.Abstractions.Machinery;
 using FarmKart.Application.DTOs;
+using FarmKart.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +9,10 @@ namespace FarmKart.API.Controllers;
 
 /// <summary>
 /// Machinery rental booking and lifecycle management.
+/// Accessible by both Farmers and Customers.
 /// </summary>
 [ApiController]
-[Authorize]
+[Authorize(Roles = $"{Roles.Farmer},{Roles.Customer}")]
 public sealed class MachineryRentalsController(
     IMachineryRentalService rentalService) : ControllerBase
 {

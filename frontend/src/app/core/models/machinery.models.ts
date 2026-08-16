@@ -25,6 +25,11 @@ export interface MachineryResponse {
   securityDeposit: number;
   isDriverIncluded: boolean;
   isFuelIncluded: boolean;
+  driverAvailable: boolean;
+  driverChargePerDay: number;
+  driverName?: string;
+  driverPhone?: string;
+  driverNotes?: string;
   availabilityStatus: MachineryAvailabilityStatus;
   location: string;
   city?: string;
@@ -32,6 +37,7 @@ export interface MachineryResponse {
   pincode?: string;
   isActive: boolean;
   isFavorited: boolean;
+  isOwnedByCurrentUser?: boolean;
   images: MachineryImageResponse[];
   createdAtUtc: string;
   updatedAtUtc: string;
@@ -46,13 +52,20 @@ export interface PagedMachineryResponse {
 }
 
 export interface MachineryFilterRequest {
+  search?: string;
   name?: string;
   category?: string;
+  brand?: string;
   city?: string;
   state?: string;
+  location?: string;
   minRentPerDay?: number;
   maxRentPerDay?: number;
+  driverAvailable?: boolean;
   isDriverIncluded?: boolean;
+  startDate?: string;
+  endDate?: string;
+  sortBy?: string;
   page?: number;
   pageSize?: number;
 }
@@ -68,6 +81,11 @@ export interface CreateMachineryRequest {
   securityDeposit: number;
   isDriverIncluded: boolean;
   isFuelIncluded: boolean;
+  driverAvailable: boolean;
+  driverChargePerDay: number;
+  driverName?: string;
+  driverPhone?: string;
+  driverNotes?: string;
   location: string;
   city?: string;
   state?: string;
@@ -85,6 +103,11 @@ export interface UpdateMachineryRequest {
   securityDeposit?: number;
   isDriverIncluded?: boolean;
   isFuelIncluded?: boolean;
+  driverAvailable?: boolean;
+  driverChargePerDay?: number;
+  driverName?: string;
+  driverPhone?: string;
+  driverNotes?: string;
   location?: string;
   city?: string;
   state?: string;
@@ -95,6 +118,7 @@ export interface UpdateMachineryRequest {
 export interface BookRentalRequest {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
+  driverRequired: boolean;
   paymentMethod: string;
 }
 
@@ -112,6 +136,11 @@ export interface MachineryRentalResponse {
   endDate: string;
   rentalDays: number;
   rentPerDaySnapshot: number;
+  driverChargePerDaySnapshot: number;
+  driverRequired: boolean;
+  machineryAmount: number;
+  driverAmount: number;
+  totalAmount: number;
   securityDepositSnapshot: number;
   totalRentAmount: number;
   totalPayableAmount: number;

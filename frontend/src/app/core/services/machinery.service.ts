@@ -61,13 +61,20 @@ export class MachineryService {
   getMachinery(filter: MachineryFilterRequest): Observable<PagedMachineryResponse> {
     let params = new HttpParams();
 
+    if (filter.search) params = params.set('search', filter.search);
     if (filter.name) params = params.set('name', filter.name);
     if (filter.category) params = params.set('category', filter.category);
+    if (filter.brand) params = params.set('brand', filter.brand);
     if (filter.city) params = params.set('city', filter.city);
     if (filter.state) params = params.set('state', filter.state);
+    if (filter.location) params = params.set('location', filter.location);
     if (filter.minRentPerDay != null) params = params.set('minRentPerDay', filter.minRentPerDay.toString());
     if (filter.maxRentPerDay != null) params = params.set('maxRentPerDay', filter.maxRentPerDay.toString());
+    if (filter.driverAvailable != null) params = params.set('driverAvailable', filter.driverAvailable.toString());
     if (filter.isDriverIncluded != null) params = params.set('isDriverIncluded', filter.isDriverIncluded.toString());
+    if (filter.startDate) params = params.set('startDate', filter.startDate);
+    if (filter.endDate) params = params.set('endDate', filter.endDate);
+    if (filter.sortBy) params = params.set('sortBy', filter.sortBy);
     if (filter.page != null) params = params.set('page', filter.page.toString());
     if (filter.pageSize != null) params = params.set('pageSize', filter.pageSize.toString());
 

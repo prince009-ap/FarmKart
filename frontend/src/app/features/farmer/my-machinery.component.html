@@ -11,10 +11,10 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a routerLink="/farmer/machinery/rentals" mat-button class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
+        <a [routerLink]="rentalsRoute" mat-button class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
           <mat-icon class="!w-4 !h-4 !text-sm">view_list</mat-icon> Incoming Rental Bookings
         </a>
-        <a routerLink="/farmer/machinery/new" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
+        <a [routerLink]="newMachineryRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
           <mat-icon class="!w-4 !h-4 !text-sm">add</mat-icon> Add New Machinery
         </a>
       </div>
@@ -42,7 +42,7 @@
         <p class="text-slate-400 font-semibold text-base">You haven't listed any machinery yet.</p>
         <p class="text-xs text-slate-500">List your tractors, seeders, or harvesters to earn passive rental income!</p>
         <div class="pt-2">
-          <a routerLink="/farmer/machinery/new" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
+          <a [routerLink]="newMachineryRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
             List Machinery Now
           </a>
         </div>
@@ -105,7 +105,7 @@
 
               <!-- Action Bar -->
               <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
-                <a [routerLink]="['/farmer/machinery', m.id, 'edit']"
+                <a [routerLink]="getEditRoute(m.id)"
                    mat-button
                    class="!text-slate-300 hover:!text-white flex-1 border border-slate-700 !rounded-xl text-xs font-bold">
                   <mat-icon class="!w-4 !h-4 !text-sm">edit</mat-icon> Edit

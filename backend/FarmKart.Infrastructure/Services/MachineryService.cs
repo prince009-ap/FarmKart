@@ -38,17 +38,50 @@ public sealed class MachineryService : IMachineryService
             .Include(m => m.Images)
             .Where(m => m.IsActive && m.AvailabilityStatus != MachineryAvailabilityStatus.Unavailable);
 
-        if (!string.IsNullOrWhiteSpace(filter.Name))
-            query = query.Where(m => m.Name.Contains(filter.Name));
+        // Combined Search (Name, Brand, Model, Category, Location, City, State)
+        var searchTerm = filter.Search ?? filter.Name;
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            query = query.Where(m =>
+                m.Name.ToLower().Contains(term) ||
+                (m.Brand != null && m.Brand.ToLower().Contains(term)) ||
+                (m.Model != null && m.Model.ToLower().Contains(term)) ||
+                m.Category.ToLower().Contains(term) ||
+                m.Location.ToLower().Contains(term) ||
+                (m.City != null && m.City.ToLower().Contains(term)) ||
+                (m.State != null && m.State.ToLower().Contains(term)));
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.Category))
-            query = query.Where(m => m.Category == filter.Category);
+        {
+            var cat = filter.Category.Trim();
+            query = query.Where(m => m.Category == cat);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Brand))
+        {
+            var brand = filter.Brand.Trim().ToLower();
+            query = query.Where(m => m.Brand != null && m.Brand.ToLower().Contains(brand));
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.City))
-            query = query.Where(m => m.City != null && m.City.Contains(filter.City));
+        {
+            var city = filter.City.Trim().ToLower();
+            query = query.Where(m => m.City != null && m.City.ToLower().Contains(city));
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.State))
-            query = query.Where(m => m.State != null && m.State.Contains(filter.State));
+        {
+            var state = filter.State.Trim().ToLower();
+            query = query.Where(m => m.State != null && m.State.ToLower().Contains(state));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Location))
+        {
+            var loc = filter.Location.Trim().ToLower();
+            query = query.Where(m => m.Location.ToLower().Contains(loc));
+        }
 
         if (filter.MinRentPerDay.HasValue)
             query = query.Where(m => m.DailyRent >= filter.MinRentPerDay.Value);
@@ -56,13 +89,51 @@ public sealed class MachineryService : IMachineryService
         if (filter.MaxRentPerDay.HasValue)
             query = query.Where(m => m.DailyRent <= filter.MaxRentPerDay.Value);
 
+        if (filter.DriverAvailable.HasValue)
+            query = query.Where(m => m.DriverAvailable == filter.DriverAvailable.Value);
+
         if (filter.IsDriverIncluded.HasValue)
             query = query.Where(m => m.IsDriverIncluded == filter.IsDriverIncluded.Value);
 
+        // Date Availability Filter (Excludes machinery with overlapping active/confirmed rentals)
+        if (filter.StartDate.HasValue && filter.EndDate.HasValue)
+        {
+            var reqStart = filter.StartDate.Value;
+            var reqEnd = filter.EndDate.Value;
+
+            var activeStatuses = new[]
+            {
+                RentalStatus.Booked, RentalStatus.Confirmed,
+                RentalStatus.ReadyForHandover, RentalStatus.RentedOut
+            };
+
+            var unavailableMachineryIds = await _db.MachineryRentals
+                .AsNoTracking()
+                .Where(r => activeStatuses.Contains(r.RentalStatus)
+                         && r.StartDate <= reqEnd
+                         && r.EndDate >= reqStart)
+                .Select(r => r.MachineryId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (unavailableMachineryIds.Any())
+            {
+                query = query.Where(m => !unavailableMachineryIds.Contains(m.Id));
+            }
+        }
+
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Sorting
+        query = (filter.SortBy?.Trim().ToLower()) switch
+        {
+            "oldest" => query.OrderBy(m => m.CreatedAtUtc),
+            "priceasc" => query.OrderBy(m => m.DailyRent),
+            "pricedesc" => query.OrderByDescending(m => m.DailyRent),
+            _ => query.OrderByDescending(m => m.CreatedAtUtc) // Default "newest"
+        };
+
         var machinery = await query
-            .OrderByDescending(m => m.CreatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -80,7 +151,11 @@ public sealed class MachineryService : IMachineryService
         var ownerNames = await ResolveUserNamesAsync(ownerIds, cancellationToken);
 
         var items = machinery
-            .Select(m => MapToResponse(m, ownerNames.GetValueOrDefault(m.OwnerUserId, "Owner"), wishlistedIds.Contains(m.Id)))
+            .Select(m => MapToResponse(
+                m,
+                ownerNames.GetValueOrDefault(m.OwnerUserId, "Owner"),
+                wishlistedIds.Contains(m.Id),
+                currentUserId != null && m.OwnerUserId == currentUserId))
             .ToList();
 
         return new PagedMachineryResponse(
@@ -113,7 +188,9 @@ public sealed class MachineryService : IMachineryService
         }
 
         var ownerNames = await ResolveUserNamesAsync([machinery.OwnerUserId], cancellationToken);
-        return MapToResponse(machinery, ownerNames.GetValueOrDefault(machinery.OwnerUserId, "Owner"), isFavorited);
+        bool isOwnedByCurrentUser = currentUserId != null && machinery.OwnerUserId == currentUserId;
+
+        return MapToResponse(machinery, ownerNames.GetValueOrDefault(machinery.OwnerUserId, "Owner"), isFavorited, isOwnedByCurrentUser);
     }
 
     public async Task<IReadOnlyList<MachineryResponse>> GetMyMachineryAsync(
@@ -130,7 +207,7 @@ public sealed class MachineryService : IMachineryService
         var ownerNames = await ResolveUserNamesAsync([ownerUserId], cancellationToken);
         var ownerName = ownerNames.GetValueOrDefault(ownerUserId, "Owner");
 
-        return machinery.Select(m => MapToResponse(m, ownerName, false)).ToList();
+        return machinery.Select(m => MapToResponse(m, ownerName, false, true)).ToList();
     }
 
     public async Task<MachineryResponse> CreateMachineryAsync(
@@ -153,6 +230,11 @@ public sealed class MachineryService : IMachineryService
             SecurityDeposit = request.SecurityDeposit,
             IsDriverIncluded = request.IsDriverIncluded,
             IsFuelIncluded = request.IsFuelIncluded,
+            DriverAvailable = request.DriverAvailable,
+            DriverChargePerDay = request.DriverAvailable ? request.DriverChargePerDay : 0,
+            DriverName = string.IsNullOrWhiteSpace(request.DriverName) ? null : request.DriverName.Trim(),
+            DriverPhone = string.IsNullOrWhiteSpace(request.DriverPhone) ? null : request.DriverPhone.Trim(),
+            DriverNotes = string.IsNullOrWhiteSpace(request.DriverNotes) ? null : request.DriverNotes.Trim(),
             Location = request.Location.Trim(),
             City = string.IsNullOrWhiteSpace(request.City) ? null : request.City.Trim(),
             State = string.IsNullOrWhiteSpace(request.State) ? null : request.State.Trim(),
@@ -165,7 +247,7 @@ public sealed class MachineryService : IMachineryService
         await _db.SaveChangesAsync(cancellationToken);
 
         var ownerNames = await ResolveUserNamesAsync([ownerUserId], cancellationToken);
-        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false);
+        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false, true);
     }
 
     public async Task<MachineryResponse> UpdateMachineryAsync(
@@ -191,6 +273,11 @@ public sealed class MachineryService : IMachineryService
         if (request.SecurityDeposit.HasValue) machinery.SecurityDeposit = request.SecurityDeposit.Value;
         if (request.IsDriverIncluded.HasValue) machinery.IsDriverIncluded = request.IsDriverIncluded.Value;
         if (request.IsFuelIncluded.HasValue) machinery.IsFuelIncluded = request.IsFuelIncluded.Value;
+        if (request.DriverAvailable.HasValue) machinery.DriverAvailable = request.DriverAvailable.Value;
+        if (request.DriverChargePerDay.HasValue) machinery.DriverChargePerDay = machinery.DriverAvailable ? request.DriverChargePerDay.Value : 0;
+        if (request.DriverName != null) machinery.DriverName = string.IsNullOrWhiteSpace(request.DriverName) ? null : request.DriverName.Trim();
+        if (request.DriverPhone != null) machinery.DriverPhone = string.IsNullOrWhiteSpace(request.DriverPhone) ? null : request.DriverPhone.Trim();
+        if (request.DriverNotes != null) machinery.DriverNotes = string.IsNullOrWhiteSpace(request.DriverNotes) ? null : request.DriverNotes.Trim();
         if (request.Location != null) machinery.Location = request.Location.Trim();
         if (request.City != null) machinery.City = string.IsNullOrWhiteSpace(request.City) ? null : request.City.Trim();
         if (request.State != null) machinery.State = string.IsNullOrWhiteSpace(request.State) ? null : request.State.Trim();
@@ -206,7 +293,7 @@ public sealed class MachineryService : IMachineryService
         await _db.SaveChangesAsync(cancellationToken);
 
         var ownerNames = await ResolveUserNamesAsync([ownerUserId], cancellationToken);
-        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false);
+        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false, true);
     }
 
     public async Task<bool> DeleteMachineryAsync(
@@ -366,7 +453,7 @@ public sealed class MachineryService : IMachineryService
         await _db.SaveChangesAsync(cancellationToken);
 
         var ownerNames = await ResolveUserNamesAsync([ownerUserId], cancellationToken);
-        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false);
+        return MapToResponse(machinery, ownerNames.GetValueOrDefault(ownerUserId, "Owner"), false, true);
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
@@ -392,7 +479,6 @@ public sealed class MachineryService : IMachineryService
 
         var result = new Dictionary<string, string>();
 
-        // Check FarmerProfiles
         var farmers = await _db.FarmerProfiles
             .AsNoTracking()
             .Where(fp => parsed.Contains(fp.UserId))
@@ -400,7 +486,6 @@ public sealed class MachineryService : IMachineryService
             .ToListAsync(cancellationToken);
         foreach (var f in farmers) result[f.UserId] = f.FullName;
 
-        // Check CustomerProfiles for IDs not yet resolved
         var unresolved = ids.Except(result.Keys).ToList();
         if (unresolved.Any())
         {
@@ -413,7 +498,6 @@ public sealed class MachineryService : IMachineryService
             foreach (var c in customers) result[c.UserId] = c.FullName;
         }
 
-        // Check WorkerProfiles for still-unresolved
         unresolved = ids.Except(result.Keys).ToList();
         if (unresolved.Any())
         {
@@ -429,7 +513,7 @@ public sealed class MachineryService : IMachineryService
         return result;
     }
 
-    internal static MachineryResponse MapToResponse(Machinery m, string ownerName, bool isFavorited)
+    internal static MachineryResponse MapToResponse(Machinery m, string ownerName, bool isFavorited, bool isOwnedByCurrentUser)
     {
         return new MachineryResponse(
             Id: m.Id,
@@ -445,6 +529,11 @@ public sealed class MachineryService : IMachineryService
             SecurityDeposit: m.SecurityDeposit,
             IsDriverIncluded: m.IsDriverIncluded,
             IsFuelIncluded: m.IsFuelIncluded,
+            DriverAvailable: m.DriverAvailable,
+            DriverChargePerDay: m.DriverChargePerDay,
+            DriverName: m.DriverName,
+            DriverPhone: m.DriverPhone,
+            DriverNotes: m.DriverNotes,
             AvailabilityStatus: m.AvailabilityStatus.ToString(),
             Location: m.Location,
             City: m.City,
@@ -452,6 +541,7 @@ public sealed class MachineryService : IMachineryService
             Pincode: m.Pincode,
             IsActive: m.IsActive,
             IsFavorited: isFavorited,
+            IsOwnedByCurrentUser: isOwnedByCurrentUser,
             Images: m.Images
                 .OrderBy(i => i.DisplayOrder)
                 .Select(i => new MachineryImageResponse(i.Id, i.MachineryId, i.ImageUrl, i.IsPrimary, i.DisplayOrder, i.CreatedAtUtc))

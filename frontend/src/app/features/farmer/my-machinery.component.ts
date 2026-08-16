@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -23,11 +23,24 @@ import { MachineryResponse } from '../../core/models/machinery.models';
 })
 export class MyMachineryComponent implements OnInit {
   private readonly machineryService = inject(MachineryService);
+  private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
   machineryList = signal<MachineryResponse[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
+
+  get newMachineryRoute(): string {
+    return this.router.url.includes('/customer/') ? '/customer/my-machinery/new' : '/farmer/machinery/new';
+  }
+
+  get rentalsRoute(): string {
+    return this.router.url.includes('/customer/') ? '/customer/my-machinery/rentals' : '/farmer/machinery/rentals';
+  }
+
+  getEditRoute(id: string): string {
+    return this.router.url.includes('/customer/') ? `/customer/my-machinery/${id}/edit` : `/farmer/machinery/${id}/edit`;
+  }
 
   ngOnInit(): void {
     this.loadMyMachinery();

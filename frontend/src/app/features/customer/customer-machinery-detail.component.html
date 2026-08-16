@@ -73,6 +73,9 @@
                   {{ m.category }}
                 </span>
                 <span class="text-xs text-slate-400">Listed by <strong class="text-slate-200">{{ m.ownerName }}</strong></span>
+                @if (m.isOwnedByCurrentUser) {
+                  <span class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">Your Listing</span>
+                }
               </div>
               <h1 class="text-2xl font-black text-white">{{ m.name }}</h1>
               @if (m.brand || m.model) {
@@ -81,14 +84,20 @@
             </div>
 
             <!-- Features Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase font-bold">Daily Rent</p>
                 <p class="text-lg font-black text-amber-400 font-mono">₹{{ m.dailyRent }}</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <p class="text-[10px] text-slate-500 uppercase font-bold">Security Deposit</p>
-                <p class="text-lg font-black text-slate-300 font-mono">₹{{ m.securityDeposit }}</p>
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Driver Rate</p>
+                <p class="text-base font-bold text-slate-200 font-mono">
+                  {{ m.driverAvailable ? '₹' + m.driverChargePerDay + '/day' : 'N/A' }}
+                </p>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Deposit</p>
+                <p class="text-base font-bold text-slate-300 font-mono">₹{{ m.securityDeposit }}</p>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase font-bold">Location</p>
@@ -97,16 +106,26 @@
             </div>
 
             <!-- Driver & Fuel Inclusions -->
-            <div class="flex items-center gap-4 text-xs pt-1">
-              <div class="flex items-center gap-1.5" [class]="m.isDriverIncluded ? 'text-emerald-400' : 'text-slate-500 line-through'">
-                <mat-icon class="!w-4 !h-4 !text-sm">{{ m.isDriverIncluded ? 'check_circle' : 'cancel' }}</mat-icon>
-                <span>Driver Included</span>
+            <div class="flex items-center gap-4 text-xs pt-1 flex-wrap">
+              <div class="flex items-center gap-1.5" [class]="m.driverAvailable ? 'text-emerald-400' : 'text-slate-500'">
+                <mat-icon class="!w-4 !h-4 !text-sm">{{ m.driverAvailable ? 'person' : 'no_accounts' }}</mat-icon>
+                <span>{{ m.driverAvailable ? 'Driver Available (+₹' + m.driverChargePerDay + '/day)' : 'Self-Drive Only (No Driver Available)' }}</span>
               </div>
               <div class="flex items-center gap-1.5" [class]="m.isFuelIncluded ? 'text-emerald-400' : 'text-slate-500 line-through'">
                 <mat-icon class="!w-4 !h-4 !text-sm">{{ m.isFuelIncluded ? 'check_circle' : 'cancel' }}</mat-icon>
                 <span>Fuel Included</span>
               </div>
             </div>
+
+            <!-- Optional Driver Details -->
+            @if (m.driverAvailable && (m.driverName || m.driverPhone || m.driverNotes)) {
+              <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 space-y-1 text-xs">
+                <p class="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Driver Details</p>
+                @if (m.driverName) { <p class="text-slate-200"><strong>Name:</strong> {{ m.driverName }}</p> }
+                @if (m.driverPhone) { <p class="text-slate-200"><strong>Phone:</strong> {{ m.driverPhone }}</p> }
+                @if (m.driverNotes) { <p class="text-slate-400 text-[11px]"><em>{{ m.driverNotes }}</em></p> }
+              </div>
+            }
 
             <!-- Description -->
             @if (m.description) {
@@ -141,83 +160,134 @@
               <mat-icon class="text-amber-500">calendar_month</mat-icon> Book Rental
             </h2>
 
-            <!-- Date Range Selector -->
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-bold text-slate-400 mb-1">Start Date</label>
-                <input
-                  type="date"
-                  [min]="minStartDate"
-                  [(ngModel)]="startDate"
-                  (change)="onDatesChanged()"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
-                />
+            <!-- Self-Rental Warning -->
+            @if (m.isOwnedByCurrentUser) {
+              <div class="p-4 bg-amber-950/60 border border-amber-800/80 rounded-xl text-amber-300 text-xs space-y-1">
+                <p class="font-bold flex items-center gap-1"><mat-icon class="!w-4 !h-4 !text-sm">info</mat-icon> You own this machinery listing.</p>
+                <p class="text-amber-200/80">Self-rental is not allowed. You can manage your listing or check incoming rental requests from your dashboard.</p>
               </div>
+            } @else {
 
-              <div>
-                <label class="block text-xs font-bold text-slate-400 mb-1">End Date</label>
-                <input
-                  type="date"
-                  [min]="startDate() || minStartDate"
-                  [(ngModel)]="endDate"
-                  (change)="onDatesChanged()"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-slate-400 mb-1">Payment Method</label>
-                <select
-                  [(ngModel)]="paymentMethod"
-                  class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
-                >
-                  <option value="Upi">UPI Payment</option>
-                  <option value="Card">Credit / Debit Card</option>
-                  <option value="BankTransfer">Bank Transfer</option>
-                  <option value="Cash">Cash on Handover</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Booking Validation Error -->
-            @if (bookingError()) {
-              <div class="p-3 bg-red-950/60 border border-red-800 rounded-xl text-red-300 text-xs flex items-center gap-1.5">
-                <mat-icon class="!w-4 !h-4 !text-sm text-red-400">error</mat-icon>
-                <span>{{ bookingError() }}</span>
-              </div>
-            }
-
-            <!-- Calculated Financial Breakdown -->
-            @if (calculatedDays() > 0 && !bookingError()) {
-              <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-2 text-xs">
-                <div class="flex justify-between text-slate-400">
-                  <span>₹{{ m.dailyRent }} × {{ calculatedDays() }} days</span>
-                  <span class="font-mono text-slate-200">₹{{ calculatedTotalRent() }}</span>
+              <!-- Date Range & Driver Options -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    [min]="minStartDate"
+                    [(ngModel)]="startDate"
+                    (change)="onDatesChanged()"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
                 </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>Security Deposit (Refundable)</span>
-                  <span class="font-mono text-slate-200">₹{{ m.securityDeposit }}</span>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    [min]="startDate() || minStartDate"
+                    [(ngModel)]="endDate"
+                    (change)="onDatesChanged()"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
                 </div>
-                <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-sm font-bold">
-                  <span class="text-white">Total Payable</span>
-                  <span class="text-amber-400 font-mono text-lg font-black">₹{{ calculatedTotalPayable() }}</span>
+
+                <!-- Driver Choice Selection -->
+                <div class="space-y-2 pt-1 border-t border-slate-800">
+                  <label class="block text-xs font-bold text-slate-400">Driver Option</label>
+
+                  @if (m.driverAvailable) {
+                    <div class="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      <label class="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="driverChoice"
+                          [checked]="!driverRequired()"
+                          (change)="onDriverOptionChanged(false)"
+                          class="text-amber-500 focus:ring-0"
+                        />
+                        <span><strong>I will drive myself</strong> (No extra charge)</span>
+                      </label>
+
+                      <label class="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="driverChoice"
+                          [checked]="driverRequired()"
+                          (change)="onDriverOptionChanged(true)"
+                          class="text-amber-500 focus:ring-0"
+                        />
+                        <span><strong>I want a driver</strong> (+₹{{ m.driverChargePerDay }}/day)</span>
+                      </label>
+                    </div>
+                  } @else {
+                    <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 text-xs text-slate-400 italic">
+                      🚫 Driver unavailable for this machinery. Self-drive only.
+                    </div>
+                  }
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Payment Method</label>
+                  <select
+                    [(ngModel)]="paymentMethod"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="Upi">UPI Payment</option>
+                    <option value="Card">Credit / Debit Card</option>
+                    <option value="BankTransfer">Bank Transfer</option>
+                    <option value="Cash">Cash on Handover</option>
+                  </select>
                 </div>
               </div>
-            }
 
-            <!-- Submit Button -->
-            <button
-              [disabled]="calculatedDays() <= 0 || !!bookingError() || isBooking()"
-              (click)="confirmBooking()"
-              mat-flat-button
-              class="!w-full !bg-amber-600 hover:!bg-amber-500 disabled:!bg-slate-800 !text-white !rounded-xl text-xs font-black py-3"
-            >
-              @if (isBooking()) {
-                Processing Payment...
-              } @else {
-                Pay & Confirm Rental
+              <!-- Booking Validation Error -->
+              @if (bookingError()) {
+                <div class="p-3 bg-red-950/60 border border-red-800 rounded-xl text-red-300 text-xs flex items-center gap-1.5">
+                  <mat-icon class="!w-4 !h-4 !text-sm text-red-400">error</mat-icon>
+                  <span>{{ bookingError() }}</span>
+                </div>
               }
-            </button>
+
+              <!-- Calculated Financial Breakdown -->
+              @if (calculatedDays() > 0 && !bookingError()) {
+                <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-2 text-xs">
+                  <div class="flex justify-between text-slate-400">
+                    <span>Machinery Rent (₹{{ m.dailyRent }} × {{ calculatedDays() }}d)</span>
+                    <span class="font-mono text-slate-200">₹{{ calculatedMachineryAmount() }}</span>
+                  </div>
+                  @if (driverRequired() && m.driverAvailable) {
+                    <div class="flex justify-between text-emerald-400">
+                      <span>Driver Charge (₹{{ m.driverChargePerDay }} × {{ calculatedDays() }}d)</span>
+                      <span class="font-mono text-emerald-300">₹{{ calculatedDriverAmount() }}</span>
+                    </div>
+                  }
+                  <div class="flex justify-between text-slate-400">
+                    <span>Security Deposit (Refundable)</span>
+                    <span class="font-mono text-slate-200">₹{{ m.securityDeposit }}</span>
+                  </div>
+                  <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-sm font-bold">
+                    <span class="text-white">Total Payable</span>
+                    <span class="text-amber-400 font-mono text-lg font-black">₹{{ calculatedTotalPayable() }}</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Submit Button -->
+              <button
+                [disabled]="calculatedDays() <= 0 || !!bookingError() || isBooking()"
+                (click)="confirmBooking()"
+                mat-flat-button
+                class="!w-full !bg-amber-600 hover:!bg-amber-500 disabled:!bg-slate-800 !text-white !rounded-xl text-xs font-black py-3"
+              >
+                @if (isBooking()) {
+                  Processing Payment...
+                } @else {
+                  Pay & Confirm Rental
+                }
+              </button>
+            }
+
           </div>
         </div>
 

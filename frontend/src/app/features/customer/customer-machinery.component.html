@@ -10,34 +10,37 @@
         <p class="text-sm text-slate-400">Rent tractors, harvesters, seed drills, and heavy farming equipment near you.</p>
       </div>
       <div class="flex items-center gap-3">
-        <a routerLink="/customer/my-rentals" mat-button class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
+        <a [routerLink]="myRentalsRoute" mat-button class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
           <mat-icon class="!w-4 !h-4 !text-sm">receipt_long</mat-icon> My Bookings
         </a>
-        <a routerLink="/farmer/machinery" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
+        <a [routerLink]="newMachineryRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
           <mat-icon class="!w-4 !h-4 !text-sm">add</mat-icon> List My Machinery
         </a>
       </div>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter & Search Bar -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Search Name -->
-        <div>
-          <label class="block text-[11px] font-bold text-slate-400 mb-1">Search Name / Brand</label>
+
+        <!-- Unified Search -->
+        <div class="md:col-span-2">
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Search Keywords</label>
           <input
             type="text"
-            [(ngModel)]="nameSearch"
-            placeholder="e.g. John Deere, Mahindra"
+            [(ngModel)]="search"
+            (keyup.enter)="applyFilters()"
+            placeholder="Search name, brand, model, city, location..."
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
           />
         </div>
 
-        <!-- Category -->
+        <!-- Category Filter -->
         <div>
           <label class="block text-[11px] font-bold text-slate-400 mb-1">Category</label>
           <select
             [(ngModel)]="selectedCategory"
+            (change)="applyFilters()"
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
           >
             <option value="">All Categories</option>
@@ -47,7 +50,58 @@
           </select>
         </div>
 
-        <!-- City -->
+        <!-- Sort By -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Sort By</label>
+          <select
+            [(ngModel)]="sortBy"
+            (change)="applyFilters()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+          </select>
+        </div>
+
+        <!-- Min Rent -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Min Daily Rent (₹)</label>
+          <input
+            type="number"
+            [(ngModel)]="minPrice"
+            placeholder="e.g. 500"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Max Rent -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Max Daily Rent (₹)</label>
+          <input
+            type="number"
+            [(ngModel)]="maxPrice"
+            placeholder="e.g. 5000"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
+        <!-- Driver Options Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Driver Availability</label>
+          <select
+            [(ngModel)]="driverAvailableFilter"
+            (change)="applyFilters()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+          >
+            <option value="all">All Options</option>
+            <option value="true">Driver Available</option>
+            <option value="false">Self-Drive Only</option>
+          </select>
+        </div>
+
+        <!-- City Filter -->
         <div>
           <label class="block text-[11px] font-bold text-slate-400 mb-1">City / Location</label>
           <input
@@ -58,39 +112,35 @@
           />
         </div>
 
-        <!-- Max Daily Rent -->
+        <!-- Date Availability Filter -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-400 mb-1">Max Daily Rent (₹)</label>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Available From</label>
           <input
-            type="number"
-            [(ngModel)]="maxPrice"
-            placeholder="e.g. 5000"
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            type="date"
+            [(ngModel)]="startDate"
+            (change)="applyFilters()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
           />
         </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Available Until</label>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            (change)="applyFilters()"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+
       </div>
 
-      <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-        <div class="flex items-center gap-4 text-xs">
-          <label class="flex items-center gap-2 cursor-pointer text-slate-300">
-            <input
-              type="checkbox"
-              [ngModel]="driverFilter() === true"
-              (ngModelChange)="driverFilter.set($event ? true : undefined)"
-              class="rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-0"
-            />
-            <span>Driver Included</span>
-          </label>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button (click)="resetFilters()" mat-button class="!text-slate-400 hover:!text-white text-xs">
-            Reset
-          </button>
-          <button (click)="applyFilters()" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold px-4">
-            Search
-          </button>
-        </div>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button (click)="resetFilters()" mat-button class="!text-slate-400 hover:!text-white text-xs">
+          Clear All
+        </button>
+        <button (click)="applyFilters()" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold px-6">
+          Apply Filters
+        </button>
       </div>
     </div>
 
@@ -113,11 +163,11 @@
     @if (!isLoading() && !errorMessage() && result()?.items?.length === 0) {
       <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
         <span class="text-6xl">🚜</span>
-        <p class="text-slate-400 font-semibold text-base">No machinery found matching your search.</p>
-        <p class="text-xs text-slate-500">Try adjusting your filters or search criteria.</p>
+        <p class="text-slate-400 font-semibold text-base">No machinery found matching your search criteria.</p>
+        <p class="text-xs text-slate-500">Try adjusting your filters or date availability.</p>
         <div class="pt-2">
           <button (click)="resetFilters()" mat-flat-button class="!bg-slate-800 hover:!bg-slate-700 !text-white !rounded-xl text-xs font-bold">
-            Clear Filters
+            Clear All Filters
           </button>
         </div>
       </div>
@@ -139,9 +189,16 @@
 
               <!-- Badges Overlay -->
               <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
-                <span class="bg-slate-900/90 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
-                  {{ m.category }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="bg-slate-900/90 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                    {{ m.category }}
+                  </span>
+                  @if (m.isOwnedByCurrentUser) {
+                    <span class="bg-blue-900/90 backdrop-blur-md text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      Your Listing
+                    </span>
+                  }
+                </div>
 
                 <app-wishlist-button
                   itemType="Machinery"
@@ -171,7 +228,12 @@
               <div class="flex items-center gap-2 flex-wrap text-[10px]">
                 @if (m.isDriverIncluded) {
                   <span class="bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded-md font-semibold">👨‍✈️ Driver Included</span>
+                } @else if (m.driverAvailable) {
+                  <span class="bg-amber-950/60 text-amber-300 border border-amber-800/60 px-2 py-0.5 rounded-md font-semibold">👨‍✈️ Driver Available (+₹{{ m.driverChargePerDay }}/d)</span>
+                } @else {
+                  <span class="bg-slate-950/60 text-slate-400 border border-slate-800/60 px-2 py-0.5 rounded-md font-semibold">🚫 Self-Drive Only</span>
                 }
+
                 @if (m.isFuelIncluded) {
                   <span class="bg-sky-950/60 text-sky-300 border border-sky-800/60 px-2 py-0.5 rounded-md font-semibold">⛽ Fuel Included</span>
                 }
@@ -189,12 +251,20 @@
                 </div>
               </div>
 
-              <!-- Book Action -->
-              <a [routerLink]="['/customer/machinery', m.id]"
-                 mat-flat-button
-                 class="!w-full !bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold py-2 mt-2">
-                View & Book Rental
-              </a>
+              <!-- Book or Manage Action Button -->
+              @if (m.isOwnedByCurrentUser) {
+                <a [routerLink]="getEditRoute(m.id)"
+                   mat-flat-button
+                   class="!w-full !bg-slate-800 hover:!bg-slate-700 !text-white !rounded-xl text-xs font-bold py-2 mt-2 border border-slate-700">
+                  Manage Listing
+                </a>
+              } @else {
+                <a [routerLink]="getDetailRoute(m.id)"
+                   mat-flat-button
+                   class="!w-full !bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold py-2 mt-2">
+                  View & Book Rental
+                </a>
+              }
             </div>
           </div>
         }
