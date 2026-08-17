@@ -251,8 +251,8 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/notification/notification-center.component').then(
-            (module) => module.NotificationCenterComponent,
+          import('./features/farmer/farmer-notifications.component').then(
+            (module) => module.FarmerNotificationsComponent,
           ),
       },
       {
@@ -389,8 +389,8 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/notification/notification-center.component').then(
-            (module) => module.NotificationCenterComponent,
+          import('./features/worker/worker-notifications.component').then(
+            (module) => module.WorkerNotificationsComponent,
           ),
       },
       {
@@ -527,8 +527,8 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/notification/notification-center.component').then(
-            (module) => module.NotificationCenterComponent,
+          import('./features/customer/customer-notifications.component').then(
+            (module) => module.CustomerNotificationsComponent,
           ),
       },
       {
