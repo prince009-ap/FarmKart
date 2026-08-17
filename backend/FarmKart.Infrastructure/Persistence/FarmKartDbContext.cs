@@ -49,6 +49,8 @@ public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> option
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<UserReport> Reports => Set<UserReport>();
+    public DbSet<UserDispute> Disputes => Set<UserDispute>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

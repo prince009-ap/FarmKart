@@ -251,8 +251,29 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/farmer/farmer-notifications.component').then(
-            (module) => module.FarmerNotificationsComponent,
+          import('./features/notification/notification-center.component').then(
+            (module) => module.NotificationCenterComponent,
+          ),
+      },
+      {
+        path: 'my-reports',
+        loadComponent: () =>
+          import('./features/report/my-reports.component').then(
+            (module) => module.MyReportsComponent,
+          ),
+      },
+      {
+        path: 'my-disputes',
+        loadComponent: () =>
+          import('./features/dispute/my-disputes.component').then(
+            (module) => module.MyDisputesComponent,
+          ),
+      },
+      {
+        path: 'disputes/:id',
+        loadComponent: () =>
+          import('./features/dispute/dispute-detail.component').then(
+            (module) => module.DisputeDetailComponent,
           ),
       },
     ],
@@ -354,8 +375,29 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/worker/worker-notifications.component').then(
-            (module) => module.WorkerNotificationsComponent,
+          import('./features/notification/notification-center.component').then(
+            (module) => module.NotificationCenterComponent,
+          ),
+      },
+      {
+        path: 'my-reports',
+        loadComponent: () =>
+          import('./features/report/my-reports.component').then(
+            (module) => module.MyReportsComponent,
+          ),
+      },
+      {
+        path: 'my-disputes',
+        loadComponent: () =>
+          import('./features/dispute/my-disputes.component').then(
+            (module) => module.MyDisputesComponent,
+          ),
+      },
+      {
+        path: 'disputes/:id',
+        loadComponent: () =>
+          import('./features/dispute/dispute-detail.component').then(
+            (module) => module.DisputeDetailComponent,
           ),
       },
     ],
@@ -471,8 +513,29 @@ export const routes: Routes = [
       {
         path: 'notifications',
         loadComponent: () =>
-          import('./features/customer/customer-notifications.component').then(
-            (module) => module.CustomerNotificationsComponent,
+          import('./features/notification/notification-center.component').then(
+            (module) => module.NotificationCenterComponent,
+          ),
+      },
+      {
+        path: 'my-reports',
+        loadComponent: () =>
+          import('./features/report/my-reports.component').then(
+            (module) => module.MyReportsComponent,
+          ),
+      },
+      {
+        path: 'my-disputes',
+        loadComponent: () =>
+          import('./features/dispute/my-disputes.component').then(
+            (module) => module.MyDisputesComponent,
+          ),
+      },
+      {
+        path: 'disputes/:id',
+        loadComponent: () =>
+          import('./features/dispute/dispute-detail.component').then(
+            (module) => module.DisputeDetailComponent,
           ),
       },
       {

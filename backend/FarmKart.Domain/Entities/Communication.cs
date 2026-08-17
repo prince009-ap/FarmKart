@@ -37,6 +37,9 @@ public sealed class Notification : BaseEntity
     public string Message { get; set; } = string.Empty;
     public NotificationType NotificationType { get; set; } = NotificationType.General;
     public bool IsRead { get; set; }
+    public DateTime? ReadAtUtc { get; set; }
+    public string Priority { get; set; } = "Normal";
+    public string? ActionUrl { get; set; }
     public Guid? RelatedEntityId { get; set; }
     public Guid? RelatedOrderId { get; set; }
     public Guid? RelatedAuctionId { get; set; }

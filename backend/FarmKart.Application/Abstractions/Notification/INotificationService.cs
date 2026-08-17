@@ -17,8 +17,11 @@ public interface INotificationService
         Guid? relatedEntityId = null,
         Guid? relatedOrderId = null,
         Guid? relatedAuctionId = null,
+        string priority = "Normal",
+        string? actionUrl = null,
         CancellationToken cancellationToken = default);
 
+    Task<PagedNotificationResponse> GetPagedNotificationsAsync(Guid userId, NotificationQueryRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<NotificationResponse>> GetNotificationsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<WorkerNotificationResponse>> GetWorkerNotificationsAsync(Guid userId);
     Task<UnreadNotificationCountResponse> GetUnreadCountAsync(Guid userId);
