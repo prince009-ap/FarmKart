@@ -210,7 +210,10 @@ public enum NotificationType
     OrderDelivered = 17,
     OrderCompleted = 18,
     AuctionOrderCreated = 19,
-    SettlementCompleted = 20
+    SettlementCompleted = 20,
+    ReportDispute = 21,
+    DriverRequested = 22,
+    ReviewReceived = 23
 }
 
 public enum ReviewEntityType
@@ -245,4 +248,42 @@ public enum WishlistItemType
     Crop = 1,
     Auction = 2,
     Machinery = 3
+}
+
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ReportTargetType
+{
+    Auction = 1,
+    Machinery = 2,
+    Review = 3,
+    User = 4
+}
+
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ReportStatus
+{
+    Open = 1,
+    UnderReview = 2,
+    Resolved = 3,
+    Rejected = 4,
+    Closed = 5
+}
+
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum DisputeEntityType
+{
+    Order = 1,
+    Payment = 2,
+    AuctionAllocation = 3,
+    MachineryRental = 4
+}
+
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum DisputeStatus
+{
+    Open = 1,
+    UnderReview = 2,
+    Resolved = 3,
+    Rejected = 4,
+    Closed = 5
 }

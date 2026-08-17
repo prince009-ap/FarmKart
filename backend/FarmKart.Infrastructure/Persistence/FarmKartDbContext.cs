@@ -50,6 +50,8 @@ public sealed class FarmKartDbContext(DbContextOptions<FarmKartDbContext> option
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
     public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
+    public DbSet<UserReport> Reports => Set<UserReport>();
+    public DbSet<UserDispute> Disputes => Set<UserDispute>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

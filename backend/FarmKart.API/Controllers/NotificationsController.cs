@@ -12,15 +12,15 @@ namespace FarmKart.API.Controllers;
 public sealed class NotificationsController(INotificationService notificationService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetNotifications(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetNotifications([FromQuery] NotificationQueryRequest request, CancellationToken cancellationToken)
     {
         if (GetCurrentUserId() is not { } userId)
         {
             return Unauthorized();
         }
 
-        var notifications = await notificationService.GetNotificationsAsync(userId, cancellationToken);
-        return Ok(notifications);
+        var result = await notificationService.GetPagedNotificationsAsync(userId, request, cancellationToken);
+        return Ok(result);
     }
 
     [HttpGet("unread-count")]
