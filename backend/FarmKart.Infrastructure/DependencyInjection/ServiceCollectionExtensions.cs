@@ -62,6 +62,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMachineryService, MachineryService>();
         services.AddScoped<IMachineryRentalService, MachineryRentalService>();
         services.AddScoped<IMachineryReviewService, MachineryReviewService>();
+        services.AddScoped<IFarmerAnalyticsService, FarmerAnalyticsService>();
+        services.AddScoped<ICustomerAnalyticsService, CustomerAnalyticsService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

@@ -178,6 +178,24 @@ These are application profiles only. They store business-facing profile data and
 - `MachineryDamageReport` and image children preserve post-rental issue history
 - Delete behaviors are restrictive on rental history to protect completed records
 
+## Analytics Data Model & Services (Phase 8.6 & Phase 8.7)
+
+- **Farmer Analytics Service (`IFarmerAnalyticsService` / `FarmerAnalyticsService`)**:
+  - Scoped strictly to `authenticatedFarmerUserId` claims.
+  - Aggregates real DB metrics across Auctions (`Draft`, `Scheduled`, `Live`, `Ended`, `Finalized`), Stock/Listings (`QuantityListedKg`, `QuantitySoldKg`, `QuantityRemainingKg`), Orders & Revenue (`OrderStatus.Completed` / `Delivered` settled revenue), Reviews & Rating distribution (`FiveStar`, `FourStar`, etc.), Machinery Ownership rental income & driver revenue, and Bi-directional machinery rentals spending.
+  - Generates time-series daily data points for Revenue, Quantity Sold, and Orders over time.
+  - Produces top selling crop rankings, auction performance tables, and top rented machinery tables.
+- **Customer Analytics Service (`ICustomerAnalyticsService` / `CustomerAnalyticsService`)**:
+  - Scoped strictly to `authenticatedCustomerUserId` claims.
+  - Aggregates real DB metrics across Auctions Participated, Bids Placed, Winning Bids, Winning Rate Percentage (`(WinningBids / Participated) * 100`), Quantity Purchased (`AllocatedQuantityKg` & `Man` respecting partial allocation), Crop Spending, Average Order Value (AOV), Highest Order Value, Machinery Rental Spending, Driver Spending, Customer Machinery Ownership income, Reviews written, and Wishlist count.
+  - Generates time-series daily data points for Spending and Bidding activity over time.
+  - Produces top purchased crop rankings and machinery rental history tables.
+- **Date Range Engine (`AnalyticsDateHelper`)**:
+  - Converts pre-defined enum ranges (`Today`, `Last7Days`, `Last30Days`, `ThisMonth`, `LastMonth`, `ThisYear`) and `Custom` ranges into UTC boundaries (`[fromDateUtc, toDateUtc]`).
+- **Reusable Frontend Visualizations (`AnalyticsChartComponent` & `AnalyticsDateFilterComponent`)**:
+  - `AnalyticsChartComponent`: Lightweight, zero-dependency SVG line/bar chart supporting dark theme, grid ticks, min/max calculation, total aggregation, hover tooltips, and crisp zero-state handling.
+  - `AnalyticsDateFilterComponent`: Dropdown date filter emitting UTC boundary updates.
+
 ## Marketplace Data Model
 
 - Farmers create `Crop` records and `CropListing` sale offers

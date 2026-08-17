@@ -190,6 +190,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
                 .Include(a => a.Allocations)
                 .Include(a => a.Bids)
                 .Include(a => a.CropListing)
+                    .ThenInclude(l => l.Crop)
                 .FirstOrDefaultAsync(a => a.Id == auctionId, cancellationToken);
 
             if (auction == null)
@@ -261,8 +262,11 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
             }
 
             // Maintain legacy primary winner reference if allocations exist
-            var primaryWinningAllocation = dbContext.AuctionAllocations.Local
+            var winningAllocations = dbContext.AuctionAllocations.Local
                 .Where(a => a.AuctionId == auction.Id && a.AllocatedQuantityKg > 0)
+                .ToList();
+
+            var primaryWinningAllocation = winningAllocations
                 .OrderByDescending(a => a.WinningBidAmountPerMan)
                 .ThenBy(a => a.FinalizedAtUtc)
                 .FirstOrDefault();
@@ -279,6 +283,25 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
                 };
                 dbContext.AuctionWinners.Add(winner);
                 auction.CurrentHighestBid = primaryWinningAllocation.WinningBidAmountPerMan;
+            }
+
+            // Deduct total sold quantity from Crop stock
+            var totalSoldKg = winningAllocations.Sum(a => a.AllocatedQuantityKg);
+            if (totalSoldKg > 0 && auction.CropListing?.Crop != null)
+            {
+                var crop = auction.CropListing.Crop;
+                crop.Quantity = Math.Max(0m, crop.Quantity - totalSoldKg);
+
+                var stockTx = new CropStockTransaction
+                {
+                    CropId = crop.Id,
+                    Quantity = -totalSoldKg,
+                    Unit = MeasurementUnit.Kilogram,
+                    QuantityInBaseUnit = -totalSoldKg,
+                    TransactionType = CropStockTransactionType.Adjustment,
+                    Notes = $"Auction sold: {totalSoldKg} Kg (Auction #{auction.Id.ToString()[..8].ToUpper()})"
+                };
+                dbContext.CropStockTransactions.Add(stockTx);
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);

@@ -81,6 +81,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./features/farmer/farmer-analytics.component').then(
+            (module) => module.FarmerAnalyticsComponent,
+          ),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/farmer/farmer-profile.component').then(
@@ -368,6 +375,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-dashboard.component').then(
             (module) => module.CustomerDashboardComponent,
+          ),
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./features/customer/customer-analytics.component').then(
+            (module) => module.CustomerAnalyticsComponent,
           ),
       },
       {

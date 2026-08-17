@@ -42,6 +42,7 @@ export class FarmerShellComponent implements OnInit {
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', route: '/farmer', icon: 'dashboard' },
+    { label: 'Analytics', route: '/farmer/analytics', icon: 'bar_chart' },
     { label: 'My Profile', route: '/farmer/profile', icon: 'person' },
     { label: 'Jobs', route: '/farmer/jobs', icon: 'work' },
     { label: 'My Crops', route: '/farmer/crops', icon: 'eco' },

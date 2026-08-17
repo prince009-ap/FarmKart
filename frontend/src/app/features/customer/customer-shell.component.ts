@@ -38,6 +38,7 @@ export class CustomerShellComponent implements OnInit {
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', route: '/customer', icon: 'dashboard' },
+    { label: 'Analytics', route: '/customer/analytics', icon: 'insights' },
     { label: 'Browse Auctions', route: '/customer/auctions', icon: 'gavel' },
     { label: 'Rent Machinery', route: '/customer/machinery', icon: 'storefront' },
     { label: 'My Machinery', route: '/customer/my-machinery', icon: 'construction' },

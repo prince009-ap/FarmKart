@@ -288,9 +288,20 @@ public sealed class FarmerAuctionService(FarmKartDbContext dbContext) : IFarmerA
         var variety = crop?.Variety;
         var primaryImage = crop?.Images?.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? crop?.Images?.FirstOrDefault()?.ImageUrl;
 
-        var totalStock = cropId != Guid.Empty
-            ? await dbContext.CropStockTransactions.Where(t => t.CropId == cropId).SumAsync(t => (decimal?)t.QuantityInBaseUnit, ct) ?? 0m
+        decimal harvestBase = cropId != Guid.Empty
+            ? await dbContext.CropStockTransactions.Where(t => t.CropId == cropId && t.TransactionType == CropStockTransactionType.Harvest).SumAsync(t => (decimal?)t.QuantityInBaseUnit, ct) ?? 0m
             : 0m;
+
+        if (harvestBase == 0m && cropListing?.Crop != null)
+        {
+            harvestBase = cropListing.Crop.Quantity;
+        }
+
+        decimal adjustments = cropId != Guid.Empty
+            ? await dbContext.CropStockTransactions.Where(t => t.CropId == cropId && t.TransactionType != CropStockTransactionType.Harvest).SumAsync(t => (decimal?)t.QuantityInBaseUnit, ct) ?? 0m
+            : 0m;
+
+        var totalStock = Math.Max(0m, harvestBase + adjustments);
 
         var now = DateTime.UtcNow;
         var reserved = cropId != Guid.Empty
@@ -317,20 +328,29 @@ public sealed class FarmerAuctionService(FarmKartDbContext dbContext) : IFarmerA
         var totalAllocatedMan = AuctionPricingConstants.ConvertKgToMan(totalAllocatedKg);
         var remainingKg = Math.Max(0m, kg - totalAllocatedKg);
 
-        var winningAllocations = allocations.Where(al => al.AllocatedQuantityKg > 0).ToList();
-        var winnersCount = winningAllocations.Count;
+        var winningAllocations = allocations
+            .Where(al => (al.Status == AllocationStatus.Won || al.Status == AllocationStatus.PartiallyWon) && al.AllocatedQuantityKg > 0)
+            .ToList();
+
+        var winningCustomerIds = winningAllocations.Select(al => al.CustomerProfileId).Distinct().ToList();
+        var winnersCount = winningCustomerIds.Count;
         decimal? winningBidAmount = winningAllocations.Count > 0 ? winningAllocations.Max(al => al.WinningBidAmountPerMan) : null;
 
         FarmerAuctionPaymentSummary? paymentSummary = null;
-        if (effectiveStatusEnum == AuctionStatus.Ended && winningAllocations.Count > 0)
+        if (effectiveStatusEnum == AuctionStatus.Ended && winnersCount > 0)
         {
             var payments = (auction.AuctionPayments ?? []).ToList();
-            var paidPayments = payments.Where(p => p.PaymentStatus == PaymentStatus.Paid).ToList();
+            var paidCustomerIds = payments
+                .Where(p => p.PaymentStatus == PaymentStatus.Paid)
+                .Select(p => p.CustomerProfileId)
+                .Distinct()
+                .Where(id => winningCustomerIds.Contains(id))
+                .ToList();
 
             decimal totalWinningAmt = winningAllocations.Sum(al => Math.Round(AuctionPricingConstants.ConvertKgToMan(al.AllocatedQuantityKg) * al.WinningBidAmountPerMan, 2));
-            decimal paidAmt = paidPayments.Sum(p => p.Amount);
+            decimal paidAmt = payments.Where(p => p.PaymentStatus == PaymentStatus.Paid).Sum(p => p.Amount);
             decimal pendingAmt = Math.Max(0m, totalWinningAmt - paidAmt);
-            int paidCount = paidPayments.Select(p => p.CustomerProfileId).Distinct().Count();
+            int paidCount = paidCustomerIds.Count;
             int pendingCount = Math.Max(0, winnersCount - paidCount);
 
             paymentSummary = new FarmerAuctionPaymentSummary(

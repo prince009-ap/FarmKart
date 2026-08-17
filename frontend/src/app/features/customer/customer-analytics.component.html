@@ -1,0 +1,241 @@
+<div class="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+    
+    <!-- Top Header & Date Filter Bar -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="p-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <mat-icon class="!w-6 !h-6 text-2xl">insights</mat-icon>
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Customer Analytics Dashboard</h1>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1 pl-11 font-medium">
+          Personal crop purchase history, bidding activity, spending trends, and machinery rentals.
+        </p>
+      </div>
+
+      <!-- Date Filter -->
+      <app-analytics-date-filter (dateRangeChange)="onDateFilterChange($event)"></app-analytics-date-filter>
+    </div>
+
+    <!-- Error State -->
+    @if (errorMessage()) {
+      <div class="p-6 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-center space-y-3">
+        <mat-icon class="!w-10 !h-10 text-rose-400 text-4xl">error_outline</mat-icon>
+        <p class="text-sm text-rose-200 font-semibold">{{ errorMessage() }}</p>
+        <button mat-flat-button color="warn" (click)="loadAnalytics()" class="!rounded-xl font-bold text-xs">
+          <mat-icon class="!w-4 !h-4 text-xs">refresh</mat-icon> Retry Loading
+        </button>
+      </div>
+    }
+
+    <!-- Loading Skeletons -->
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+        <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="h-32 bg-slate-900/60 rounded-2xl border border-slate-800/60"></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-pulse mt-6">
+        <div class="h-64 bg-slate-900/60 rounded-2xl border border-slate-800/60"></div>
+        <div class="h-64 bg-slate-900/60 rounded-2xl border border-slate-800/60"></div>
+      </div>
+    }
+
+    <!-- Data Loaded Dashboard Content -->
+    @if (!isLoading() && analyticsData(); as d) {
+      
+      <!-- 1. KPI SUMMARY CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Crop Spending Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/50 to-slate-900/80 border border-emerald-800/40 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Crop Spending</span>
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">🛒</div>
+          </div>
+          <p class="text-2xl sm:text-3xl font-black text-white mt-3">₹{{ d.totalCropSpending | number:'1.0-0' }}</p>
+          <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
+            <span class="text-emerald-400 font-bold">{{ d.completedOrders }} Orders Completed</span>
+            <span>• Avg ₹{{ d.averageOrderValue | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <!-- Quantity Purchased Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-950/50 to-slate-900/80 border border-amber-800/40 shadow-xl relative overflow-hidden group hover:border-amber-500/50 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Quantity Purchased</span>
+            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">📦</div>
+          </div>
+          <p class="text-2xl sm:text-3xl font-black text-white mt-3">{{ d.totalQuantityPurchasedMan | number:'1.0-1' }} <span class="text-base font-bold text-amber-400">Man</span></p>
+          <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
+            <span>{{ d.totalQuantityPurchasedKg | number:'1.0-0' }} Kg allocated</span>
+          </div>
+        </div>
+
+        <!-- Bidding & Winning Rate Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-sky-950/50 to-slate-900/80 border border-sky-800/40 shadow-xl relative overflow-hidden group hover:border-sky-500/50 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">Winning Rate</span>
+            <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">🏆</div>
+          </div>
+          <div class="flex items-baseline gap-2 mt-3">
+            <p class="text-2xl sm:text-3xl font-black text-white">{{ d.winningRatePercentage }}%</p>
+            <span class="text-xs text-sky-400 font-bold">({{ d.winningBidsCount }} / {{ d.totalAuctionsParticipated }} won)</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2 font-medium">{{ d.totalBidsPlaced }} total bids placed</p>
+        </div>
+
+        <!-- Machinery Rental Spending Card -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-purple-950/50 to-slate-900/80 border border-purple-800/40 shadow-xl relative overflow-hidden group hover:border-purple-500/50 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Rental Spending</span>
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">🚜</div>
+          </div>
+          <p class="text-2xl sm:text-3xl font-black text-white mt-3">₹{{ d.totalMachineryRentalSpending | number:'1.0-0' }}</p>
+          <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
+            <span class="text-purple-400 font-bold">{{ d.completedRentalsCount }} Rentals</span>
+            <span>• Driver ₹{{ d.driverSpending | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECONDARY METRICS BAR -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Highest Order</span>
+          <span class="text-lg font-black text-emerald-400">₹{{ d.highestOrderValue | number:'1.0-0' }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Live Bids</span>
+          <span class="text-lg font-black text-sky-400">{{ d.liveBidsCount }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Avg Duration</span>
+          <span class="text-lg font-black text-purple-400">{{ d.averageRentalDurationDays }} Days</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Driver Rentals</span>
+          <span class="text-lg font-black text-amber-400">{{ d.rentalsWithDriverCount }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Reviews Written</span>
+          <span class="text-lg font-black text-white">{{ d.totalReviewsWritten }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Wishlist Items</span>
+          <span class="text-lg font-black text-emerald-400">{{ d.wishlistCount }}</span>
+        </div>
+      </div>
+
+      <!-- 2. TIME SERIES CHARTS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Spending Over Time -->
+        <app-analytics-chart
+          title="Spending Over Time"
+          [chartData]="d.spendingOverTime"
+          chartType="bar"
+          themeColor="emerald"
+          [isCurrency]="true"
+        ></app-analytics-chart>
+
+        <!-- Bidding Activity Over Time -->
+        <app-analytics-chart
+          title="Bidding Activity Over Time"
+          [chartData]="d.biddingActivityOverTime"
+          chartType="line"
+          themeColor="sky"
+        ></app-analytics-chart>
+      </div>
+
+      <!-- 3. TOP PURCHASED CROPS & RENTAL HISTORY -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Top Purchased Crops -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Top Purchased Crops
+            </h3>
+            <span class="text-[11px] font-semibold text-slate-400">Ranked by purchased quantity</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
+                  <th class="py-2 px-3">Crop Name</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3 text-right">Quantity</th>
+                  <th class="py-2 px-3 text-right">Total Spent</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/50 text-slate-300">
+                @for (c of d.topPurchasedCrops; track c.cropId) {
+                  <tr class="hover:bg-slate-850/50">
+                    <td class="py-2.5 px-3 font-bold text-white">{{ c.cropName }}</td>
+                    <td class="py-2.5 px-3 text-slate-400">{{ c.cropType }}</td>
+                    <td class="py-2.5 px-3 text-right font-semibold">{{ c.totalPurchasedKg | number:'1.0-0' }} Kg <span class="text-[10px] text-amber-400 font-bold">({{ c.totalPurchasedMan }} Man)</span></td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-emerald-400">₹{{ c.totalSpending | number:'1.0-0' }}</td>
+                  </tr>
+                }
+                @if (d.topPurchasedCrops.length === 0) {
+                  <tr>
+                    <td colspan="4" class="py-6 text-center text-slate-500 font-medium">No crop purchases in this date range</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Machinery Rental History -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+              Machinery Rental History
+            </h3>
+            <span class="text-[11px] font-semibold text-slate-400">Recent rentals</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
+                  <th class="py-2 px-3">Machinery</th>
+                  <th class="py-2 px-3">Days</th>
+                  <th class="py-2 px-3">Driver</th>
+                  <th class="py-2 px-3 text-right">Amount</th>
+                  <th class="py-2 px-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/50 text-slate-300">
+                @for (r of d.machineryRentalHistory; track r.rentalId) {
+                  <tr class="hover:bg-slate-850/50">
+                    <td class="py-2.5 px-3 font-bold text-white">{{ r.machineryName }}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-300">{{ r.rentalDays }} days</td>
+                    <td class="py-2.5 px-3 font-semibold" [ngClass]="r.driverSelected ? 'text-emerald-400' : 'text-slate-500'">
+                      {{ r.driverSelected ? 'Included' : 'Self-Drive' }}
+                    </td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-purple-400">₹{{ r.totalAmountPaid | number:'1.0-0' }}</td>
+                    <td class="py-2.5 px-3 text-right">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        {{ r.status }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+                @if (d.machineryRentalHistory.length === 0) {
+                  <tr>
+                    <td colspan="5" class="py-6 text-center text-slate-500 font-medium">No machinery rentals in this date range</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    }
+
+  </div>
+</div>

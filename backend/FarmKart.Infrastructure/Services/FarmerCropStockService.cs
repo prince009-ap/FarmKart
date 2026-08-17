@@ -225,7 +225,13 @@ public sealed class FarmerCropStockService : IFarmerCropStockService
 
     private static CropStockSummaryResponse MapToSummaryResponse(Crop crop)
     {
-        var totalKg = crop.StockTransactions.Sum(t => t.QuantityInBaseUnit);
+        decimal harvestBase = crop.StockTransactions.Any(t => t.TransactionType == CropStockTransactionType.Harvest)
+            ? crop.StockTransactions.Where(t => t.TransactionType == CropStockTransactionType.Harvest).Sum(t => t.QuantityInBaseUnit)
+            : crop.Quantity;
+
+        decimal adjustments = crop.StockTransactions.Where(t => t.TransactionType != CropStockTransactionType.Harvest).Sum(t => t.QuantityInBaseUnit);
+
+        var totalKg = Math.Max(0m, harvestBase + adjustments);
         var lastUpdated = crop.StockTransactions
             .OrderByDescending(t => t.CreatedAtUtc)
             .Select(t => (DateTime?)t.CreatedAtUtc)

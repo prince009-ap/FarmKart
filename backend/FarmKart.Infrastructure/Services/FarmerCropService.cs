@@ -22,6 +22,7 @@ public sealed class FarmerCropService : IFarmerCropService
     public async Task<IReadOnlyList<CropResponse>> GetFarmerCropsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var farmer = await GetFarmerProfileByUserIdAsync(userId, cancellationToken);
+        await EnsureFinalizedAuctionsStockDeductedAsync(farmer.Id, cancellationToken);
 
         var crops = await _dbContext.Crops
             .AsNoTracking()
@@ -450,9 +451,13 @@ public sealed class FarmerCropService : IFarmerCropService
         // written by a buggy version of the code (e.g. double-counted before the
         // EF Core fixup fix). We fall back to crop.Quantity only for crops that
         // have no stock transactions yet (Count == 0).
-        var availableQuantityKg = crop.StockTransactions.Count > 0
-            ? crop.StockTransactions.Sum(t => t.QuantityInBaseUnit)
+        decimal harvestBase = crop.StockTransactions.Any(t => t.TransactionType == CropStockTransactionType.Harvest)
+            ? crop.StockTransactions.Where(t => t.TransactionType == CropStockTransactionType.Harvest).Sum(t => t.QuantityInBaseUnit)
             : crop.Quantity;
+
+        decimal adjustments = crop.StockTransactions.Where(t => t.TransactionType != CropStockTransactionType.Harvest).Sum(t => t.QuantityInBaseUnit);
+
+        var availableQuantityKg = Math.Max(0m, harvestBase + adjustments);
 
         string availableQuantityFormatted;
         if (availableQuantityKg >= 1000m && availableQuantityKg % 100m == 0m)
@@ -494,5 +499,55 @@ public sealed class FarmerCropService : IFarmerCropService
             CreatedAtUtc: crop.CreatedAtUtc,
             UpdatedAtUtc: crop.UpdatedAtUtc
         );
+    }
+
+    private async Task EnsureFinalizedAuctionsStockDeductedAsync(Guid farmerProfileId, CancellationToken cancellationToken)
+    {
+        var finalizedAuctions = await _dbContext.Auctions
+            .Include(a => a.CropListing)
+                .ThenInclude(l => l.Crop)
+            .Include(a => a.Allocations)
+            .Where(a => a.FarmerProfileId == farmerProfileId && (a.AuctionStatus == AuctionStatus.Ended || a.AuctionStatus == AuctionStatus.Finalized))
+            .ToListAsync(cancellationToken);
+
+        bool changesMade = false;
+        foreach (var auction in finalizedAuctions)
+        {
+            var crop = auction.CropListing?.Crop;
+            if (crop == null) continue;
+
+            var winningAllocations = auction.Allocations
+                .Where(al => al.Status == AllocationStatus.Won || al.Status == AllocationStatus.PartiallyWon)
+                .ToList();
+
+            var totalSoldKg = winningAllocations.Sum(al => al.AllocatedQuantityKg);
+            if (totalSoldKg <= 0) continue;
+
+            var noteKey = $"Auction #{auction.Id.ToString()[..8].ToUpper()}";
+            var existingTx = await _dbContext.CropStockTransactions
+                .AsNoTracking()
+                .AnyAsync(t => t.CropId == crop.Id && t.Notes != null && t.Notes.Contains(noteKey), cancellationToken);
+
+            if (!existingTx)
+            {
+                var tx = new CropStockTransaction
+                {
+                    CropId = crop.Id,
+                    Quantity = -totalSoldKg,
+                    Unit = MeasurementUnit.Kilogram,
+                    QuantityInBaseUnit = -totalSoldKg,
+                    TransactionType = CropStockTransactionType.Adjustment,
+                    Notes = $"Auction sale: {totalSoldKg} Kg sold ({noteKey})"
+                };
+                _dbContext.CropStockTransactions.Add(tx);
+                crop.Quantity = Math.Max(0m, crop.Quantity - totalSoldKg);
+                changesMade = true;
+            }
+        }
+
+        if (changesMade)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
