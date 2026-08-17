@@ -7,6 +7,7 @@ public record LoginResult(
     string Email,
     string FullName,
     string Role,
+    string? ProfileImageUrl,
     string Token,
     DateTime ExpiresAt,
     string Message

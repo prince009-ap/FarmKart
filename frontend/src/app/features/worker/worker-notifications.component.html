@@ -28,34 +28,8 @@
     }
   </div>
 
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-      <mat-spinner diameter="40" color="primary"></mat-spinner>
-      <p class="mt-4 text-slate-600 dark:text-slate-400 text-sm font-medium">Loading notifications...</p>
-    </div>
-  }
-
-  <!-- Error State -->
-  @if (loadError()) {
-    <div class="p-4 mb-6 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-start gap-3">
-      <mat-icon class="text-rose-500 shrink-0">error</mat-icon>
-      <div>
-        <h3 class="font-semibold text-sm">Error Loading Notifications</h3>
-        <p class="text-xs mt-0.5">{{ loadError() }}</p>
-        <button
-          mat-button
-          color="warn"
-          class="mt-2 text-xs font-semibold underline"
-          (click)="loadNotifications()">
-          Try Again
-        </button>
-      </div>
-    </div>
-  }
-
   <!-- Notification List -->
-  @if (!loading() && notifications().length > 0) {
+  @if (notifications().length > 0) {
     <div class="space-y-3">
       @for (notif of notifications(); track notif.id) {
         <div
@@ -102,7 +76,7 @@
   }
 
   <!-- Empty State -->
-  @if (!loading() && notifications().length === 0) {
+  @if (notifications().length === 0) {
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 py-16 px-6 text-center">
       <div class="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center mb-4">
         <mat-icon class="!w-8 !h-8 !text-[32px]">notifications_none</mat-icon>

@@ -113,6 +113,7 @@ public class AuthController : ControllerBase
                 Email: result.Email,
                 FullName: result.FullName,
                 Role: result.Role,
+                ProfileImageUrl: result.ProfileImageUrl,
                 ExpiresAt: result.ExpiresAt,
                 Message: result.Message
             );

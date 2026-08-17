@@ -60,7 +60,8 @@ export class AuthService {
           userId: response.userId,
           email: response.email,
           fullName: response.fullName,
-          role: response.role
+          role: response.role,
+          profileImageUrl: response.profileImageUrl
         };
         this.currentUserSubject.next(user);
         this.hasCheckedSession = true;

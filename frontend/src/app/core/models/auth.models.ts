@@ -51,6 +51,7 @@ export interface LoginResponse {
   email: string;
   fullName: string;
   role: string;
+  profileImageUrl?: string | null;
   expiresAt: string;
   message: string;
 }

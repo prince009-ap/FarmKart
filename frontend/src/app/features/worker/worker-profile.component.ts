@@ -95,7 +95,12 @@ export class WorkerProfileComponent implements OnInit {
         this.profile.set(data);
         this.skills.set(data.skills || []);
         this.patchForm(data);
+        this.avatarLoadFailed.set(false);
         this.loading.set(false);
+
+        if (data.profileImageUrl) {
+          this.authService.updateUserProfileImage(data.profileImageUrl);
+        }
 
         // Load Profile Completion & Ratings
         this.loadProfileCompletion();
@@ -135,8 +140,8 @@ export class WorkerProfileComponent implements OnInit {
       experienceDescription: data.experienceDescription || '',
       expectedDailyWage: data.expectedDailyWage,
       profileImageUrl: data.profileImageUrl || '',
-      isAvailable: data.isAvailable ?? true,
-      availableFrom: data.availableFrom || '',
+      isAvailable: data.isAvailable,
+      availableFrom: data.availableFrom ? data.availableFrom.substring(0, 10) : '',
       availabilityNotes: data.availabilityNotes || ''
     });
     this.skills.set(data.skills || []);
@@ -218,7 +223,7 @@ export class WorkerProfileComponent implements OnInit {
       experienceYears: Number(val.experienceYears),
       experienceDescription: val.experienceDescription ? val.experienceDescription.trim() : null,
       expectedDailyWage: Number(val.expectedDailyWage || 0),
-      profileImageUrl: val.profileImageUrl ? val.profileImageUrl.trim() : null,
+      profileImageUrl: this.profile()?.profileImageUrl || (val.profileImageUrl ? val.profileImageUrl.trim() : null),
       skills: this.skills(),
       isAvailable: Boolean(val.isAvailable),
       availableFrom: val.isAvailable && val.availableFrom ? val.availableFrom : null,

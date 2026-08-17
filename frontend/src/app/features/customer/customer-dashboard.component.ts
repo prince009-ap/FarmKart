@@ -44,7 +44,7 @@ export class CustomerDashboardComponent implements OnInit {
       description: 'View your completed purchases and order history.',
       route: '/customer/orders',
       icon: 'shopping_bag',
-      status: 'COMING SOON'
+      status: 'ACTIVE'
     },
     {
       title: 'Payments',
@@ -58,14 +58,14 @@ export class CustomerDashboardComponent implements OnInit {
       description: 'Stay updated about bids, auctions, and orders.',
       route: '/customer/notifications',
       icon: 'notifications',
-      status: 'COMING SOON'
+      status: 'ACTIVE'
     },
     {
       title: 'My Profile',
       description: 'Manage your customer account and personal information.',
       route: '/customer/profile',
       icon: 'person',
-      status: 'COMING SOON'
+      status: 'ACTIVE'
     }
   ];
 

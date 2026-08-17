@@ -11,6 +11,7 @@ public record LoginResponse(
     string Email,
     string FullName,
     string Role,
+    string? ProfileImageUrl,
     DateTime ExpiresAt,
     string Message
 );

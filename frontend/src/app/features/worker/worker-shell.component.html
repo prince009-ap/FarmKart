@@ -10,7 +10,7 @@
     <div class="px-6 py-6 border-b border-amber-900/80 bg-amber-900/20">
       <div class="flex items-center gap-3">
         <div class="w-11 h-11 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 border border-amber-400/30 flex items-center justify-center font-bold text-lg text-white shadow-lg overflow-hidden shrink-0">
-          <img *ngIf="userAvatarUrl()" [src]="userAvatarUrl()" [alt]="userName()" class="w-full h-full object-cover" />
+          <img *ngIf="userAvatarUrl()" [src]="userAvatarUrl()" (error)="userAvatarUrl.set(null)" [alt]="userName()" class="w-full h-full object-cover" />
           <span *ngIf="!userAvatarUrl()">{{ userName().substring(0, 1).toUpperCase() }}</span>
         </div>
         <div class="overflow-hidden">
@@ -67,8 +67,9 @@
 
     <div class="px-6 py-6 border-b border-amber-900/80">
       <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-lg text-white">
-          {{ userName().substring(0, 1).toUpperCase() }}
+        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 border border-amber-400/30 flex items-center justify-center font-bold text-lg text-white shadow-lg overflow-hidden shrink-0">
+          <img *ngIf="userAvatarUrl()" [src]="userAvatarUrl()" (error)="userAvatarUrl.set(null)" [alt]="userName()" class="w-full h-full object-cover" />
+          <span *ngIf="!userAvatarUrl()">{{ userName().substring(0, 1).toUpperCase() }}</span>
         </div>
         <div class="overflow-hidden">
           <p class="font-bold text-sm text-slate-100 truncate">{{ userName() }}</p>

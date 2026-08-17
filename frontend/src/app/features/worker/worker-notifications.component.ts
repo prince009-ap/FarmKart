@@ -27,7 +27,7 @@ export class WorkerNotificationsComponent implements OnInit {
 
   notifications = signal<WorkerNotification[]>([]);
   unreadCount = signal(0);
-  loading = signal(true);
+  loading = signal(false);
   markingAll = signal(false);
   loadError = signal<string | null>(null);
 
@@ -36,7 +36,6 @@ export class WorkerNotificationsComponent implements OnInit {
   }
 
   loadNotifications(): void {
-    this.loading.set(true);
     this.loadError.set(null);
 
     this.workerService.getNotifications().subscribe({
@@ -44,10 +43,8 @@ export class WorkerNotificationsComponent implements OnInit {
         this.notifications.set(data);
         const count = data.filter(n => !n.isRead).length;
         this.unreadCount.set(count);
-        this.loading.set(false);
       },
       error: (err) => {
-        this.loading.set(false);
         this.loadError.set('Failed to load notifications. Please try again.');
       }
     });
