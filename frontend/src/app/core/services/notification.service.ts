@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { NotificationResponse, UnreadCountResponse, NotificationQueryRequest, PagedNotificationResponse } from '../models/notification.models';
 
@@ -28,7 +29,13 @@ export class NotificationService {
   }
 
   getNotifications(): Observable<NotificationResponse[]> {
-    return this.http.get<NotificationResponse[]>(this.apiUrl);
+    return this.http.get<any>(this.apiUrl).pipe(
+      map(res => {
+        if (Array.isArray(res)) return res;
+        if (res && Array.isArray(res.items)) return res.items;
+        return [];
+      })
+    );
   }
 
   getUnreadCount(): Observable<UnreadCountResponse> {

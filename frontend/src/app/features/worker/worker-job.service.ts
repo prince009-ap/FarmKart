@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   ApplyJobRequest,
@@ -90,7 +91,13 @@ export class WorkerJobService {
   }
 
   getNotifications(): Observable<WorkerNotification[]> {
-    return this.http.get<WorkerNotification[]>(`${this.baseUrl}/notifications`, { withCredentials: true });
+    return this.http.get<any>(`${this.baseUrl}/notifications`, { withCredentials: true }).pipe(
+      map(res => {
+        if (Array.isArray(res)) return res;
+        if (res && Array.isArray(res.items)) return res.items;
+        return [];
+      })
+    );
   }
 
   getUnreadNotificationCount(): Observable<UnreadNotificationCount> {
