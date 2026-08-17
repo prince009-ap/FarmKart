@@ -49,6 +49,7 @@ export class CustomerShellComponent implements OnInit {
     { label: 'My Reviews', route: '/customer/reviews', icon: 'star_rate' },
     { label: 'Payments', route: '/customer/payments', icon: 'payments' },
     { label: 'Notifications', route: '/customer/notifications', icon: 'notifications' },
+    { label: 'Settings', route: '/customer/settings', icon: 'settings' },
     { label: 'My Profile', route: '/customer/profile', icon: 'person', isPlaceholder: true }
   ];
 

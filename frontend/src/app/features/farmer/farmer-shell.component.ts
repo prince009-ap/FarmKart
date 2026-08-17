@@ -52,7 +52,8 @@ export class FarmerShellComponent implements OnInit {
     { label: 'Rent Machinery', route: '/farmer/machinery/marketplace', icon: 'storefront' },
     { label: 'My Machinery', route: '/farmer/machinery', icon: 'construction' },
     { label: 'My Rentals', route: '/farmer/my-rentals', icon: 'receipt_long' },
-    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications' }
+    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications' },
+    { label: 'Settings', route: '/farmer/settings', icon: 'settings' }
   ];
 
   ngOnInit(): void {

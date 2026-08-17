@@ -46,6 +46,7 @@ export class WorkerShellComponent implements OnInit {
     { label: 'Work History', route: '/worker/work-history', icon: 'history' },
     { label: 'Job Preferences', route: '/worker/preferences', icon: 'tune' },
     { label: 'Notifications', route: '/worker/notifications', icon: 'notifications' },
+    { label: 'Settings', route: '/worker/settings', icon: 'settings' },
     { label: 'My Profile', route: '/worker/profile', icon: 'person' }
   ];
 

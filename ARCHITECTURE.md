@@ -337,5 +337,17 @@ The Angular app follows a feature-based structure:
   - `FarmerOrderDetailComponent` (`/farmer/orders/:id`): Displays order details banner, crop info, customer safe contact info (Name, Phone, City, State), purchase summary (Requested vs Allocated Qty, Rate per Man, Total Amount), payment & transaction reference, and original auction reference.
   - Navigation: Added "My Orders" link to `FarmerShellComponent` sidebar and mobile menu.
 
+## User Preferences & Settings (Phase 8.10)
+
+- **Domain Entity**: `UserPreference` entity (`FarmKart.Domain/Entities/UserPreference.cs`) with unique index on `UserId`.
+- **Database Schema**: EF Core migration `AddUserPreferences` creating `UserPreferences` table (`Theme`, `Language`, `EmailAlerts`, `SmsAlerts`, `CompactView`, `CreatedAtUtc`, `UpdatedAtUtc`).
+- **Application & API Service**: `IUserPreferenceService` / `UserPreferenceService` and `UserPreferencesController` (`/api/preferences`).
+- **Role & Claim Authorization**: Endpoints (`GET /api/preferences`, `PUT /api/preferences`, `GET /api/preferences/account`, `PUT /api/preferences/account`, `POST /api/preferences/change-password`) derive `userId` and `role` strictly from authenticated JWT claims (`ClaimTypes.NameIdentifier` & `ClaimTypes.Role`).
+- **Profile Profile Editing**: Inline update for `FullName` and `Phone` updating `ApplicationUser.PhoneNumber` and profile entity (`FarmerProfile`, `CustomerProfile`, or `WorkerProfile`).
+- **Security & Password Management**: `POST /api/preferences/change-password` delegates password validation and hashing directly to ASP.NET Core `UserManager.ChangePasswordAsync`.
+- **Danger Zone Compliance**: Danger Zone deactivation notice informs users of compliance rules retaining historical business records (Auctions, Bids, Orders, Machinery Rentals, Invoices) for legal audit compliance.
+- **Frontend Architecture**: Standalone `SettingsComponent` accessible at `/farmer/settings`, `/customer/settings`, and `/worker/settings` across all three role shells.
+
+
 
 

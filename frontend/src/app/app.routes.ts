@@ -255,6 +255,13 @@ export const routes: Routes = [
             (module) => module.FarmerNotificationsComponent,
           ),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(
+            (module) => module.SettingsComponent,
+          ),
+      },
     ],
   },
   {
@@ -349,6 +356,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/worker/worker-preferences.component').then(
             (module) => module.WorkerPreferencesComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(
+            (module) => module.SettingsComponent,
           ),
       },
       {
@@ -537,6 +551,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/coming-soon.component').then(
             (module) => module.ComingSoonComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then(
+            (module) => module.SettingsComponent,
           ),
       },
     ],
