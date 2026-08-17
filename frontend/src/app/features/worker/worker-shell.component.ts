@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { WorkerJobService } from './worker-job.service';
 
+import { environment } from '../../../environments/environment';
+
 interface NavItem {
   label: string;
   route: string;
@@ -34,6 +36,7 @@ export class WorkerShellComponent implements OnInit {
   isMobileMenuOpen = signal(false);
   userName = signal<string>('Worker');
   userEmail = signal<string>('');
+  userAvatarUrl = signal<string | null>(null);
   unreadNotifCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
@@ -55,6 +58,15 @@ export class WorkerShellComponent implements OnInit {
       if (user) {
         this.userName.set(user.fullName || 'Worker');
         this.userEmail.set(user.email || '');
+        if (user.profileImageUrl) {
+          let url = user.profileImageUrl;
+          if (url.startsWith('/')) {
+            url = `${environment.apiUrl.replace(/\/api$/, '')}${url}`;
+          }
+          this.userAvatarUrl.set(url);
+        } else {
+          this.userAvatarUrl.set(null);
+        }
       }
     });
 

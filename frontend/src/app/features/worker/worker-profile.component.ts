@@ -16,6 +16,7 @@ import {
   WorkerProfileUpdateRequest,
   WorkerRatingSummary
 } from '../../core/models/worker.models';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -55,6 +56,13 @@ export class WorkerProfileComponent implements OnInit {
   skills = signal<string[]>([]);
   newSkillInput = signal<string>('');
   skillError = signal<string | null>(null);
+
+  selectedFile = signal<File | null>(null);
+  selectedFileName = signal<string>('');
+  selectedImagePreview = signal<string | null>(null);
+  uploadingImage = signal(false);
+  imageTimestamp = signal(Date.now());
+  avatarLoadFailed = signal(false);
 
   profileForm!: FormGroup;
 
@@ -233,5 +241,109 @@ export class WorkerProfileComponent implements OnInit {
         this.snackBar.open(msg, 'Close', { duration: 5000 });
       }
     });
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+      this.snackBar.open('Image must be JPG, PNG or WEBP.', 'Close', { duration: 4000 });
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.snackBar.open('Image size must be less than 5 MB.', 'Close', { duration: 4000 });
+      input.value = '';
+      return;
+    }
+
+    this.selectedFile.set(file);
+    this.selectedFileName.set(file.name);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview.set(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  cancelFileSelection(): void {
+    this.selectedFile.set(null);
+    this.selectedFileName.set('');
+    this.selectedImagePreview.set(null);
+  }
+
+  uploadSelectedImage(): void {
+    const file = this.selectedFile();
+    if (!file) return;
+
+    this.uploadingImage.set(true);
+    this.workerService.uploadProfileImage(file).subscribe({
+      next: (res) => {
+        this.profile.set(res);
+        this.imageTimestamp.set(Date.now());
+        this.avatarLoadFailed.set(false);
+        this.cancelFileSelection();
+        this.uploadingImage.set(false);
+        this.authService.updateUserProfileImage(res.profileImageUrl || null);
+        this.snackBar.open('Profile image updated successfully.', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        this.uploadingImage.set(false);
+        const msg = err?.error?.message || 'Unable to upload profile image.';
+        this.snackBar.open(msg, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  confirmRemoveImage(): void {
+    if (!confirm('Remove your profile image?')) return;
+
+    this.uploadingImage.set(true);
+    this.workerService.removeProfileImage().subscribe({
+      next: (res) => {
+        this.profile.set(res);
+        this.imageTimestamp.set(Date.now());
+        this.avatarLoadFailed.set(false);
+        this.cancelFileSelection();
+        this.uploadingImage.set(false);
+        this.authService.updateUserProfileImage(null);
+        this.snackBar.open('Profile image removed successfully.', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        this.uploadingImage.set(false);
+        const msg = err?.error?.message || 'Unable to remove profile image.';
+        this.snackBar.open(msg, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  getDisplayAvatarUrl(): string | null {
+    if (this.avatarLoadFailed() || !this.profile()?.profileImageUrl) return null;
+    let url = this.profile()!.profileImageUrl!;
+    if (url.startsWith('/')) {
+      url = `${environment.apiUrl.replace(/\/api$/, '')}${url}`;
+    }
+    return `${url}?v=${this.imageTimestamp()}`;
+  }
+
+  onAvatarError(): void {
+    this.avatarLoadFailed.set(true);
+  }
+
+  getInitials(name?: string | null): string {
+    if (!name) return 'W';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 }

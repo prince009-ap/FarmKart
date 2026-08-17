@@ -547,10 +547,9 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        data: { title: 'My Profile' },
         loadComponent: () =>
-          import('./features/customer/coming-soon.component').then(
-            (module) => module.ComingSoonComponent,
+          import('./features/customer/customer-profile.component').then(
+            (module) => module.CustomerProfileComponent,
           ),
       },
       {

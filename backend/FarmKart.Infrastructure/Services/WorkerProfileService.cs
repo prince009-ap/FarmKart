@@ -1,3 +1,4 @@
+using FarmKart.Application.Abstractions.Profile;
 using FarmKart.Application.Abstractions.Worker;
 using FarmKart.Application.DTOs;
 using FarmKart.Application.Exceptions;
@@ -9,8 +10,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FarmKart.Infrastructure.Services;
@@ -19,11 +22,16 @@ public class WorkerProfileService : IWorkerProfileService
 {
     private readonly FarmKartDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IProfileImageService _profileImageService;
 
-    public WorkerProfileService(FarmKartDbContext dbContext, UserManager<ApplicationUser> userManager)
+    public WorkerProfileService(
+        FarmKartDbContext dbContext,
+        UserManager<ApplicationUser> userManager,
+        IProfileImageService profileImageService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
+        _profileImageService = profileImageService;
     }
 
     public async Task<WorkerProfileResponse> GetProfileAsync(Guid userId)
@@ -264,5 +272,50 @@ public class WorkerProfileService : IWorkerProfileService
             .Select(s => s.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    public async Task<WorkerProfileResponse> UploadProfileImageAsync(
+        Guid userId,
+        Stream stream,
+        string fileName,
+        string contentType,
+        long fileLength,
+        CancellationToken cancellationToken = default)
+    {
+        var profile = await _dbContext.WorkerProfiles
+            .SingleOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+        if (profile is null)
+        {
+            throw new ProfileNotFoundException();
+        }
+
+        var newImageUrl = await _profileImageService.UploadProfileImageAsync(
+            userId, stream, fileName, contentType, fileLength, profile.ProfileImageUrl, cancellationToken);
+
+        profile.ProfileImageUrl = newImageUrl;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetProfileAsync(userId);
+    }
+
+    public async Task<WorkerProfileResponse> RemoveProfileImageAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var profile = await _dbContext.WorkerProfiles
+            .SingleOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+        if (profile is null)
+        {
+            throw new ProfileNotFoundException();
+        }
+
+        if (!string.IsNullOrEmpty(profile.ProfileImageUrl))
+        {
+            _profileImageService.DeleteProfileImage(profile.ProfileImageUrl);
+            profile.ProfileImageUrl = null;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return await GetProfileAsync(userId);
     }
 }

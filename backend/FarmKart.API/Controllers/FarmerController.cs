@@ -101,6 +101,65 @@ public class FarmerController : ControllerBase
         }
     }
 
+    [HttpPost("profile/image")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerProfileResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UploadProfileImage(IFormFile file, CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Uploaded file is empty." });
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var profile = await _farmerProfileService.UploadProfileImageAsync(
+                userId.Value, stream, file.FileName, file.ContentType, file.Length, cancellationToken);
+
+            return Ok(profile);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("profile/image")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FarmerProfileResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveProfileImage(CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var profile = await _farmerProfileService.RemoveProfileImageAsync(userId.Value, cancellationToken);
+            return Ok(profile);
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("jobs")]
     public async Task<IActionResult> GetJobs()
     {

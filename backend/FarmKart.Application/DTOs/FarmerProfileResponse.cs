@@ -12,5 +12,6 @@ public record FarmerProfileResponse(
     string? FarmName,
     decimal? FarmSize,
     FarmSizeUnit? FarmSizeUnit,
-    string? FarmLocation
+    string? FarmLocation,
+    string? ProfileImageUrl = null
 );

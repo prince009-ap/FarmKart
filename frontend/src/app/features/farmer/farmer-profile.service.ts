@@ -28,4 +28,14 @@ export class FarmerProfileService {
   updateProfile(request: FarmerProfileUpdateRequest): Observable<FarmerProfile> {
     return this.http.put<FarmerProfile>(`${this.apiUrl}/profile`, request);
   }
+
+  uploadProfileImage(file: File): Observable<FarmerProfile> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<FarmerProfile>(`${this.apiUrl}/profile/image`, formData);
+  }
+
+  removeProfileImage(): Observable<FarmerProfile> {
+    return this.http.delete<FarmerProfile>(`${this.apiUrl}/profile/image`);
+  }
 }

@@ -85,6 +85,14 @@ export class AuthService {
     );
   }
 
+  updateUserProfileImage(profileImageUrl: string | null): void {
+    const current = this.currentUserSubject.value;
+    if (current) {
+      const updated = { ...current, profileImageUrl };
+      this.currentUserSubject.next(updated);
+    }
+  }
+
   checkAuthSession(): Observable<AuthUser | null> {
     if (this.hasCheckedSession) {
       return of(this.currentUserSubject.value);

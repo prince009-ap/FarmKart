@@ -8,6 +8,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { environment } from '../../../environments/environment';
+
 interface NavItem {
   label: string;
   route: string;
@@ -38,6 +40,7 @@ export class FarmerShellComponent implements OnInit {
   isMobileMenuOpen = signal(false);
   userName = signal<string>('Farmer');
   userEmail = signal<string>('');
+  userAvatarUrl = signal<string | null>(null);
   unreadNotificationsCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
@@ -58,10 +61,19 @@ export class FarmerShellComponent implements OnInit {
 
   ngOnInit(): void {
     // Read the current user's profile details from the cached user session
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       if (user) {
         this.userName.set(user.fullName || 'Farmer');
         this.userEmail.set(user.email || '');
+        if (user.profileImageUrl) {
+          let url = user.profileImageUrl;
+          if (url.startsWith('/')) {
+            url = `${environment.apiUrl.replace(/\/api$/, '')}${url}`;
+          }
+          this.userAvatarUrl.set(url);
+        } else {
+          this.userAvatarUrl.set(null);
+        }
       }
     });
 

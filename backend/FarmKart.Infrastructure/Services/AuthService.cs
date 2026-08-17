@@ -354,20 +354,25 @@ public class AuthService : IAuthService
         }
 
         string fullName = string.Empty;
+        string? profileImageUrl = null;
+
         if (role == Roles.Farmer)
         {
             var profile = await _dbContext.FarmerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
             fullName = profile?.FullName ?? string.Empty;
+            profileImageUrl = profile?.ProfileImageUrl;
         }
         else if (role == Roles.Worker)
         {
             var profile = await _dbContext.WorkerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
             fullName = profile?.FullName ?? string.Empty;
+            profileImageUrl = profile?.ProfileImageUrl;
         }
         else if (role == Roles.Customer)
         {
             var profile = await _dbContext.CustomerProfiles.SingleOrDefaultAsync(p => p.UserId == userId);
             fullName = profile?.FullName ?? string.Empty;
+            profileImageUrl = profile?.ProfileImageUrl;
         }
         else
         {
@@ -378,7 +383,8 @@ public class AuthService : IAuthService
             UserId: user.Id,
             Email: user.Email!,
             FullName: fullName,
-            Role: role
+            Role: role,
+            ProfileImageUrl: profileImageUrl
         );
     }
 }

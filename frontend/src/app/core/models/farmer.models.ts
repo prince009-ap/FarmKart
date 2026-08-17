@@ -12,6 +12,7 @@ export interface FarmerProfile {
   farmSize: number | null;
   farmSizeUnit: FarmSizeUnit | null;
   farmLocation: string | null;
+  profileImageUrl?: string | null;
 }
 
 export interface FarmerProfileUpdateRequest {

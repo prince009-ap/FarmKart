@@ -43,6 +43,7 @@ export interface AuthUser {
   email: string;
   fullName: string;
   role: string;
+  profileImageUrl?: string | null;
 }
 
 export interface LoginResponse {

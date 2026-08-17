@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { environment } from '../../../environments/environment';
+
 interface NavItem {
   label: string;
   route: string;
@@ -34,6 +36,7 @@ export class CustomerShellComponent implements OnInit {
   isMobileMenuOpen = signal(false);
   userName = signal<string>('Customer');
   userEmail = signal<string>('');
+  userAvatarUrl = signal<string | null>(null);
   unreadNotificationsCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
@@ -50,7 +53,7 @@ export class CustomerShellComponent implements OnInit {
     { label: 'Payments', route: '/customer/payments', icon: 'payments' },
     { label: 'Notifications', route: '/customer/notifications', icon: 'notifications' },
     { label: 'Settings', route: '/customer/settings', icon: 'settings' },
-    { label: 'My Profile', route: '/customer/profile', icon: 'person', isPlaceholder: true }
+    { label: 'My Profile', route: '/customer/profile', icon: 'person' }
   ];
 
   ngOnInit(): void {
@@ -58,6 +61,15 @@ export class CustomerShellComponent implements OnInit {
       if (user) {
         this.userName.set(user.fullName || 'Customer');
         this.userEmail.set(user.email || '');
+        if (user.profileImageUrl) {
+          let url = user.profileImageUrl;
+          if (url.startsWith('/')) {
+            url = `${environment.apiUrl.replace(/\/api$/, '')}${url}`;
+          }
+          this.userAvatarUrl.set(url);
+        } else {
+          this.userAvatarUrl.set(null);
+        }
       }
     });
 

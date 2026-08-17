@@ -67,6 +67,16 @@ export class WorkerJobService {
     return this.http.put<WorkerProfile>(`${this.baseUrl}/profile`, request, { withCredentials: true });
   }
 
+  uploadProfileImage(file: File): Observable<WorkerProfile> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<WorkerProfile>(`${this.baseUrl}/profile/image`, formData, { withCredentials: true });
+  }
+
+  removeProfileImage(): Observable<WorkerProfile> {
+    return this.http.delete<WorkerProfile>(`${this.baseUrl}/profile/image`, { withCredentials: true });
+  }
+
   getProfileCompletion(): Observable<WorkerProfileCompletion> {
     return this.http.get<WorkerProfileCompletion>(`${this.baseUrl}/profile/completion`, { withCredentials: true });
   }

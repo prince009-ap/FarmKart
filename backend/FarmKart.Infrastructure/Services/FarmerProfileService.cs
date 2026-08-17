@@ -11,15 +11,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FarmKart.Application.Abstractions.Profile;
+
 namespace FarmKart.Infrastructure.Services;
 
 public sealed class FarmerProfileService : IFarmerProfileService
 {
     private readonly FarmKartDbContext _db;
+    private readonly IProfileImageService _profileImageService;
 
-    public FarmerProfileService(FarmKartDbContext db)
+    public FarmerProfileService(FarmKartDbContext db, IProfileImageService profileImageService)
     {
         _db = db;
+        _profileImageService = profileImageService;
     }
 
     public async Task<FarmerProfileResponse> GetProfileAsync(Guid userId)
@@ -44,7 +48,8 @@ public sealed class FarmerProfileService : IFarmerProfileService
             FarmName: farmer.FarmName,
             FarmSize: farmer.FarmSize,
             FarmSizeUnit: farmer.FarmSizeUnit,
-            FarmLocation: farmer.FarmLocation
+            FarmLocation: farmer.FarmLocation,
+            ProfileImageUrl: farmer.ProfileImageUrl
         );
     }
 
@@ -79,8 +84,54 @@ public sealed class FarmerProfileService : IFarmerProfileService
             FarmName: farmer.FarmName,
             FarmSize: farmer.FarmSize,
             FarmSizeUnit: farmer.FarmSizeUnit,
-            FarmLocation: farmer.FarmLocation
+            FarmLocation: farmer.FarmLocation,
+            ProfileImageUrl: farmer.ProfileImageUrl
         );
+    }
+
+    public async Task<FarmerProfileResponse> UploadProfileImageAsync(
+        Guid userId,
+        Stream stream,
+        string fileName,
+        string contentType,
+        long fileLength,
+        CancellationToken cancellationToken = default)
+    {
+        var farmer = await _db.FarmerProfiles
+            .FirstOrDefaultAsync(f => f.UserId == userId, cancellationToken);
+
+        if (farmer == null)
+        {
+            throw new ProfileNotFoundException("Farmer profile not found.");
+        }
+
+        var newImageUrl = await _profileImageService.UploadProfileImageAsync(
+            userId, stream, fileName, contentType, fileLength, farmer.ProfileImageUrl, cancellationToken);
+
+        farmer.ProfileImageUrl = newImageUrl;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return await GetProfileAsync(userId);
+    }
+
+    public async Task<FarmerProfileResponse> RemoveProfileImageAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var farmer = await _db.FarmerProfiles
+            .FirstOrDefaultAsync(f => f.UserId == userId, cancellationToken);
+
+        if (farmer == null)
+        {
+            throw new ProfileNotFoundException("Farmer profile not found.");
+        }
+
+        if (!string.IsNullOrEmpty(farmer.ProfileImageUrl))
+        {
+            _profileImageService.DeleteProfileImage(farmer.ProfileImageUrl);
+            farmer.ProfileImageUrl = null;
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        return await GetProfileAsync(userId);
     }
 
     public async Task<FarmerPublicProfileResponse?> GetPublicFarmerProfileAsync(string farmerIdOrUserId, CancellationToken cancellationToken = default)
@@ -178,7 +229,8 @@ public sealed class FarmerProfileService : IFarmerProfileService
                         TotalReviews: 0,
                         Reviews: Array.Empty<FarmerPublicReviewResponse>(),
                         ActiveAuctions: Array.Empty<FarmerPublicAuctionResponse>(),
-                        Machinery: custMachineryResponses
+                        Machinery: custMachineryResponses,
+                        ProfileImageUrl: customer?.ProfileImageUrl
                     );
                 }
             }
@@ -309,7 +361,8 @@ public sealed class FarmerProfileService : IFarmerProfileService
             TotalReviews: totalFarmerReviews,
             Reviews: reviewResponses,
             ActiveAuctions: auctionResponses,
-            Machinery: machineryResponses
+            Machinery: machineryResponses,
+            ProfileImageUrl: farmer.ProfileImageUrl
         );
     }
 }

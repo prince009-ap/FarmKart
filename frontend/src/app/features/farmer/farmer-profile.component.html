@@ -20,14 +20,24 @@
   @if (!loading() && !loadError() && profile()) {
     <div class="app-profile-shell">
       <div class="app-profile-shell__header">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div>
-            <p class="app-hero-banner__eyebrow">Farmer profile</p>
-            <h1 class="app-hero-banner__title">{{ profile()?.fullName }}</h1>
-            <p class="text-emerald-100/90 text-sm mt-2 flex items-center gap-1.5">
-              <mat-icon class="!text-base !w-4 !h-4">mail_outline</mat-icon>
-              {{ profile()?.email }}
-            </p>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div class="flex items-center gap-5">
+            <!-- Profile Avatar -->
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white/20 border-2 border-white/50 flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md">
+              @if (getDisplayAvatarUrl()) {
+                <img [src]="getDisplayAvatarUrl()" [alt]="profile()?.fullName" class="w-full h-full object-cover" (error)="onAvatarError()" />
+              } @else {
+                <span>{{ getInitials(profile()?.fullName) }}</span>
+              }
+            </div>
+            <div>
+              <p class="app-hero-banner__eyebrow">Farmer profile</p>
+              <h1 class="app-hero-banner__title">{{ profile()?.fullName }}</h1>
+              <p class="text-emerald-100/90 text-sm mt-1 flex items-center gap-1.5">
+                <mat-icon class="!text-base !w-4 !h-4">mail_outline</mat-icon>
+                {{ profile()?.email }}
+              </p>
+            </div>
           </div>
 
           <div class="flex items-center gap-3">
@@ -57,6 +67,61 @@
       </div>
 
       <div class="app-profile-shell__body">
+        <!-- Edit Profile Image Section -->
+        @if (editMode()) {
+          <div class="p-6 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 mb-6 space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-2">
+              <mat-icon class="!text-lg">photo_camera</mat-icon>
+              Profile Image
+            </h3>
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+              <div class="w-20 h-20 rounded-full overflow-hidden bg-white border-2 border-emerald-400 flex items-center justify-center text-emerald-800 text-xl font-bold shrink-0 shadow-sm">
+                @if (selectedImagePreview() || getDisplayAvatarUrl()) {
+                  <img [src]="selectedImagePreview() || getDisplayAvatarUrl()" alt="Preview" class="w-full h-full object-cover" />
+                } @else {
+                  <span>{{ getInitials(profile()?.fullName) }}</span>
+                }
+              </div>
+
+              <div class="space-y-3 text-center sm:text-left flex-1">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                  <label class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl cursor-pointer transition shadow-sm inline-flex items-center gap-2">
+                    <mat-icon class="!text-sm !w-4 !h-4">file_upload</mat-icon>
+                    <span>Choose Image</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onFileSelected($event)" />
+                  </label>
+
+                  @if (profile()?.profileImageUrl) {
+                    <button type="button" mat-stroked-button color="warn" class="!rounded-xl" [disabled]="uploadingImage()" (click)="confirmRemoveImage()">
+                      Remove Image
+                    </button>
+                  }
+                </div>
+
+                @if (selectedFileName()) {
+                  <p class="text-xs text-emerald-800 font-medium">
+                    Selected: <span class="font-bold">{{ selectedFileName() }}</span>
+                  </p>
+                }
+                <p class="text-[11px] text-slate-500">Allowed formats: JPG, PNG, WEBP. Max size: 5 MB.</p>
+              </div>
+            </div>
+
+            @if (selectedFile()) {
+              <div class="pt-2">
+                <button type="button" mat-flat-button class="!bg-slate-900 !text-white" [disabled]="uploadingImage()" (click)="uploadSelectedImage()">
+                  @if (uploadingImage()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                    Uploading Image...
+                  } @else {
+                    Upload Image
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        }
+
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-8">
           <div>
             <h3 class="app-form-section__title">

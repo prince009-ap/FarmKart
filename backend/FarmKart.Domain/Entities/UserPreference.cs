@@ -10,6 +10,4 @@ public sealed class UserPreference : BaseEntity
     public bool EmailAlerts { get; set; } = true;
     public bool SmsAlerts { get; set; } = false;
     public bool CompactView { get; set; } = false;
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }

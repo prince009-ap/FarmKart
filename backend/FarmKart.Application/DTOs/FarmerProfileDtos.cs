@@ -55,5 +55,6 @@ public record FarmerPublicProfileResponse(
     int TotalReviews,
     IReadOnlyList<FarmerPublicReviewResponse> Reviews,
     IReadOnlyList<FarmerPublicAuctionResponse> ActiveAuctions,
-    IReadOnlyList<FarmerPublicMachineryResponse> Machinery
+    IReadOnlyList<FarmerPublicMachineryResponse> Machinery,
+    string? ProfileImageUrl = null
 );

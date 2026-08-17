@@ -64,6 +64,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMachineryReviewService, MachineryReviewService>();
         services.AddScoped<IFarmerAnalyticsService, FarmerAnalyticsService>();
         services.AddScoped<ICustomerAnalyticsService, CustomerAnalyticsService>();
+        services.AddScoped<FarmKart.Application.Abstractions.Profile.IProfileImageService, ProfileImageService>();
+        services.AddScoped<ICustomerProfileService, CustomerProfileService>();
         services.AddScoped<FarmKart.Application.Abstractions.UserPreference.IUserPreferenceService, UserPreferenceService>();
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
