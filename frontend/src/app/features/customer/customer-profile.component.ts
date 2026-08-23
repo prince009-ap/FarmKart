@@ -5,16 +5,17 @@ import { RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CustomerProfileService } from '../../core/services/customer-profile.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CustomerProfileResponse, UpdateCustomerProfileRequest } from '../../core/models/customer-profile.models';
+import { CustomerProfileResponse } from '../../core/models/customer-profile.models';
 import { environment } from '../../../environments/environment';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { LanguageService } from '../../core/services/language.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-customer-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
   template: `
     <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto space-y-8">
@@ -26,16 +27,16 @@ import { LanguageService } from '../../core/services/language.service';
               👤
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-slate-900">My Profile</h1>
-              <p class="text-xs text-slate-500 mt-1">Manage your customer account details, contact info, and profile image.</p>
+              <h1 class="text-2xl font-bold text-slate-900">{{ 'profile.title' | translate }}</h1>
+              <p class="text-xs text-slate-500 mt-1">{{ 'profile.subtitle' | translate }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <button *ngIf="!isEditing" (click)="startProfileAi()" class="px-4 py-2 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200/80 rounded-xl transition flex items-center gap-2">
-              <span>🤖 Fill Profile with AI</span>
+              <span>{{ 'farmer.fillProfileWithAi' | translate }}</span>
             </button>
             <button *ngIf="!isEditing" (click)="toggleEdit()" class="px-4 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition flex items-center gap-2">
-              <span>Edit Profile</span>
+              <span>{{ 'common.edit' | translate }} {{ 'profile.title' | translate }}</span>
             </button>
           </div>
         </div>
@@ -52,7 +53,7 @@ import { LanguageService } from '../../core/services/language.service';
             <p class="font-medium">{{ errorMessage }}</p>
           </div>
           <button (click)="loadProfile()" class="px-3 py-1 text-[11px] font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition">
-            Retry
+            {{ 'common.refresh' | translate }}
           </button>
         </div>
 
@@ -72,13 +73,13 @@ import { LanguageService } from '../../core/services/language.service';
             <div class="text-center sm:text-left space-y-2 flex-1">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h2 class="text-xl font-bold text-slate-900">{{ profile?.fullName || 'Customer Profile' }}</h2>
+                  <h2 class="text-xl font-bold text-slate-900">{{ profile?.fullName || ('auth.customer' | translate) }}</h2>
                   <div class="flex items-center justify-center sm:justify-start gap-2 mt-1">
                     <span class="inline-flex items-center px-3 py-0.5 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-full">
-                      Customer
+                      {{ 'auth.customer' | translate }}
                     </span>
                     <span *ngIf="profile?.createdAtUtc" class="text-xs text-slate-400">
-                      Member since {{ profile?.createdAtUtc | date:'mediumDate' }}
+                      {{ profile?.createdAtUtc | date:'mediumDate' }}
                     </span>
                   </div>
                 </div>
@@ -89,23 +90,23 @@ import { LanguageService } from '../../core/services/language.service';
           <!-- READ VIEW -->
           <div *ngIf="!isEditing" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Full Name</label>
-              <p class="text-sm font-semibold text-slate-800">{{ profile?.fullName || 'Not provided' }}</p>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{{ 'auth.fullName' | translate }}</label>
+              <p class="text-sm font-semibold text-slate-800">{{ profile?.fullName || '—' }}</p>
             </div>
 
             <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Email Address</label>
-              <p class="text-sm font-semibold text-slate-800">{{ profile?.email || 'Not provided' }}</p>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{{ 'auth.email' | translate }}</label>
+              <p class="text-sm font-semibold text-slate-800">{{ profile?.email || '—' }}</p>
             </div>
 
             <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Phone Number</label>
-              <p class="text-sm font-semibold text-slate-800">{{ profile?.phone || 'Not provided' }}</p>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{{ 'auth.phone' | translate }}</label>
+              <p class="text-sm font-semibold text-slate-800">{{ profile?.phone || '—' }}</p>
             </div>
 
             <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Delivery Address</label>
-              <p class="text-sm font-semibold text-slate-800">{{ profile?.address || 'Not provided' }}</p>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{{ 'profile.homeAddress' | translate }}</label>
+              <p class="text-sm font-semibold text-slate-800">{{ profile?.address || '—' }}</p>
             </div>
           </div>
 
@@ -114,7 +115,7 @@ import { LanguageService } from '../../core/services/language.service';
             
             <!-- PROFILE IMAGE UPLOAD SECTION -->
             <div class="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900">Profile Image</h3>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900">{{ 'profile.profileImage' | translate }}</h3>
               
               <div class="flex flex-col sm:flex-row items-center gap-6">
                 <!-- Preview Avatar -->
@@ -126,26 +127,26 @@ import { LanguageService } from '../../core/services/language.service';
                 <div class="space-y-3 text-center sm:text-left flex-1">
                   <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
                     <label class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl cursor-pointer transition shadow-sm inline-flex items-center gap-2">
-                      <span>Choose Image</span>
+                      <span>{{ 'profile.chooseImage' | translate }}</span>
                       <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onFileSelected($event)" />
                     </label>
 
                     <button *ngIf="profile?.profileImageUrl" type="button" (click)="confirmRemoveImage()" [disabled]="isUploadingImage" class="px-4 py-2 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition">
-                      Remove Image
+                      {{ 'profile.removeImage' | translate }}
                     </button>
                   </div>
 
                   <p *ngIf="selectedFileName" class="text-xs text-emerald-800 font-medium">
                     Selected: <span class="font-bold">{{ selectedFileName }}</span>
                   </p>
-                  <p class="text-[11px] text-slate-500">Allowed formats: JPG, PNG, WEBP. Max size: 5 MB.</p>
+                  <p class="text-[11px] text-slate-500">{{ 'profile.allowedFormats' | translate }}</p>
                 </div>
               </div>
 
               <!-- Local Upload Button if new image selected -->
               <div *ngIf="selectedFile" class="pt-2">
                 <button type="button" (click)="uploadSelectedImage()" [disabled]="isUploadingImage" class="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition shadow-sm flex items-center gap-2">
-                  <span>{{ isUploadingImage ? 'Uploading Image...' : 'Upload Image' }}</span>
+                  <span>{{ isUploadingImage ? ('common.loading' | translate) : ('profile.chooseImage' | translate) }}</span>
                 </button>
               </div>
             </div>
@@ -153,26 +154,26 @@ import { LanguageService } from '../../core/services/language.service';
             <!-- PROFILE FIELDS FORM -->
             <form (ngSubmit)="saveProfile()" class="space-y-5 max-w-xl">
               <div>
-                <label for="cust-fullname" class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                <label for="cust-fullname" class="block text-xs font-semibold text-slate-700 mb-1">{{ 'auth.fullName' | translate }}</label>
                 <input id="cust-fullname" name="cust-fullname" type="text" [(ngModel)]="editFullName" class="w-full text-sm rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 p-2.5 bg-slate-50" required />
               </div>
 
               <div>
-                <label for="cust-phone" class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                <label for="cust-phone" class="block text-xs font-semibold text-slate-700 mb-1">{{ 'auth.phone' | translate }}</label>
                 <input id="cust-phone" name="cust-phone" type="text" [(ngModel)]="editPhone" class="w-full text-sm rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 p-2.5 bg-slate-50" />
               </div>
 
               <div>
-                <label for="cust-address" class="block text-xs font-semibold text-slate-700 mb-1">Delivery Address</label>
+                <label for="cust-address" class="block text-xs font-semibold text-slate-700 mb-1">{{ 'profile.homeAddress' | translate }}</label>
                 <textarea id="cust-address" name="cust-address" rows="3" [(ngModel)]="editAddress" class="w-full text-sm rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 p-2.5 bg-slate-50"></textarea>
               </div>
 
               <div class="flex items-center gap-3 pt-2">
                 <button type="submit" [disabled]="isSaving" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl transition shadow-sm">
-                  {{ isSaving ? 'Saving Profile...' : 'Save Profile' }}
+                  {{ isSaving ? ('common.loading' | translate) : ('common.saveChanges' | translate) }}
                 </button>
                 <button type="button" (click)="toggleEdit()" class="px-5 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
-                  Cancel
+                  {{ 'common.cancel' | translate }}
                 </button>
               </div>
             </form>
@@ -288,7 +289,6 @@ export class CustomerProfileComponent implements OnInit {
 
     const file = input.files[0];
 
-    // Format Validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
@@ -299,7 +299,6 @@ export class CustomerProfileComponent implements OnInit {
       return;
     }
 
-    // Size Validation (5 MB)
     if (file.size > 5 * 1024 * 1024) {
       this.errorMessage = 'Image size must be less than 5 MB.';
       input.value = '';
@@ -310,7 +309,6 @@ export class CustomerProfileComponent implements OnInit {
     this.selectedFile = file;
     this.selectedFileName = file.name;
 
-    // Create local image preview
     const reader = new FileReader();
     reader.onload = () => {
       this.selectedImagePreview = reader.result as string;

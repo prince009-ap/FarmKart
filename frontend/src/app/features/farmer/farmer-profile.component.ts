@@ -23,12 +23,15 @@ import { AiConversationService } from '../../core/services/ai-conversation.servi
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { LanguageService } from '../../core/services/language.service';
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+
 @Component({
   selector: 'app-farmer-profile',
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslatePipe,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,

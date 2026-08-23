@@ -22,6 +22,8 @@ interface PendingImageUpload {
   isPrimary: boolean;
 }
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+
 @Component({
   selector: 'app-farmer-crop-form',
   standalone: true,
@@ -29,6 +31,7 @@ interface PendingImageUpload {
     CommonModule,
     RouterLink,
     FormsModule,
+    TranslatePipe,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,

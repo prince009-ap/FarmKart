@@ -22,6 +22,8 @@ import { StartAiConversationRequest } from '../../core/models/ai-conversation.mo
 import { AuthService } from '../../core/services/auth.service';
 import { LanguageService } from '../../core/services/language.service';
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+
 @Component({
   selector: 'app-worker-profile',
   standalone: true,
@@ -29,6 +31,7 @@ import { LanguageService } from '../../core/services/language.service';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslatePipe,
     MatButtonModule,
     MatIconModule,
     MatInputModule,

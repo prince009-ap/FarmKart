@@ -4,10 +4,10 @@
     <div>
       <h1 class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
         <mat-icon class="text-emerald-600">badge</mat-icon>
-        My Worker Profile
+        {{ 'auth.worker' | translate }} {{ 'profile.title' | translate }}
       </h1>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-        Manage your personal information, skills, availability, and farm experience
+        {{ 'worker.dashboardSubtitle' | translate }}
       </p>
     </div>
 
@@ -18,7 +18,7 @@
           class="!border-emerald-600 !text-emerald-700 dark:!text-emerald-400 font-medium flex items-center gap-2"
           (click)="startProfileAi()">
           <mat-icon class="!text-emerald-600">smart_toy</mat-icon>
-          Fill Profile with AI
+          {{ 'farmer.fillProfileWithAi' | translate }}
         </button>
         <button
           mat-flat-button
@@ -26,7 +26,7 @@
           class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 font-medium flex items-center gap-2"
           (click)="enableEdit()">
           <mat-icon>edit</mat-icon>
-          Edit Profile
+          {{ 'common.edit' | translate }} {{ 'profile.title' | translate }}
         </button>
       </div>
     }

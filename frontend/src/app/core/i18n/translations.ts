@@ -194,6 +194,49 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       applyNow: 'Apply Now',
       applied: 'Applied'
     },
+    profile: {
+      title: 'My Profile',
+      subtitle: 'Manage your account information and preferences.',
+      profileImage: 'Profile Image',
+      chooseImage: 'Choose Image',
+      removeImage: 'Remove Image',
+      allowedFormats: 'JPEG, PNG or WebP up to 5MB',
+      personalDetails: 'Personal Details',
+      readOnly: 'Read-only field',
+      homeAddress: 'Home Address',
+      farmDetails: 'Farm Details',
+      farmName: 'Farm Name',
+      farmSize: 'Farm Size',
+      farmSizeUnit: 'Size Unit',
+      farmLocation: 'Farm Location'
+    },
+    settings: {
+      title: 'Account Settings',
+      languagePreferences: 'Language Preferences',
+      selectAppLanguage: 'Select Application Language',
+      notifications: 'Notifications',
+      emailAlerts: 'Email Notifications',
+      smsAlerts: 'SMS Notifications',
+      security: 'Security',
+      changePassword: 'Change Password',
+      currentPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm New Password'
+    },
+    reports: {
+      title: 'My Reports',
+      salesReport: 'Sales Report',
+      yieldReport: 'Yield & Production Report',
+      exportCsv: 'Export CSV',
+      exportPdf: 'Export PDF'
+    },
+    disputes: {
+      title: 'My Disputes',
+      raiseDispute: 'Raise New Dispute',
+      reason: 'Dispute Reason',
+      evidence: 'Evidence & Attachments',
+      resolved: 'Resolved'
+    },
     ai: {
       assistantName: 'FarmKart AI',
       subTitle: 'Multilingual Voice Assistant',
@@ -404,6 +447,49 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       applyNow: 'आवेदन करें',
       applied: 'आवेदन किया'
     },
+    profile: {
+      title: 'मेरी प्रोफाइल',
+      subtitle: 'अपनी खाता जानकारी और प्राथमिकताओं का प्रबंधन करें।',
+      profileImage: 'प्रोफाइल छवि',
+      chooseImage: 'छवि चुनें',
+      removeImage: 'छवि हटाएं',
+      allowedFormats: 'JPEG, PNG या WebP 5MB तक',
+      personalDetails: 'व्यक्तिगत विवरण',
+      readOnly: 'केवल पढ़ने योग्य क्षेत्र',
+      homeAddress: 'घर का पता',
+      farmDetails: 'खेत का विवरण',
+      farmName: 'खेत का नाम',
+      farmSize: 'खेत का आकार',
+      farmSizeUnit: 'आकार इकाई',
+      farmLocation: 'खेत का स्थान'
+    },
+    settings: {
+      title: 'खाता सेटिंग्स',
+      languagePreferences: 'भाषा प्राथमिकताएं',
+      selectAppLanguage: 'एप्लिकेशन भाषा चुनें',
+      notifications: 'सूचनाएं',
+      emailAlerts: 'ईमेल सूचनाएं',
+      smsAlerts: 'एसएमएस सूचनाएं',
+      security: 'सुरक्षा',
+      changePassword: 'पासवर्ड बदलें',
+      currentPassword: 'वर्तमान पासवर्ड',
+      newPassword: 'नया पासवर्ड',
+      confirmPassword: 'नए पासवर्ड की पुष्टि करें'
+    },
+    reports: {
+      title: 'मेरी रिपोर्ट',
+      salesReport: 'बिक्री रिपोर्ट',
+      yieldReport: 'फसल उपज रिपोर्ट',
+      exportCsv: 'CSV निर्यात करें',
+      exportPdf: 'PDF निर्यात करें'
+    },
+    disputes: {
+      title: 'मेरे विवाद',
+      raiseDispute: 'नया विवाद दर्ज करें',
+      reason: 'विवाद का कारण',
+      evidence: 'साक्ष्य और संलग्नक',
+      resolved: 'हल किया गया'
+    },
     ai: {
       assistantName: 'फार्मकार्ट AI',
       subTitle: 'बहुभाषी वॉयस सहायक',
@@ -613,6 +699,49 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       browseJobsTitle: 'ખેતીવાડી નોકરીઓ જુઓ',
       applyNow: 'અરજી કરો',
       applied: 'અરજી કરી'
+    },
+    profile: {
+      title: 'મારી પ્રોફાઇલ',
+      subtitle: 'તમારી ખાતાની માહિતી અને પસંદગીઓનું સંચાલન કરો.',
+      profileImage: 'પ્રોફાઇલ ઇમેજ',
+      chooseImage: 'ઇમેજ પસંદ કરો',
+      removeImage: 'ઇમેજ દૂર કરો',
+      allowedFormats: 'JPEG, PNG અથવા WebP 5MB સુધી',
+      personalDetails: 'વ્યક્તિગત વિગતો',
+      readOnly: 'માત્ર વાંચવા માટેનું ખાનું',
+      homeAddress: 'ઘરનું સરનામું',
+      farmDetails: 'ખેતરની વિગતો',
+      farmName: 'ખેતરનું નામ',
+      farmSize: 'જમીનનું ક્ષેત્રફળ',
+      farmSizeUnit: 'એકમ',
+      farmLocation: 'ખેતરનું સ્થળ'
+    },
+    settings: {
+      title: 'ખાતાના સેટિંગ્સ',
+      languagePreferences: 'ભાષાની પસંદગીઓ',
+      selectAppLanguage: 'એપ્લિકેશન ભાષા પસંદ કરો',
+      notifications: 'સૂચનાઓ',
+      emailAlerts: 'ઇમેઇલ સૂચનાઓ',
+      smsAlerts: 'એસએમએસ સૂચનાઓ',
+      security: 'સુરક્ષા',
+      changePassword: 'પાસવર્ડ બદલો',
+      currentPassword: 'વર્તમાન પાસવર્ડ',
+      newPassword: 'નવો પાસવર્ડ',
+      confirmPassword: 'નવા પાસવર્ડની ખાતરી કરો'
+    },
+    reports: {
+      title: 'મારા અહેવાલો',
+      salesReport: 'વેચાણ અહેવાલ',
+      yieldReport: 'પાક ઉત્પાદન અહેવાલ',
+      exportCsv: 'CSV એક્સપોર્ટ કરો',
+      exportPdf: 'PDF એક્સપોર્ટ કરો'
+    },
+    disputes: {
+      title: 'મારા વિવાદો',
+      raiseDispute: 'નવો વિવાદ નોંધાવો',
+      reason: 'વિવાદનું કારણ',
+      evidence: 'પુરાવા અને જોડાણો',
+      resolved: 'ઉકેલાયેલ'
     },
     ai: {
       assistantName: 'ફાર્મકાર્ટ AI',
