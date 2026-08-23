@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../core/services/auth.service';
 import { AiService } from '../../core/services/ai.service';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { AiChatMessageDto, AiLanguage, AiMessageItem } from '../../core/models/ai.models';
 import { UserPreferenceService } from '../../core/services/user-preference.service';
 
@@ -46,10 +47,12 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
                 <h3 class="font-bold text-sm text-white flex items-center gap-1.5 leading-tight">
                   FarmKart AI
                   <span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Foundation
+                    {{ taskSession() ? 'Form Engine' : 'Assistant' }}
                   </span>
                 </h3>
-                <p class="text-[11px] text-slate-400 leading-none mt-0.5">Multilingual Voice Assistant</p>
+                <p class="text-[11px] text-slate-400 leading-none mt-0.5">
+                  {{ taskSession() ? 'Task: ' + taskSession()?.taskName : 'Multilingual Voice Assistant' }}
+                </p>
               </div>
             </div>
 
@@ -86,7 +89,7 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
                 </div>
 
                 <!-- Message Bubble -->
-                <div class="max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm"
+                <div class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm"
                      [ngClass]="msg.sender === 'user' 
                        ? 'bg-sky-600 text-white rounded-tr-none' 
                        : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'">
@@ -94,6 +97,34 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
                   <span class="block text-[9px] mt-1 text-slate-400 text-right">
                     {{ msg.timestamp | date:'shortTime' }}
                   </span>
+                </div>
+              </div>
+            }
+
+            <!-- Ready For Confirmation Card -->
+            @if (taskSession()?.status === 'ReadyForConfirmation') {
+              <div class="bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-3.5 space-y-3 text-xs shadow-lg animate-fk-rise">
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold border-b border-emerald-800/50 pb-2">
+                  <mat-icon class="!w-4 !h-4 !text-[18px]">fact_check</mat-icon>
+                  <span>Confirmation Summary</span>
+                </div>
+                <p class="whitespace-pre-wrap text-slate-200 font-mono text-[11px] bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                  {{ taskSession()?.summaryText }}
+                </p>
+                <div class="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    (click)="confirmTaskDetails()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1 transition-colors">
+                    <mat-icon class="!w-4 !h-4 !text-[16px]">check_circle</mat-icon>
+                    Confirm & Save
+                  </button>
+                  <button
+                    type="button"
+                    (click)="cancelTaskSession()"
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-lg text-xs transition-colors">
+                    Cancel
+                  </button>
                 </div>
               </div>
             }
@@ -174,6 +205,7 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
 export class AiAssistantComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly aiService = inject(AiService);
+  private readonly conversationService = inject(AiConversationService);
   private readonly preferenceService = inject(UserPreferenceService);
 
   @ViewChild('scrollContainer') private scrollContainer?: ElementRef<HTMLDivElement>;
@@ -188,6 +220,10 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   inputText: string = '';
 
   private speechRecognition: any = null;
+
+  get taskSession() {
+    return this.conversationService.activeSession;
+  }
 
   ngOnInit(): void {
     // Check if preference service has stored language
@@ -268,38 +304,97 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.scrollToBottom();
 
-    // Prepare history for API call (take last 6 messages)
-    const historyDtos: AiChatMessageDto[] = this.messages()
-      .filter(m => m.id !== 'welcome')
-      .slice(-6)
-      .map(m => ({
-        role: m.sender === 'user' ? 'user' : 'assistant',
-        content: m.text
-      }));
+    const activeSession = this.taskSession();
 
-    this.aiService.chat({
-      message: text,
-      language: this.selectedLanguage(),
-      history: historyDtos
-    }).subscribe({
-      next: (res) => {
-        const aiMsg: AiMessageItem = {
-          id: GuidUtils.newId(),
-          sender: 'ai',
-          text: res.message,
-          timestamp: new Date()
-        };
-        this.messages.update(list => [...list, aiMsg]);
-        this.loading.set(false);
-        this.scrollToBottom();
-      },
-      error: (err) => {
-        this.loading.set(false);
-        const errorText = err?.error?.message || err?.message || 'AI is temporarily unavailable. Please try again.';
-        this.statusMessage.set(errorText);
-        this.scrollToBottom();
-      }
-    });
+    if (activeSession) {
+      // AI-2 Task Mode message processing
+      this.conversationService.sendMessage({
+        conversationId: activeSession.conversationId,
+        message: text,
+        language: this.selectedLanguage()
+      }).subscribe({
+        next: (res) => {
+          const aiMsg: AiMessageItem = {
+            id: GuidUtils.newId(),
+            sender: 'ai',
+            text: res.nextQuestion,
+            timestamp: new Date()
+          };
+          this.messages.update(list => [...list, aiMsg]);
+          this.loading.set(false);
+          this.scrollToBottom();
+        },
+        error: (err) => {
+          this.loading.set(false);
+          const errorText = err?.error?.message || err?.message || 'AI engine is temporarily unavailable.';
+          this.statusMessage.set(errorText);
+          this.scrollToBottom();
+        }
+      });
+    } else {
+      // AI-1 Freeform Chat Mode processing
+      const historyDtos: AiChatMessageDto[] = this.messages()
+        .filter(m => m.id !== 'welcome')
+        .slice(-6)
+        .map(m => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: m.text
+        }));
+
+      this.aiService.chat({
+        message: text,
+        language: this.selectedLanguage(),
+        history: historyDtos
+      }).subscribe({
+        next: (res) => {
+          const aiMsg: AiMessageItem = {
+            id: GuidUtils.newId(),
+            sender: 'ai',
+            text: res.message,
+            timestamp: new Date()
+          };
+          this.messages.update(list => [...list, aiMsg]);
+          this.loading.set(false);
+          this.scrollToBottom();
+        },
+        error: (err) => {
+          this.loading.set(false);
+          const errorText = err?.error?.message || err?.message || 'AI is temporarily unavailable. Please try again.';
+          this.statusMessage.set(errorText);
+          this.scrollToBottom();
+        }
+      });
+    }
+  }
+
+  confirmTaskDetails(): void {
+    this.conversationService.confirmAndComplete();
+    const doneMsg: AiMessageItem = {
+      id: GuidUtils.newId(),
+      sender: 'ai',
+      text: 'Thank you! Details confirmed.',
+      timestamp: new Date()
+    };
+    this.messages.update(list => [...list, doneMsg]);
+    this.scrollToBottom();
+  }
+
+  cancelTaskSession(): void {
+    const session = this.taskSession();
+    if (session) {
+      this.conversationService.cancelConversation(session.conversationId).subscribe({
+        next: () => {
+          const cancelMsg: AiMessageItem = {
+            id: GuidUtils.newId(),
+            sender: 'ai',
+            text: 'Task conversation cancelled. Changes were not saved.',
+            timestamp: new Date()
+          };
+          this.messages.update(list => [...list, cancelMsg]);
+          this.scrollToBottom();
+        }
+      });
+    }
   }
 
   // --- Voice Input / Web Speech Recognition ---

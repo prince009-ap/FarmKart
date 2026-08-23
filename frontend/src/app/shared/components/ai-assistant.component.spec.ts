@@ -5,17 +5,26 @@ import { of, throwError } from 'rxjs';
 import { AiAssistantComponent } from './ai-assistant.component';
 import { AuthService } from '../../core/services/auth.service';
 import { AiService } from '../../core/services/ai.service';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { UserPreferenceService } from '../../core/services/user-preference.service';
 
 describe('AiAssistantComponent', () => {
   let component: AiAssistantComponent;
   let aiServiceMock: any;
+  let conversationServiceMock: any;
   let authServiceMock: any;
   let preferenceServiceMock: any;
 
   beforeEach(() => {
     aiServiceMock = {
       chat: vi.fn().mockReturnValue(of({ message: 'Hello response', language: 'en' }))
+    };
+
+    conversationServiceMock = {
+      activeSession: vi.fn().mockReturnValue(null),
+      sendMessage: vi.fn().mockReturnValue(of({ nextQuestion: 'Next task question?' })),
+      cancelConversation: vi.fn().mockReturnValue(of(void 0)),
+      confirmAndComplete: vi.fn()
     };
 
     authServiceMock = {
@@ -30,6 +39,7 @@ describe('AiAssistantComponent', () => {
       providers: [
         { provide: AuthService, useValue: authServiceMock },
         { provide: AiService, useValue: aiServiceMock },
+        { provide: AiConversationService, useValue: conversationServiceMock },
         { provide: UserPreferenceService, useValue: preferenceServiceMock }
       ]
     });
@@ -64,7 +74,7 @@ describe('AiAssistantComponent', () => {
     expect(component.selectedLanguage()).toBe('gu');
   });
 
-  it('should send user message and append AI response', () => {
+  it('should send user message and append AI response in freeform mode', () => {
     component.isOpen.set(true);
     component.inputText = 'I need help with my crops';
 

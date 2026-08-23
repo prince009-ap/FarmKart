@@ -36,8 +36,8 @@ public class OpenAiProvider : IAiProvider
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
-            _logger.LogWarning("OpenAI API key is missing in configuration.");
-            throw new InvalidOperationException("AI service is not properly configured with an API key.");
+            _logger.LogWarning("OpenAI API key is missing or not configured in environment.");
+            throw new InvalidOperationException("AI configuration is invalid. OpenAI API key is missing.");
         }
 
         var messages = new List<object>
@@ -47,7 +47,6 @@ public class OpenAiProvider : IAiProvider
 
         if (conversationHistory != null && conversationHistory.Count > 0)
         {
-            // Take at most the last 6 messages to control tokens & cost
             var recentHistory = conversationHistory.Count > 6 
                 ? conversationHistory.GetRange(conversationHistory.Count - 6, 6) 
                 : conversationHistory;
@@ -91,19 +90,23 @@ public class OpenAiProvider : IAiProvider
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await response.Content.ReadAsStringAsync(linkedCts.Token);
-                _logger.LogError("OpenAI API returned non-success status code {StatusCode}: {ErrorBody}", response.StatusCode, errorBody);
+                _logger.LogError("OpenAI API returned non-success HTTP status code {StatusCode}: {ErrorBody}", (int)response.StatusCode, errorBody);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    throw new InvalidOperationException("AI provider authentication failed.");
+                    throw new InvalidOperationException("AI configuration is invalid.");
                 }
 
                 if (response.StatusCode == (System.Net.HttpStatusCode)429)
                 {
-                    throw new InvalidOperationException("AI provider rate limit exceeded. Please try again later.");
+                    if (errorBody.Contains("insufficient_quota", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("AI service quota exceeded. Please check API plan or try again later.");
+                    }
+                    throw new InvalidOperationException("AI service is busy. Please try again shortly.");
                 }
 
-                throw new HttpRequestException($"AI provider error: {response.StatusCode}");
+                throw new HttpRequestException("AI service is temporarily unavailable.");
             }
 
             var responseJson = await response.Content.ReadAsStringAsync(linkedCts.Token);
@@ -128,7 +131,7 @@ public class OpenAiProvider : IAiProvider
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("OpenAI request timed out after {Timeout} seconds", _options.TimeoutSeconds);
-            throw new TimeoutException("AI provider request timed out.");
+            throw new TimeoutException("AI is taking too long to respond.");
         }
     }
 }

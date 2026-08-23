@@ -514,9 +514,216 @@
 - [x] **Automated Integration Tests**:
   - 8 integration tests in `FarmerProfileAndMachineryReviewTests.cs` (100% passing). Total backend suite: 501 / 501 tests passing.
   - Verified backend build (`dotnet build`) and Angular frontend build (`npx ng build`).
+- [x] Added 16 backend integration tests in `AttendanceTests.cs` and 6 Vitest specs across new Angular attendance components.
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (125/125 passing), frontend build (`npm run build`), and frontend tests (112/112 passing).
 
+## Phase 5.3 Deliverables — Worker Availability Management
 
+- [x] Reused existing `WorkerProfile` fields: `IsAvailable` (bool), `AvailableFrom` (DateOnly?), and `AvailabilityNotes` (string?, max 500 chars).
+- [x] Confirmed EF Core configurations (`ProfileConfigurations.cs`) and database schema already match model parameters; no new migrations required.
+- [x] Service layer (`WorkerProfileService`) and DTOs (`WorkerProfileResponse`, `WorkerProfileUpdateRequest`) support availability retrieval and updates.
+- [x] Server-side identity enforcement resolves `WorkerProfile` exclusively from JWT claims; prevented unauthorized profile/availability modifications.
+- [x] Created Angular Availability UI section on `/worker/profile` in both View Mode (Status badge, Available From date, Notes) and Edit Mode (Toggle switch, date input, notes textarea).
+- [x] Added 10 backend integration tests in `WorkerProfileTests.cs` verifying availability reading, updating, toggle, persistence, 401/403 security, and worker isolation (151 total backend tests passing).
+- [x] Added 8 frontend unit specs in `worker-profile.component.spec.ts` verifying availability loading, toggle, persistence, validation, and error states (120 total frontend tests passing).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), test suites (`dotnet test` & `npm test`), and production client bundle (`npm run build`).
 
+## Phase 5.4 & 5.5 Deliverables — Worker Job Preferences and In-App Notifications
 
+- [x] Extended `WorkerProfile` entity with preference properties (`PreferredWorkCategories`, `PreferredLocations`, `MinimumDailyWage`, `PreferredWorkingHours`, `FoodPreference`, `AccommodationPreference`).
+- [x] Configured EF Core check constraint `CK_WorkerProfile_MinimumDailyWage_NonNegative` and generated EF migration `AddWorkerJobPreferences`.
+- [x] Implemented `IWorkerProfileService` methods (`GetPreferencesAsync`, `UpdatePreferencesAsync`) supporting comma-separated category/location deduplication, trimming, and non-negative wage validation.
+- [x] Implemented `INotificationService` / `NotificationService` supporting notification creation, retrieval, unread count resolution, marking as read, and marking all as read.
+- [x] Integrated notification triggers as side-effects in `FarmerApplicationService` (Application Accepted/Rejected, Assignment Created), `FarmerAttendanceService` (Attendance Updated), and `FarmerJobService` (Job Cancelled).
+- [x] Exposed REST endpoints in `WorkerController.cs` under `[Authorize(Roles = Roles.Worker)]`:
+  - `GET /api/worker/preferences` & `PUT /api/worker/preferences`
+  - `GET /api/worker/notifications` & `GET /api/worker/notifications/unread-count`
+  - `PUT /api/worker/notifications/{id}/read` & `PUT /api/worker/notifications/read-all`
+- [x] Created Angular `WorkerPreferencesComponent` (`/worker/preferences`) for managing work categories (chip tags), locations (chip tags), minimum daily wage, working hours, food preference, and accommodation preference.
+- [x] Created Angular `WorkerNotificationsComponent` (`/worker/notifications`) with unread count badges, notification category icons, mark as read, mark all read, and target route navigation.
+- [x] Updated `WorkerShellComponent` sidebar navigation and drawer with `Job Preferences`, `Notifications`, and dynamic unread badge counter.
+- [x] Added 14 backend integration tests in `WorkerPreferencesTests.cs` and 12 in `WorkerNotificationTests.cs` (177/177 total backend tests passing).
+- [x] Added 10 frontend unit specs in `worker-preferences.component.spec.ts` and 8 in `worker-notifications.component.spec.ts` (138/138 total frontend tests passing).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
 
+## Phase 5.6 & 5.7 Deliverables — Worker Ratings & Reviews and Worker Earnings
 
+- [x] Confirmed `Review` entity (`Communication.cs`) and `Reviews` table with `CK_Review_Rating_Range` (`1 <= Rating <= 5`) already exist in SQL Server schema; no database migration required.
+- [x] Implemented `IWorkerReviewService` / `WorkerReviewService` for rating workers (1 to 5 stars, optional comment up to 2000 chars), fetching assignment reviews, and calculating worker rating summaries (average rating, total reviews count, star breakdown, recent reviews).
+- [x] Enforced completion rules (ratings only allowed for completed or finished worker assignments) and security rules (only assigned farmers can rate workers, workers cannot rate themselves, customers cannot rate workers).
+- [x] Integrated in-app notification trigger ("New Review Received", "{FarmerName} rated your work {Rating} stars.") when a review is created.
+- [x] Implemented `IWorkerEarningsService` / `WorkerEarningsService` deriving earnings dynamically from `WorkerAssignment`, `Job`, and `Attendance` records (`Present` = 100% daily wage, `HalfDay` = 50% daily wage, `Absent`/`Leave` = ₹0).
+- [x] Exposed REST endpoints in `FarmerController.cs` and `WorkerController.cs`:
+  - `POST /api/farmer/assignments/{assignmentId}/review` & `GET /api/farmer/assignments/{assignmentId}/review`
+  - `GET /api/worker/reviews` & `GET /api/worker/earnings`
+- [x] Updated Angular `FarmerJobAssignmentsComponent` with a "Rate Worker" / "Edit Rating" button and interactive star rating modal for completed worker assignments.
+- [x] Created Angular `WorkerEarningsComponent` (`/worker/earnings`) displaying Total Earnings banner, Completed Jobs counter, This Month earnings, and Earnings History table.
+- [x] Updated Angular `WorkerProfileComponent` (`/worker/profile`) displaying Received Ratings & Reviews summary (Average Rating, Total Reviews, Star breakdown chart, Recent Reviews).
+- [x] Updated `WorkerShellComponent` sidebar/drawer navigation and `app.routes.ts` with `/worker/earnings`.
+- [x] Added 14 backend integration tests in `WorkerRatingTests.cs` and 12 in `WorkerEarningsTests.cs` (203/203 total backend tests passing).
+## Phase 5.8 & 5.9 Deliverables — Worker Work History & Worker Profile Verification & Completion
+
+- [x] Derived Worker Work History 100% dynamically from existing `WorkerAssignment`, `Job`, `Attendance`, `Review`, and `WorkerEarnings` records without creating duplicate WorkHistory tables.
+- [x] Added `VerificationStatus` (`nvarchar(50)`, default `'Not Verified'`) property to `WorkerProfile` entity and `WorkerProfileConfiguration` with EF Core migration `AddWorkerVerificationStatus`.
+- [x] Implemented `IWorkerWorkHistoryService` / `WorkerWorkHistoryService` returning completed job history cards with Job Title, Work Category, Farmer Name, Farm Location, Work Dates, Daily Wage, Attendance Summary breakdown (`5 Present, 1 Half Day`), Earned Amount, Farmer Star Rating & Comment, and Completion Status, as well as summary metrics (Total Completed Jobs, Total Work Days, Total Earnings).
+- [x] Implemented `IWorkerProfileCompletionService` / `WorkerProfileCompletionService` calculating profile completion dynamically across 5 weighted sections (Basic Information: 20%, Skills & Experience: 25%, Availability: 20%, Job Preferences: 25%, Profile Photo: 10%) and exposing application verification status.
+- [x] Enforced strict security: Server-side identity resolution from JWT claims prevents accessing or modifying another worker's history or completion status; workers cannot manually mark themselves `Verified`.
+- [x] Exposed REST endpoints in `WorkerController.cs` under `[Authorize(Roles = Roles.Worker)]`:
+  - `GET /api/worker/work-history`
+  - `GET /api/worker/profile/completion`
+- [x] Created Angular `WorkerWorkHistoryComponent` (`/worker/work-history`) with summary metric cards, completed job cards, search & rating filters, loading, error, and empty states.
+- [x] Updated Angular `WorkerProfileComponent` (`/worker/profile`) displaying Profile Completion Progress Bar (`85%`), Verification Status Badge (`Not Verified`), section checklist with `[ Complete Section ]` action buttons navigating to incomplete sections.
+- [x] Updated `WorkerShellComponent` sidebar/drawer navigation and `app.routes.ts` with `/worker/work-history`.
+- [x] Added 12 backend integration tests in `WorkerWorkHistoryTests.cs` and 9 in `WorkerProfileCompletionTests.cs` (**224 / 224 total backend tests passing**).
+- [x] Added 10 frontend unit specs in `worker-work-history.component.spec.ts` and updated `worker-profile.component.spec.ts` (**159 / 159 total frontend tests passing**).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend tests (`dotnet test`), frontend tests (`npm test`), and production client bundle (`npm run build`).
+
+## Phase 6.1 Deliverables — Farmer Crop Management
+
+- [x] Updated `Crop` domain entity (`Crops.cs`) with `CropType` (string, max length 120, required) and `AreaUnit` (`FarmSizeUnit` enum: `Vigha` / `Bigha` = 1, `Acre` = 2, `Hectare` = 3).
+- [x] Configured EF Core properties in `CropConfigurations.cs` and generated migration `AddCropTypeAndAreaUnit`.
+- [x] Created `FarmerCropDtos.cs` (`CropResponse`, `CreateCropRequest`, `UpdateCropRequest`).
+- [x] Implemented `IFarmerCropService` / `FarmerCropService` handling farmer profile resolution, input validation, date range checking (`ExpectedHarvestDate >= SowingDate`, `ActualHarvestDate >= SowingDate`), area > 0 enforcement, lifecycle status parsing (`Planned`, `Growing`, `ReadyForHarvest`, `Harvested`), and ownership security.
+- [x] Exposed REST endpoints in `FarmerCropController.cs` under `[Authorize(Roles = Roles.Farmer)]`:
+  - `GET /api/farmer/crops`
+  - `GET /api/farmer/crops/{id}`
+  - `POST /api/farmer/crops`
+  - `PUT /api/farmer/crops/{id}`
+  - `DELETE /api/farmer/crops/{id}`
+- [x] Enforced strict security: Server-side identity resolution from JWT claims prevents accessing, modifying, or deleting another farmer's crop. Workers, Customers, and unauthenticated users receive 401/403.
+- [x] Created Angular `FarmerCropService`, `FarmerCropsComponent` (`/farmer/crops`), `FarmerCropFormComponent` (`/farmer/crops/new` and `/farmer/crops/:id/edit`), and `FarmerCropDetailComponent` (`/farmer/crops/:id`).
+- [x] Activated "My Crops" navigation item in `farmer-shell.component.ts`, dashboard card in `farmer-dashboard.component.ts`, and protected routes in `app.routes.ts`.
+- [x] Added 29 backend integration tests in `FarmerCropTests.cs` covering crop creation, updates, deletes, ownership isolation, 401/403/404 security, image uploads, multiple image uploads, file format validation, file size limits, primary image selection, and image deletion (**248 / 248 total backend tests passing**).
+- [x] Added 20 frontend unit specs across crop components and service (**179 / 179 total frontend tests passing**).
+- [x] Verified solution build (`dotnet build FarmKart.sln`), backend integration tests (`dotnet test`), frontend tests (`npm test`), production client bundle (`npm run build`), and backend API startup (`dotnet run --project backend/FarmKart.API`).
+
+## Phase 6.2 Deliverables — Crop Inventory / Stock Management
+
+- [x] Added `CropStockTransactionType` enum (`Harvest`, `Adjustment`, `Correction`) to `DomainEnums.cs`.
+- [x] Added `CropStockTransaction` entity to `Crops.cs` with `CropId`, `Quantity`, `Unit`, `QuantityInBaseUnit` (Kg), `TransactionType`, and `Notes`.
+- [x] Configured EF Core mapping in `CropConfigurations.cs` (precision, FK cascade, indexes) and generated migration `AddCropStockManagement`.
+- [x] Implemented `IFarmerCropStockService` / `FarmerCropStockService` with unit normalization (Kg / Quintal / Ton → Kg), lifecycle validation (Planned/Growing crops cannot receive stock), negative-balance guard, and stock summary formatting.
+- [x] **Fixed EF Core relationship-fixup double-counting bug**: `AddCropStockAsync` and `AdjustCropStockAsync` now use `crop.Quantity + quantityInBaseUnit` instead of re-summing `crop.StockTransactions` after `DbContext.Add()` — EF Core adds the unsaved entity to the navigation collection immediately, causing double-counting.
+- [x] `Crop.Quantity` is the single authoritative running total in Kg, updated atomically on every stock transaction.
+- [x] Added `AvailableQuantityKg` and `AvailableQuantityFormatted` fields to `CropResponse` DTO, populated from `crop.Quantity` in `FarmerCropService.MapToResponse()`.
+- [x] Exposed REST endpoints in `FarmerCropStockController.cs` under `[Authorize(Roles = Roles.Farmer)]`:
+  - `GET /api/farmer/crops/{cropId}/stock` — current stock summary
+  - `POST /api/farmer/crops/{cropId}/stock` — add harvest record
+  - `POST /api/farmer/crops/{cropId}/stock/adjust` — adjustment / correction
+  - `GET /api/farmer/crops/{cropId}/stock/history` — full transaction log
+- [x] Enforced strict security: farmer profile resolved server-side from JWT claims; 404 returned for other farmers' crops.
+- [x] Updated Angular `FarmerCropService` with stock API methods (`getCropStock`, `addCropStock`, `getCropStockHistory`).
+- [x] Updated Angular `FarmerCropDetailComponent` with stock summary section, Add Stock modal (quantity / unit / type / notes), and Stock History modal (transaction list, loading/empty states).
+- [x] Added "Available Stock" row to the Crop Card metric banner in `FarmerCropsComponent` — displays formatted stock (e.g. "5 Quintals") for harvest-eligible crops, "No stock" for zero-stock crops, hidden for Planned/Growing.
+- [x] Added 23 backend integration tests in `FarmerCropStockTests.cs` (Test01–Test23) covering: stock add, associations, summary retrieval, cumulative totals, unit conversions (Kg/Quintal/Ton), history, quantity validation, invalid units, negative balance guard, crop lifecycle enforcement, role security (Worker/Customer/Unauthenticated → 401/403/404), farmer isolation, crop list stock display sync, and formatted display (**271 / 271 total backend tests passing**).
+- [x] Verified backend build (`dotnet build FarmKart.Infrastructure`), test suite (`dotnet test --filter FarmerCropStockTests`: 23/23 passing), and frontend build (`npx ng build`).
+
+## Phase 6.4 Deliverables — Customer Dashboard and Navigation Shell
+
+- [x] Created Angular `CustomerShellComponent` (`/customer`) with responsive desktop sidebar, mobile menu drawer, FarmKart branding, dynamic customer name/email, customer role badge, and logout action.
+- [x] Created Angular `CustomerDashboardComponent` displaying customer hero greeting ("Welcome, {Customer Name}"), workspace subtitle, and 6 customer service cards (Browse Auctions - ACTIVE, My Bids - COMING SOON, My Orders - COMING SOON, Payments - COMING SOON, Notifications - COMING SOON, My Profile - COMING SOON).
+- [x] Created Angular customer `ComingSoonComponent` displaying module title, "Coming Soon" badge, future phase explanation message, and "Back to Dashboard" navigation button.
+- [x] Protected `/customer` route structure in `app.routes.ts` using existing `authGuard` and `roleGuard` (`roles: ['Customer']`), preserving existing Farmer (`/farmer`) and Worker (`/worker`) route guards intact.
+- [x] Dynamically resolved customer name and email from `AuthService.currentUser$` observable without hardcoded values.
+- [x] Added Angular unit tests for `CustomerShellComponent`, `CustomerDashboardComponent`, and customer `ComingSoonComponent` (**190 / 190 total frontend unit tests passing**).
+- [x] Verified frontend build (`npx ng build`) and test suite (`npm test`).
+
+## Phase 6.5 Deliverables — Customer Auction Marketplace
+
+- [x] Enforced strictly **AUCTION-ONLY marketplace business rule**: Zero direct buy, cart, checkout, or payment functionality added.
+- [x] Created `CustomerAuctionResponse` and `CustomerAuctionFilterRequest` DTOs in `CustomerAuctionDtos.cs`.
+- [x] Implemented `ICustomerAuctionService` / `CustomerAuctionService` with dynamic status computation (`LIVE`, `UPCOMING`, `ENDED`), search (crop name, variety, farmer name, location), category filter, status filter, location filter, sorting (Ending soon, Newest, Price asc/desc), and primary image resolution.
+- [x] Excluded `Draft` and `Cancelled` auctions from customer marketplace queries.
+- [x] Exposed REST endpoints in `CustomerAuctionsController.cs` under `[Authorize(Roles = Roles.Customer)]`:
+  - `GET /api/customer/auctions` — query marketplace with filters & sorting
+  - `GET /api/customer/auctions/{id}` — retrieve single auction details
+- [x] Created Angular `customer-auction.models.ts` and `CustomerAuctionService` API client.
+- [x] Created Angular `CustomerAuctionsComponent` (`/customer/auctions`) with search bar, category select, status select, sort dropdown, clear filters action, responsive auction card grid (primary image, crop type badge, status overlay, quantity, starting price, current highest bid, min increment, farmer info, start/end dates, "View Auction" button), loading skeleton, error retry state, and empty result state.
+- [x] Created Angular `CustomerAuctionDetailComponent` (`/customer/auctions/:id`) displaying large primary crop photo with gallery thumbnails, crop description, farmer profile, auction schedule, starting price & min increment, and a guarded "Live Bidding" section showing notice `"Bidding will be available in the next phase."`.
+- [x] Added 9 backend integration tests in `CustomerAuctionTests.cs` verifying marketplace retrieval, cancelled/draft exclusion, search/category/status filters, single auction resolution, 404 for invalid IDs, 401 unauthenticated rejection, and 403 role security for Farmer/Worker (**280 / 280 total backend tests passing**).
+- [x] Added Angular unit specs for `CustomerAuctionsComponent` and `CustomerAuctionDetailComponent` (**196 / 196 total frontend unit tests passing**).
+- [x] Verified solution build (`dotnet build backend/FarmKart.API`), backend tests (`dotnet test`), frontend build (`npx ng build`), and frontend tests (`npm test`).
+
+## Phase 6.5 Extension — Auction Durations & Real-Time Countdown Timer
+
+- [x] **Predefined & Custom Auction Durations**:
+  - Refactored `CreateFarmerAuctionRequest` and `UpdateFarmerAuctionRequest` DTOs to replace `EndTimeUtc` with `Duration` string parameter.
+  - Implemented `FarmerAuctionService.ParseDurationToHours` supporting predefined options (`5 Hours`, `12 Hours`, `1 Day` (24h, default), `3 Days` (72h), `7 Days` (168h)) and custom manual hours entry (e.g. `"8 Hours"` or `"36"`).
+  - Server automatically calculates `EndTimeUtc = StartTimeUtc + DurationHours`.
+- [x] **Authoritative UTC & Server Time Offset Sync**:
+  - Added `ServerTimeUtc` to `FarmerAuctionResponse` and `CustomerAuctionResponse` DTOs.
+  - Clients compute server time offset (`serverTimeUtc - clientUtcNow`) to ensure all user clocks align seamlessly across devices regardless of local clock drift.
+- [x] **Dynamic Auction Lifecycle & Reusable Countdown Timer Component**:
+  - Built standalone `AuctionCountdownComponent` (`app-auction-countdown`) emitting real-time tick-by-tick countdowns (`DD:HH:MM:SS` or `HH:MM:SS`).
+  - Automatically handles status transitions (`SCHEDULED` -> `LIVE` -> `ENDED` / `CANCELLED`) derived directly from server-authoritative UTC end times.
+  - Guarantees countdowns stop at `00:00:00` without displaying negative numbers.
+  - Cleans up `setInterval` handle on component destroy to eliminate memory leaks.
+- [x] **Farmer & Customer Workspace UI Refactoring**:
+  - Updated Farmer Create Auction Modal with Duration select dropdown, custom hours field, and live End Date & Time preview label (`Auction ends on: {date}`).
+  - Fixed input field styling (`.app-input`) and card contrast in light and dark modes for high visibility.
+  - Updated Farmer crop auction list and Customer marketplace auction cards to feature live countdown timers.
+- [x] **Unit & Integration Tests**:
+  - Added 26 backend tests in `FarmerAuctionDurationTests.cs` verifying duration parsing, end-time calculation, dynamic status checks, and API integration.
+  - Added 12 frontend unit tests in `auction-countdown.component.spec.ts` covering status transitions, formatting, server offset sync, and lifecycle cleanup (**208 / 208 total frontend unit tests passing**).
+
+## Phase 6.9 Deliverables — Farmer Auction Management & Live Bids Dashboard
+
+- [x] **Farmer Sidebar & Routing**:
+  - Added `My Auctions` (`/farmer/auctions`) link with `gavel` icon to `farmer-shell.component.ts`.
+  - Registered `/farmer/auctions`, `/farmer/auctions/:id`, and `/farmer/auctions/:id/bids` in `app.routes.ts` protected by `authGuard` and `roleGuard`.
+- [x] **My Auctions Page (`/farmer/auctions`)**:
+  - Real-time summary header cards (Total Auctions, Upcoming, Live, Ended).
+  - Client-side status filter tabs (All, Live, Upcoming, Ended, Cancelled) and search box (crop name & variety).
+  - Auction cards displaying crop image, variety, quantity (Kg & Man), starting price (₹/Man), current highest bid (₹/Man), total bids count, total demand (Kg & %), status badge (🔴 LIVE, 🟡 UPCOMING, ⚫ ENDED, ⚪ CANCELLED), `app-auction-countdown`, and action buttons `[ VIEW AUCTION ]` & `[ VIEW BIDS ]`.
+- [x] **View Auction Page (`/farmer/auctions/:id`)**:
+  - Complete details sections: Auction Information, Crop Info, Quantity/Stock, Pricing, Timeline, Live Bidding Activity banner, Final Allocation Summary table (for Ended auctions), and Payment Summary.
+- [x] **View Bids Page (`/farmer/auctions/:id/bids`)**:
+  - Metric banner header displaying Total Demand Kg, Demand %, Total Bids.
+  - Custom sort dropdown (Highest Bid, Lowest Bid, Highest Quantity, Latest Bid, Earliest Bid).
+  - Responsive table and cards displaying Customer Name (Public full name ONLY), Requested Quantity (Kg & Man), Bid Price / Man, Bid Time (Local timezone), Bid Status (`VALID`), and Allocation Status (`WON`, `PARTIALLY_WON`, `LOST`).
+- [x] **Security & Authorization**:
+  - Authenticated user + Farmer role + Farmer ownership check enforced across all backend APIs. Returns 404/403 for unowned requests. Customer credentials (email, password, tokens, internal IDs) are strictly omitted.
+- [x] **Real-Time Polling & Pricing Consistency**:
+  - Safe 5-second polling on live views for active live auctions.
+  - All pricing consistently rendered in **₹ / Man** ($1\text{ Man} = 20\text{ Kg}$).
+- [x] **Automated Tests**:
+  - Backend integration tests in `FarmerAuctionManagementTests.cs` (4/4 passing).
+  - Frontend unit tests for `FarmerAuctionsComponent`, `FarmerAuctionDetailComponent`, and `FarmerAuctionBidsComponent` (**217 / 217 total frontend unit tests passing**).
+
+## Phase 8.5 Deliverables — Farmer Public Profile + Machinery Ratings & Reviews
+
+- [x] **Farmer Public Profile Backend**:
+  - Implemented `IFarmerProfileService` / `FarmerProfileService` retrieving public farmer profile data: Farmer Name, Farm Name, Location (City, State), Member Since Date, Average Farmer Rating (calculated ONLY from Crop Order Reviews), Verified Reviews list, Active Auctions list, and Listed Machinery owned strictly by this farmer (`Machinery.OwnerUserId == FarmerUserId`).
+  - Sensitive information (passwords, auth data, payment details, private emails) is strictly omitted.
+  - Exposed `GET /api/farmers/{farmerId}/profile` in `FarmerProfileController.cs`.
+- [x] **Machinery Ratings & Reviews Backend**:
+  - Reused existing Phase 8.1 `Review` entity using `ReviewEntityType.MachineryRental` and `RelatedEntityId = rentalId`.
+  - Implemented `IMachineryReviewService` / `MachineryReviewService` validating completed rental eligibility, renter-only authorization, 1-5 rating range enforcement, duplicate review prevention, owner-authorized machinery review management (`GET /api/my-machinery/{id}/reviews` verifying `machinery.OwnerUserId == authenticatedUserId`), and unified My Reviews (`GET /api/my-reviews`).
+  - Exposed endpoints in `MachineryReviewController.cs`.
+- [x] **Frontend UI & Components**:
+  - Created `FarmerPublicProfileComponent` (`/customer/farmers/:farmerId` & `/farmer/farmers/:farmerId`) with header profile card, average rating badge, filter tabs for Active Auctions (`All`, `Live`, `Upcoming`, `Ended`), filter tabs for Listed Machinery (`All`, `Available`, `Rented`, `Unavailable`), and Customer Reviews grid.
+  - Created `OwnerMachineryReviewsDialogComponent` allowing machinery owners (Farmers and Customers) to view received reviews directly from `My Machinery`.
+  - Updated `CustomerReviewsComponent` and `FarmerReviewsComponent` with tabbed filter buttons (`All`, `Crop Reviews`, `Machinery Reviews`), metric summary cards, and dynamic empty states.
+  - Updated `CustomerMachineryDetailComponent` displaying owner's Farmer Profile link and Machinery Reviews & Ratings section.
+  - Updated `CustomerMyRentalsComponent` adding `[ RATE MACHINERY ]` button for completed rentals.
+- [x] **Automated Integration Tests**:
+  - 8 integration tests in `FarmerProfileAndMachineryReviewTests.cs` (100% passing). Total backend suite: 501 / 501 tests passing.
+  - Verified backend build (`dotnet build`) and Angular frontend build (`npx ng build`).
+
+- [x] **Phase AI-1: Multilingual AI + Voice Foundation**:
+  - **Skipped Intentional Phases**: Phase 8.8 (Notifications) and Phase 8.9 (Reports & Disputes) were intentionally skipped as requested.
+  - **Backend AI Architecture**: Created `OpenAiOptions`, `.env.example` templates, `IAiProvider` and `IAiService` abstractions, `OpenAiProvider` HTTP client, `AiService`, and `POST /api/ai/chat` endpoint.
+  - **Frontend AI Assistant Component**: Built floating `AiAssistantComponent` with Web Speech Recognition API voice integration (`en-IN`, `hi-IN`, `gu-IN`), multilingual support (`en`, `hi`, `gu`), loading/error states, and keyboard accessibility.
+  - **Testing**: 10 backend unit tests in `AiServiceTests.cs` (100% passing) and 10 frontend unit tests (100% passing).
+- [x] **Phase AI-2: Context-Aware Conversational Form Engine**:
+  - **Generic Engine Architecture**: Built reusable task context (`AiTaskContext`), form field definitions (`AiFormFieldDefinition`), and session state (`AiConversationSession`) in `FarmKart.Application.DTOs`.
+  - **Backend Services & API**: Created `IAiConversationSessionStore` / `InMemoryAiConversationSessionStore` (thread-safe in-memory session store with user ownership isolation and 30-minute session cleanup) and `IAiConversationEngine` / `AiConversationEngine` (`backend/FarmKart.Infrastructure/Services/AI/AiConversationEngine.cs`).
+  - **Endpoints**: `POST /api/ai/conversation/start`, `POST /api/ai/conversation/message`, and `POST /api/ai/conversation/cancel` in `AiConversationController.cs`.
+  - **Intelligent Flow & Extraction**: Extracts single or multiple fields from natural language user input; updates user corrections; enforces one-question-at-a-time flow; enforces required vs optional field rules; handles intent commands (`cancel`, `restart`, `skip`); performs field format validation (`phone`, `number`, `decimal`, `boolean`); generates confirmation summaries without writing to the database.
+  - **Frontend Integration & Voice**: Created `AiConversationService` (`frontend/src/app/core/services/ai-conversation.service.ts`) with RxJS subjects (`fieldUpdated$`, `formCompleted$`, `formCancelled$`); integrated task mode in `AiAssistantComponent` with confirmation summary card; reuses AI-1 microphone voice input.
+  - **Testing & Health**: Added 9 backend integration tests in `AiConversationEngineTests.cs` (100% passing). Total backend suite: 540 / 540 tests passing. Added 14 frontend specs (100% passing). `npx ng build` and `dotnet build` verified with 0 errors.
+- [x] **AI Provider Migration — Google Gemini Integration**:
+  - **Provider Abstraction**: Implemented `GeminiProvider` in `FarmKart.Infrastructure/Services/AI/GeminiProvider.cs` under the existing vendor-agnostic `IAiProvider` interface using Google Gemini v1beta REST API (`generateContent`).
+  - **Configuration & Environment**: Added `GeminiOptions` (`GEMINI_API_KEY`, `GEMINI_MODEL` default `gemini-1.5-flash`, `TimeoutSeconds` 30s) and `AI_PROVIDER` selection (`AI_PROVIDER=gemini` default). Updated `.env.example` templates with empty placeholders. `.env` remains gitignored and API keys are never exposed to the frontend.
+  - **Error Handling & Security**: Mapped HTTP status codes cleanly (400/401/403 -> `InvalidOperationException("AI configuration is invalid.")`, 429 -> `InvalidOperationException("AI service quota/rate limit reached. Please try again later.")`, 504 -> `TimeoutException("AI is taking too long to respond.")`). Diagnostic logging records HTTP details server-side without exposing secrets.
+  - **Testing**: Added 5 unit tests in `GeminiProviderTests.cs` (100% passing). Total backend test suite: **545 / 545 tests passing**. Total frontend specs: **14 / 14 passing**. `npx ng build` and `dotnet build` verified with 0 errors.

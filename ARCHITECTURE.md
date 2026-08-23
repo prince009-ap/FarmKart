@@ -363,12 +363,40 @@ The Angular app follows a feature-based structure:
 - **Centralized Prompting & Guardrails**:
   - Centralized FarmKart system prompt enforces concise, helpful responses in the requested language (`en` = English, `hi` = Hindi, `gu` = Gujarati) and understands mixed-language inputs (Hinglish/Gujlish).
   - Guardrails explicitly forbid database mutation, data fabrication, or business action execution in Phase AI-1.
-- **Frontend Architecture & Voice Integration**:
-  - `AiAssistantComponent` (`app-ai-assistant`) mounted globally in `app.html` rendered when an authenticated user is logged in.
-  - Collapsible glassmorphic chat widget with language selector (`English`, `हिंदी`, `ગુજરાતી`), message list, animated thinking indicator, and error banners.
-  - Web Speech Recognition API integration (`SpeechRecognition` / `webkitSpeechRecognition`) supporting voice input mapped to locale languages (`en-IN`, `hi-IN`, `gu-IN`).
-  - Converts spoken speech to text and populates the text input box for user review and editing before sending (no auto-send). Gracefully handles unsupported browsers or permission denial.
 
+## Context-Aware Conversational Form Engine Architecture (Phase AI-2)
 
+- **Generic Task & Field Definitions**:
+  - `AiTaskContext` (`TaskName`, `PageName`, `Language`, `Fields`) defines the host page form context without hardcoding domain-specific fields into the engine.
+  - `AiFormFieldDefinition` (`Name`, `Label`, `Type`, `Required`, `Description`, `Options`) supports field types: `text`, `number`, `decimal`, `phone`, `date`, `boolean`, `select`, `textarea`.
+- **Session State & Ownership Security**:
+  - `AiConversationSession` represents an in-memory form collection session.
+  - `IAiConversationSessionStore` / `InMemoryAiConversationSessionStore` handles thread-safe session tracking. Sessions are strictly scoped to `session.UserId == AuthenticatedUserId` and automatically purged after 30 minutes of inactivity.
+- **Backend Conversational Engine (`IAiConversationEngine` / `AiConversationEngine`)**:
+  - **Structured LLM Extraction**: Leverages `IAiProvider` with a strict JSON extraction prompt to parse user natural language into structured field name/value pairs.
+  - **Multi-Field & Correction Support**: Extracts multiple fields provided in a single message (e.g., "My name is Prince and phone is 9876543210") and updates user corrections to previously collected fields (e.g., "Actually my name is Prince Senjaliya").
+  - **One-Question-at-a-Time Guidance**: Asks ONE clear question at a time for the next missing field in the requested language (`en`, `hi`, `gu`).
+  - **Intent & Skip Commands**: Handles `cancel`/`stop`/`exit`, `restart`/`reset`, and `skip` (allowed ONLY for optional fields; required field skip attempts are rejected with an explanation).
+  - **Format Validation**: Backend validates field data types (`phone`, `number`, `decimal`, `boolean`). Rejects invalid formats cleanly and prompts re-entry.
+  - **Confirmation Stage**: When all required fields are collected, status transitions to `ReadyForConfirmation` and generates a structured summary card. Does **NOT** directly write or mutate business database records.
+- **Backend API Endpoints (`AiConversationController.cs`)**:
+  - `POST /api/ai/conversation/start`
+  - `POST /api/ai/conversation/message`
+  - `POST /api/ai/conversation/cancel`
+- **Frontend Architecture & Reactive Form Sync**:
+  - `AiConversationService` (`frontend/src/app/core/services/ai-conversation.service.ts`) manages task sessions and exposes RxJS events (`fieldUpdated$`, `formCompleted$`, `formCancelled$`).
+  - `AiAssistantComponent` seamlessly handles task form engine mode, displaying task progress badges and confirmation summary cards. Reuses AI-1's voice input system. Hosts can bind `fieldUpdated$` to automatically sync Angular Form Controls while allowing manual editing.
 
+## Google Gemini AI Provider Integration Architecture
 
+- **Vendor-Agnostic AI Abstraction**:
+  - `GeminiProvider` in `FarmKart.Infrastructure.Services.AI` implements `IAiProvider` using `HttpClient` calling Google Gemini v1beta REST API (`https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}`).
+  - Supports dynamic provider selection via `AI_PROVIDER` configuration (`AI_PROVIDER=gemini` default, with `OpenAiProvider` preserved as legacy/alternative).
+- **Secrets Security & Configuration**:
+  - `GeminiOptions` configured via environment variables (`GEMINI_API_KEY`, `GEMINI_MODEL` default `gemini-1.5-flash`, `Gemini:TimeoutSeconds` 30s).
+  - API keys reside exclusively on the backend and are NEVER transmitted to the browser, stored in local storage, or committed to git. `.env.example` contains empty placeholders only.
+- **Payload & Response Mapping**:
+  - Maps system prompt into Gemini's `systemInstruction` object.
+  - Maps conversation history and current user message to Gemini's `contents` array (`role: "user" | "model"`).
+  - Uses `JavaScriptEncoder.Create(UnicodeRanges.All)` to ensure clean UTF-8 serialization for Gujarati, Hindi, and English text without ASCII escaping.
+  - Extracts generated content from `candidates[0].content.parts[0].text` and maps back to standard `AiChatResponse` DTO.

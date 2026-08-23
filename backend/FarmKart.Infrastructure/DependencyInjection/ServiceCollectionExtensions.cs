@@ -83,8 +83,30 @@ public static class ServiceCollectionExtensions
                 options.TimeoutSeconds = timeoutSec;
             }
         });
-        services.AddHttpClient<IAiProvider, OpenAiProvider>();
+
+        services.Configure<GeminiOptions>(options =>
+        {
+            options.ApiKey = configuration["GEMINI_API_KEY"] ?? configuration["Gemini:ApiKey"] ?? string.Empty;
+            options.Model = configuration["GEMINI_MODEL"] ?? configuration["Gemini:Model"] ?? "gemini-3.6-flash";
+            if (int.TryParse(configuration["Gemini:TimeoutSeconds"], out var timeoutSec) && timeoutSec > 0)
+            {
+                options.TimeoutSeconds = timeoutSec;
+            }
+        });
+
+        var aiProviderName = configuration["AI_PROVIDER"] ?? configuration["Ai:Provider"] ?? "gemini";
+        if (string.Equals(aiProviderName, "openai", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient<IAiProvider, OpenAiProvider>();
+        }
+        else
+        {
+            services.AddHttpClient<IAiProvider, GeminiProvider>();
+        }
+
         services.AddScoped<IAiService, AiService>();
+        services.AddSingleton<IAiConversationSessionStore, InMemoryAiConversationSessionStore>();
+        services.AddScoped<IAiConversationEngine, AiConversationEngine>();
 
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
