@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AiService } from '../../core/services/ai.service';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { AiChatMessageDto, AiLanguage, AiMessageItem } from '../../core/models/ai.models';
+import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { UserPreferenceService } from '../../core/services/user-preference.service';
 
 @Component({
@@ -36,7 +37,7 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
 
       <!-- Chat Panel Window -->
       @if (isOpen()) {
-        <div class="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[520px] max-h-[calc(100vh-8rem)] bg-slate-900 text-slate-100 rounded-2xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden animate-fk-rise">
+        <div class="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[540px] max-h-[calc(100vh-8rem)] bg-slate-900 text-slate-100 rounded-2xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden animate-fk-rise">
           <!-- Header -->
           <div class="px-4 py-3.5 bg-gradient-to-r from-slate-900 via-emerald-950/80 to-slate-900 border-b border-slate-800 flex items-center justify-between gap-2">
             <div class="flex items-center gap-2.5">
@@ -74,6 +75,32 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
                 <mat-icon class="!w-4 !h-4 !text-[18px]">close</mat-icon>
               </button>
             </div>
+          </div>
+
+          <!-- AI-2 Test Mode Bar -->
+          <div class="px-3 py-1.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+            @if (!taskSession()) {
+              <button
+                type="button"
+                (click)="startAi2TestMode()"
+                class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                <mat-icon class="!w-4 !h-4 !text-[16px]">science</mat-icon>
+                🧪 Start AI-2 Test Mode (complete_profile_test)
+              </button>
+            } @else {
+              <div class="flex items-center justify-between w-full text-xs">
+                <span class="text-emerald-400 font-medium flex items-center gap-1">
+                  <mat-icon class="!w-4 !h-4 !text-[16px]">assignment</mat-icon>
+                  AI-2 Test Mode Active
+                </span>
+                <button
+                  type="button"
+                  (click)="cancelTaskSession()"
+                  class="text-rose-400 hover:text-rose-300 hover:underline font-semibold text-[11px]">
+                  Exit Test Mode
+                </button>
+              </div>
+            }
           </div>
 
           <!-- Message History Window -->
@@ -226,7 +253,6 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Check if preference service has stored language
     this.preferenceService.getPreferences().subscribe({
       next: (pref) => {
         if (pref && pref.language && ['en', 'hi', 'gu'].includes(pref.language.toLowerCase())) {
@@ -281,6 +307,41 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
         }
       ]);
     }
+  }
+
+  startAi2TestMode(): void {
+    const request: StartAiConversationRequest = {
+      taskName: 'complete_profile_test',
+      pageName: 'profile',
+      language: this.selectedLanguage(),
+      fields: [
+        { name: 'name', label: 'Full Name', type: 'text', required: true, description: "User's full name" },
+        { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: "User's phone number" },
+        { name: 'city', label: 'City', type: 'text', required: false, description: "User's city" }
+      ]
+    };
+
+    this.loading.set(true);
+    this.statusMessage.set(null);
+
+    this.conversationService.startConversation(request).subscribe({
+      next: (res) => {
+        this.loading.set(false);
+        const testMsg: AiMessageItem = {
+          id: GuidUtils.newId(),
+          sender: 'ai',
+          text: `🧪 [AI-2 Test Mode Started: complete_profile_test]\n\n${res.nextQuestion}`,
+          timestamp: new Date()
+        };
+        this.messages.set([testMsg]);
+        this.scrollToBottom();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        const errorText = err?.error?.message || err?.message || 'Failed to start AI-2 Test Mode.';
+        this.statusMessage.set(errorText);
+      }
+    });
   }
 
   sendMessage(): void {

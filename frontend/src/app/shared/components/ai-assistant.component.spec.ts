@@ -22,6 +22,11 @@ describe('AiAssistantComponent', () => {
 
     conversationServiceMock = {
       activeSession: vi.fn().mockReturnValue(null),
+      startConversation: vi.fn().mockReturnValue(of({
+        conversationId: 'session-123',
+        taskName: 'complete_profile_test',
+        nextQuestion: 'What is your name?'
+      })),
       sendMessage: vi.fn().mockReturnValue(of({ nextQuestion: 'Next task question?' })),
       cancelConversation: vi.fn().mockReturnValue(of(void 0)),
       confirmAndComplete: vi.fn()
@@ -72,6 +77,19 @@ describe('AiAssistantComponent', () => {
 
     component.onLanguageChange('gu');
     expect(component.selectedLanguage()).toBe('gu');
+  });
+
+  it('should start AI-2 Test Mode when startAi2TestMode is called', () => {
+    component.startAi2TestMode();
+
+    expect(conversationServiceMock.startConversation).toHaveBeenCalledWith(expect.objectContaining({
+      taskName: 'complete_profile_test',
+      pageName: 'profile'
+    }));
+
+    const lastMsg = component.messages()[component.messages().length - 1];
+    expect(lastMsg.text).toContain('complete_profile_test');
+    expect(lastMsg.text).toContain('What is your name?');
   });
 
   it('should send user message and append AI response in freeform mode', () => {
