@@ -7,9 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/services/auth.service';
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LanguageService } from '../../core/services/language.service';
+
 interface ModuleCard {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: string;
   route: string;
   isPlaceholder?: boolean;
@@ -21,6 +24,7 @@ interface ModuleCard {
   imports: [
     CommonModule,
     RouterLink,
+    TranslatePipe,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -30,41 +34,41 @@ interface ModuleCard {
 })
 export class FarmerDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
 
   userName = signal<string>('Farmer');
 
   readonly moduleCards: ModuleCard[] = [
     {
-      title: 'My Profile',
-      description: 'View and update your personal info, farm size, unit settings, and contact information.',
+      titleKey: 'nav.profile',
+      descriptionKey: 'farmer.dashboardSubtitle',
       icon: 'person',
       route: '/farmer/profile'
     },
     {
-      title: 'Jobs & Labor',
-      description: 'Create job postings, review worker applications, manage assignments, and hire local farm help.',
+      titleKey: 'nav.jobPostings',
+      descriptionKey: 'worker.dashboardSubtitle',
       icon: 'work',
       route: '/farmer/jobs'
     },
     {
-      title: 'My Crops',
-      description: 'Manage crop sowing dates, cultivated areas, harvest schedules, and crop status.',
+      titleKey: 'nav.crops',
+      descriptionKey: 'farmer.dashboardSubtitle',
       icon: 'eco',
       route: '/farmer/crops'
     },
     {
-      title: 'Machinery Rentals',
-      description: 'Rent heavy machinery from other farmers, list your own tools, and track rental agreements.',
+      titleKey: 'nav.machinery',
+      descriptionKey: 'customer.dashboardSubtitle',
       icon: 'construction',
       route: '/farmer/machinery',
       isPlaceholder: true
     },
     {
-      title: 'Crops Marketplace',
-      description: 'Advertise produce, review orders, configure crop listings, and sell directly to consumers.',
+      titleKey: 'nav.auctions',
+      descriptionKey: 'farmer.dashboardSubtitle',
       icon: 'storefront',
-      route: '/farmer/marketplace',
-      isPlaceholder: true
+      route: '/farmer/auctions'
     }
   ];
 

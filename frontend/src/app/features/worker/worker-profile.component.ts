@@ -20,6 +20,7 @@ import { environment } from '../../../environments/environment';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { AuthService } from '../../core/services/auth.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-worker-profile',
@@ -40,6 +41,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class WorkerProfileComponent implements OnInit {
   private readonly workerService = inject(WorkerJobService);
   private readonly conversationService = inject(AiConversationService);
+  private readonly languageService = inject(LanguageService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -104,6 +106,7 @@ export class WorkerProfileComponent implements OnInit {
     const request: StartAiConversationRequest = {
       taskName: 'update_worker_profile',
       pageName: 'worker_profile',
+      language: this.languageService.currentLanguage(),
       fields: [
         { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Worker full name' },
         { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },

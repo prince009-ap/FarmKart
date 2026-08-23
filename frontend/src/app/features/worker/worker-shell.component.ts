@@ -6,6 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { WorkerJobService } from './worker-job.service';
 
+import { FormsModule } from '@angular/forms';
+import { LanguageService } from '../../core/services/language.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { environment } from '../../../environments/environment';
 
 interface NavItem {
@@ -20,9 +23,11 @@ interface NavItem {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
+    TranslatePipe,
     MatButtonModule,
     MatIconModule
   ],
@@ -30,6 +35,7 @@ interface NavItem {
 })
 export class WorkerShellComponent implements OnInit {
   protected readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
   private readonly workerService = inject(WorkerJobService);
   private readonly router = inject(Router);
 

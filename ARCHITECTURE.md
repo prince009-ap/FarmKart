@@ -416,3 +416,19 @@ The Angular app follows a feature-based structure:
   - AI engine **NEVER** performs direct database writes or repository calls.
   - Clicking `Confirm & Save` triggers `formCompleted$`, which invokes the host page's existing business update APIs (`FarmerProfileService.updateProfile()`, `CustomerProfileService.updateProfile()`, `WorkerJobService.updateProfile()`, `FarmerCropService.createCrop()` / `updateCrop()`).
   - Authorization and database validation are strictly enforced by the backend business layer.
+
+## Global Website Localization System Architecture (English, Hindi, Gujarati)
+
+- **Centralized Language Service (`LanguageService.ts`)**:
+  - Single source of truth signal `currentLanguage = signal<SupportedLanguage>('en')` (`'en'`, `'hi'`, `'gu'`).
+  - Persistence hierarchy: Authenticated `UserPreferenceService` backend preference $\rightarrow$ `localStorage` cache (`farmkart_language`) $\rightarrow$ default fallback `en`.
+- **Translation System (`translations.ts` & `TranslatePipe.ts`)**:
+  - Strongly-typed dictionary maps covering authentication, navigation, dashboard, forms, buttons, status badges, validation, and AI interface strings.
+  - Pipe syntax `{{ 'auth.login' | translate }}` and programmatic lookup `languageService.t(key, params)` with safe English fallback for missing keys.
+- **Login Language Selection**:
+  - Language selection bar (`English` | `हिंदी` | `ગુજરાતી`) on login/register screens. Selected language switches authentication UI immediately and sets global application language upon login.
+- **App Shell Switchers & AI/Voice Synchronization**:
+  - `🌐 Language` dropdown in Customer, Farmer, and Worker shell headers updates all UI components instantly.
+  - Synchronizes automatically with FarmKart AI (`AiAssistantComponent`), passing `language` in AI requests and configuring Web Speech microphone locales (`en-IN`, `hi-IN`, `gu-IN`).
+- **User Data & Backend Contract Integrity**:
+  - Database strings, backend enums, API endpoints, and user-generated data (names, crop titles, addresses) remain in original formats. Localization applies strictly to UI display elements.

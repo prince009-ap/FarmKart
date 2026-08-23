@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ElementRef, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { AiConversationService } from '../../core/services/ai-conversation.servi
 import { AiChatMessageDto, AiLanguage, AiMessageItem } from '../../core/models/ai.models';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { UserPreferenceService } from '../../core/services/user-preference.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -226,11 +227,11 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   private readonly aiService = inject(AiService);
   private readonly conversationService = inject(AiConversationService);
   private readonly preferenceService = inject(UserPreferenceService);
+  readonly languageService = inject(LanguageService);
 
   @ViewChild('scrollContainer') private scrollContainer?: ElementRef<HTMLDivElement>;
 
   isOpen = signal<boolean>(false);
-  selectedLanguage = signal<AiLanguage>('en');
   messages = signal<AiMessageItem[]>([]);
   loading = signal<boolean>(false);
   isListening = signal<boolean>(false);
@@ -240,22 +241,14 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
 
   private speechRecognition: any = null;
 
+  selectedLanguage = computed(() => this.languageService.currentLanguage() as AiLanguage);
+
   get taskSession() {
     return this.conversationService.activeSession;
   }
 
   ngOnInit(): void {
-    this.preferenceService.getPreferences().subscribe({
-      next: (pref) => {
-        if (pref && pref.language && ['en', 'hi', 'gu'].includes(pref.language.toLowerCase())) {
-          this.selectedLanguage.set(pref.language.toLowerCase() as AiLanguage);
-        }
-        this.resetWelcomeMessage();
-      },
-      error: () => {
-        this.resetWelcomeMessage();
-      }
-    });
+    this.resetWelcomeMessage();
 
     this.conversationService.sessionStarted$.subscribe((res) => {
       this.isOpen.set(true);
@@ -289,8 +282,10 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     }
   }
 
-  onLanguageChange(lang: AiLanguage): void {
-    this.selectedLanguage.set(lang);
+  onLanguageChange(lang: any): void {
+    if (lang && ['en', 'hi', 'gu'].includes(String(lang))) {
+      this.languageService.setLanguage(lang as any);
+    }
     if (this.isListening()) {
       this.stopListening();
     }

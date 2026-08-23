@@ -1,22 +1,22 @@
 <div class="app-page animate-fk-rise">
   <section class="app-hero-banner app-hero-banner--farmer">
-    <p class="app-hero-banner__eyebrow">Farmer workspace</p>
-    <h1 class="app-hero-banner__title">Welcome back, {{ userName() }}</h1>
+    <p class="app-hero-banner__eyebrow">{{ 'auth.farmer' | translate }} Workspace</p>
+    <h1 class="app-hero-banner__title">{{ 'common.welcome' | translate }}, {{ userName() }}</h1>
     <p class="app-hero-banner__summary">
-      Manage your profile, post farm jobs, and prepare for crops, machinery rentals, and marketplace flows as FarmKart expands.
+      {{ 'farmer.dashboardSubtitle' | translate }}
     </p>
     <div class="app-hero-banner__actions">
       <a mat-flat-button class="!bg-emerald-600 !text-white !rounded-xl" routerLink="/farmer/analytics">
         <mat-icon>bar_chart</mat-icon>
-        View Analytics
+        {{ 'nav.analytics' | translate }}
       </a>
       <a mat-flat-button class="app-primary-btn" routerLink="/farmer/profile">
         <mat-icon>person</mat-icon>
-        Update Profile
+        {{ 'nav.profile' | translate }}
       </a>
       <a mat-stroked-button class="!border-white/30 !text-white" routerLink="/farmer/jobs">
         <mat-icon>work</mat-icon>
-        Manage Jobs
+        {{ 'nav.jobPostings' | translate }}
       </a>
     </div>
   </section>
@@ -24,50 +24,50 @@
   <section class="app-grid app-grid--stats">
     <article class="app-card">
       <div class="app-card__icon"><mat-icon>work</mat-icon></div>
-      <h2 class="app-card__title">Jobs & Labor</h2>
-      <span class="app-badge app-badge--active mt-2">Active</span>
-      <p class="app-card__text">Create job postings and manage local farm labor requests from your workspace.</p>
+      <h2 class="app-card__title">{{ 'nav.jobPostings' | translate }}</h2>
+      <span class="app-badge app-badge--active mt-2">{{ 'status.Active' | translate }}</span>
+      <p class="app-card__text">{{ 'worker.dashboardSubtitle' | translate }}</p>
     </article>
 
     <article class="app-card">
       <div class="app-card__icon"><mat-icon>eco</mat-icon></div>
-      <h2 class="app-card__title">Crops Market</h2>
-      <span class="app-badge app-badge--soon mt-2">Soon</span>
-      <p class="app-card__text">Direct crop sales and auction bidding flows will unlock in later phases.</p>
+      <h2 class="app-card__title">{{ 'nav.crops' | translate }}</h2>
+      <span class="app-badge app-badge--active mt-2">{{ 'status.Active' | translate }}</span>
+      <p class="app-card__text">{{ 'farmer.dashboardSubtitle' | translate }}</p>
     </article>
 
     <article class="app-card">
       <div class="app-card__icon"><mat-icon>construction</mat-icon></div>
-      <h2 class="app-card__title">Rentals Hub</h2>
-      <span class="app-badge app-badge--soon mt-2">Soon</span>
-      <p class="app-card__text">Rent machinery from nearby farmers or list your own equipment for rental.</p>
+      <h2 class="app-card__title">{{ 'nav.machinery' | translate }}</h2>
+      <span class="app-badge app-badge--soon mt-2">{{ 'nav.soon' | translate }}</span>
+      <p class="app-card__text">{{ 'customer.dashboardSubtitle' | translate }}</p>
     </article>
   </section>
 
   <section>
     <div class="app-page-header mb-4">
       <div class="app-page-header__content">
-        <p class="app-page-eyebrow">Modules</p>
-        <h2 class="app-page-title">Farmer utilities</h2>
+        <p class="app-page-eyebrow">{{ 'nav.dashboard' | translate }}</p>
+        <h2 class="app-page-title">{{ 'farmer.dashboardTitle' | translate }}</h2>
       </div>
     </div>
 
     <div class="app-grid app-grid--modules">
-      @for (card of moduleCards; track card.title) {
+      @for (card of moduleCards; track card.titleKey) {
         <article class="app-card app-card--interactive">
           <div class="flex items-center justify-between gap-3">
             <div class="app-card__icon"><mat-icon>{{ card.icon }}</mat-icon></div>
             @if (card.isPlaceholder) {
-              <span class="app-badge app-badge--soon">Coming Soon</span>
+              <span class="app-badge app-badge--soon">{{ 'nav.soon' | translate }}</span>
             } @else {
-              <span class="app-badge app-badge--active">Active</span>
+              <span class="app-badge app-badge--active">{{ 'status.Active' | translate }}</span>
             }
           </div>
-          <h3 class="app-card__title">{{ card.title }}</h3>
-          <p class="app-card__text">{{ card.description }}</p>
+          <h3 class="app-card__title">{{ card.titleKey | translate }}</h3>
+          <p class="app-card__text">{{ card.descriptionKey | translate }}</p>
           <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
             <a mat-button color="primary" [routerLink]="card.route" class="font-semibold">
-              {{ card.isPlaceholder ? 'Preview module' : 'Open module' }}
+              {{ 'common.viewDetails' | translate }}
               <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
             </a>
           </div>

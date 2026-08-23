@@ -15,12 +15,16 @@ import {
   WorkerProfileCompletion
 } from '../../core/models/worker.models';
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LanguageService } from '../../core/services/language.service';
+
 @Component({
   selector: 'app-worker-dashboard',
   standalone: true,
   imports: [
     CommonModule,
     RouterLink,
+    TranslatePipe,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule
@@ -30,6 +34,7 @@ import {
 export class WorkerDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly workerService = inject(WorkerJobService);
+  readonly languageService = inject(LanguageService);
 
   userName = signal<string>('Worker');
   loading = signal<boolean>(true);

@@ -5,9 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LanguageService } from '../../core/services/language.service';
+
 interface CustomerModuleCard {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   route: string;
   icon: string;
   status: 'ACTIVE' | 'COMING SOON';
@@ -16,53 +19,54 @@ interface CustomerModuleCard {
 @Component({
   selector: 'app-customer-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterLink, TranslatePipe, MatButtonModule, MatIconModule],
   templateUrl: './customer-dashboard.component.html'
 })
 export class CustomerDashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
 
   userName = signal<string>('Customer');
 
   readonly moduleCards: CustomerModuleCard[] = [
     {
-      title: 'Browse Auctions',
-      description: 'Explore fresh produce auctions from local farmers.',
+      titleKey: 'nav.browseAuctions',
+      descriptionKey: 'customer.dashboardSubtitle',
       route: '/customer/auctions',
       icon: 'gavel',
       status: 'ACTIVE'
     },
     {
-      title: 'My Bids',
-      description: 'Track your active and previous auction bids.',
+      titleKey: 'nav.bids',
+      descriptionKey: 'customer.myBidsTitle',
       route: '/customer/bids',
       icon: 'local_offer',
       status: 'ACTIVE'
     },
     {
-      title: 'My Orders',
-      description: 'View your completed purchases and order history.',
+      titleKey: 'nav.orders',
+      descriptionKey: 'customer.myOrdersTitle',
       route: '/customer/orders',
       icon: 'shopping_bag',
       status: 'ACTIVE'
     },
     {
-      title: 'Payments',
-      description: 'Manage payments for successful auction purchases.',
+      titleKey: 'nav.payments',
+      descriptionKey: 'nav.payments',
       route: '/customer/payments',
       icon: 'payments',
       status: 'ACTIVE'
     },
     {
-      title: 'Notifications',
-      description: 'Stay updated about bids, auctions, and orders.',
+      titleKey: 'nav.notifications',
+      descriptionKey: 'nav.notifications',
       route: '/customer/notifications',
       icon: 'notifications',
       status: 'ACTIVE'
     },
     {
-      title: 'My Profile',
-      description: 'Manage your customer account and personal information.',
+      titleKey: 'nav.profile',
+      descriptionKey: 'nav.profile',
       route: '/customer/profile',
       icon: 'person',
       status: 'ACTIVE'

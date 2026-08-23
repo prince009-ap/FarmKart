@@ -1,18 +1,18 @@
 <div class="app-page animate-fk-rise">
   <section class="app-hero-banner app-hero-banner--customer">
-    <p class="app-hero-banner__eyebrow">Customer workspace</p>
-    <h1 class="app-hero-banner__title">Welcome, {{ userName() }}</h1>
+    <p class="app-hero-banner__eyebrow">{{ 'auth.customer' | translate }} Workspace</p>
+    <h1 class="app-hero-banner__title">{{ 'common.welcome' | translate }}, {{ userName() }}</h1>
     <p class="app-hero-banner__summary">
-      Discover fresh farm produce, explore auctions, and manage your purchases.
+      {{ 'customer.dashboardSubtitle' | translate }}
     </p>
     <div class="app-hero-banner__actions">
       <a mat-flat-button class="app-primary-btn !bg-sky-500 !shadow-sky-500/30" routerLink="/customer/auctions">
         <mat-icon>gavel</mat-icon>
-        Browse Auctions
+        {{ 'nav.browseAuctions' | translate }}
       </a>
       <a mat-flat-button class="!bg-sky-700 !text-white !rounded-xl" routerLink="/customer/analytics">
         <mat-icon>insights</mat-icon>
-        View Analytics
+        {{ 'nav.analytics' | translate }}
       </a>
     </div>
   </section>
@@ -20,29 +20,29 @@
   <section>
     <div class="app-page-header mb-4">
       <div class="app-page-header__content">
-        <p class="app-page-eyebrow">Customer Services</p>
-        <h2 class="app-page-title">Marketplace & Auctions</h2>
+        <p class="app-page-eyebrow">{{ 'nav.dashboard' | translate }}</p>
+        <h2 class="app-page-title">{{ 'customer.dashboardTitle' | translate }}</h2>
       </div>
     </div>
 
     <div class="app-grid app-grid--modules">
-      @for (card of moduleCards; track card.title) {
+      @for (card of moduleCards; track card.titleKey) {
         <article class="app-card app-card--interactive">
           <div class="flex items-center justify-between gap-3">
             <div class="app-card__icon !bg-sky-50 !border-sky-200/60 !text-sky-600">
               <mat-icon>{{ card.icon }}</mat-icon>
             </div>
             @if (card.status === 'COMING SOON') {
-              <span class="app-badge app-badge--soon">Coming Soon</span>
+              <span class="app-badge app-badge--soon">{{ 'nav.soon' | translate }}</span>
             } @else {
-              <span class="app-badge app-badge--active">Active</span>
+              <span class="app-badge app-badge--active">{{ 'status.Active' | translate }}</span>
             }
           </div>
-          <h3 class="app-card__title">{{ card.title }}</h3>
-          <p class="app-card__text">{{ card.description }}</p>
+          <h3 class="app-card__title">{{ card.titleKey | translate }}</h3>
+          <p class="app-card__text">{{ card.descriptionKey | translate }}</p>
           <div class="mt-5 pt-4 border-t border-slate-100 flex justify-end">
             <a mat-button color="primary" [routerLink]="card.route" class="font-semibold !text-sky-700">
-              {{ card.status === 'COMING SOON' ? 'Preview module' : 'Open module' }}
+              {{ 'common.viewDetails' | translate }}
               <mat-icon class="!w-4 !h-4 ml-1">arrow_forward</mat-icon>
             </a>
           </div>

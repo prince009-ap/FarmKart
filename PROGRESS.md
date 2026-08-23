@@ -732,3 +732,10 @@
   - **Task Context**: Supports `create_farmer_crop` and `update_farmer_crop` tasks with fields `cropName`, `cropType`, `variety`, `area`, `areaUnit`, `status`, `description`. Pre-populates existing crop values when editing.
   - **Live Form Sync & Save**: Updates crop form signals live upon field extraction (`fieldUpdated$`); invokes existing `FarmerCropService.createCrop()` / `updateCrop()` only after user clicks `Confirm & Save`.
   - **Role Security & Verification**: Customer/Worker roles cannot create crops; only authenticated Farmers can use Crop AI. All backend tests (545/545 passing) and frontend specs (15/15 passing) verified. `npx ng build` and `dotnet build` pass with 0 errors.
+- [x] **Global Website Localization Phase (English, Hindi, Gujarati)**:
+  - **Localization Engine**: Built `LanguageService` (`frontend/src/app/core/services/language.service.ts`) with reactive signal state `currentLanguage = signal<SupportedLanguage>('en')`, `TranslatePipe`, and translation dictionaries (`frontend/src/app/core/i18n/translations.ts`).
+  - **Authentication Selection**: Added Language Selection bar (`English` | `हिंदी` | `ગુજરાતી`) on login/registration screens. Selected language switches form UI instantly and persists as global application language upon login.
+  - **App Shell Switchers**: Added `🌐 Language` dropdown in Customer, Farmer, and Worker shell headers. Changing language updates all navigation items, buttons, status labels, and form titles instantly.
+  - **AI & Voice Synchronization**: FarmKart AI assistant freeform chat, Web Speech microphone recognition (`en-IN`, `hi-IN`, `gu-IN`), and contextual task engines (Profile AI, Crop AI) automatically inherit the global site language.
+  - **Data Preservation & Safe Fallback**: Database content, backend enums, and API contracts remain untouched; missing translation keys fall back safely to English.
+  - **Testing**: Added 4 unit tests in `language.service.spec.ts` (100% passing). Total backend test suite: **545 / 545 tests passing**. Total frontend vitest specs: **19 / 19 passing**. `npx ng build` and `dotnet build` verified with 0 errors.

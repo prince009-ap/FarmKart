@@ -9,6 +9,7 @@ import { CustomerProfileResponse, UpdateCustomerProfileRequest } from '../../cor
 import { environment } from '../../../environments/environment';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-customer-profile',
@@ -187,6 +188,7 @@ import { StartAiConversationRequest } from '../../core/models/ai-conversation.mo
 export class CustomerProfileComponent implements OnInit {
   private readonly profileService = inject(CustomerProfileService);
   private readonly conversationService = inject(AiConversationService);
+  private readonly languageService = inject(LanguageService);
   private readonly authService = inject(AuthService);
 
   profile: CustomerProfileResponse | null = null;
@@ -234,6 +236,7 @@ export class CustomerProfileComponent implements OnInit {
     const request: StartAiConversationRequest = {
       taskName: 'update_customer_profile',
       pageName: 'customer_profile',
+      language: this.languageService.currentLanguage(),
       fields: [
         { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Customer full name' },
         { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },

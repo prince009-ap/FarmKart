@@ -21,6 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-farmer-profile',
@@ -42,6 +43,7 @@ import { StartAiConversationRequest } from '../../core/models/ai-conversation.mo
 export class FarmerProfileComponent implements OnInit {
   private readonly profileService = inject(FarmerProfileService);
   private readonly conversationService = inject(AiConversationService);
+  private readonly languageService = inject(LanguageService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -155,6 +157,7 @@ export class FarmerProfileComponent implements OnInit {
     const request: StartAiConversationRequest = {
       taskName: 'update_farmer_profile',
       pageName: 'farmer_profile',
+      language: this.languageService.currentLanguage(),
       fields: [
         { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Farmer full name' },
         { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },

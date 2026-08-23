@@ -14,6 +14,7 @@ import { FarmerCropService } from './farmer-crop.service';
 import { CreateCropRequest, CropImage, UpdateCropRequest } from '../../core/models/farmer-crop.models';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
+import { LanguageService } from '../../core/services/language.service';
 
 interface PendingImageUpload {
   file: File;
@@ -42,6 +43,7 @@ interface PendingImageUpload {
 export class FarmerCropFormComponent implements OnInit {
   private readonly cropService = inject(FarmerCropService);
   private readonly conversationService = inject(AiConversationService);
+  private readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -140,6 +142,7 @@ export class FarmerCropFormComponent implements OnInit {
     const request: StartAiConversationRequest = {
       taskName,
       pageName: 'farmer_crop_form',
+      language: this.languageService.currentLanguage(),
       fields: [
         { name: 'cropName', label: 'Crop Name', type: 'text', required: true, description: 'Name of the crop e.g. Wheat' },
         { name: 'cropType', label: 'Crop Category', type: 'select', required: true, description: 'Category e.g. Cereal, Pulses, Vegetable, Fruit', options: this.cropCategories },

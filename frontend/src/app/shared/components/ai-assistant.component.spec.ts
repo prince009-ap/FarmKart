@@ -1,5 +1,5 @@
 import '@angular/compiler';
-import { Injector, runInInjectionContext } from '@angular/core';
+import { Injector, runInInjectionContext, signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Subject, of, throwError } from 'rxjs';
 import { AiAssistantComponent } from './ai-assistant.component';
@@ -7,6 +7,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { AiService } from '../../core/services/ai.service';
 import { AiConversationService } from '../../core/services/ai-conversation.service';
 import { UserPreferenceService } from '../../core/services/user-preference.service';
+import { LanguageService } from '../../core/services/language.service';
+import { SupportedLanguage } from '../../core/i18n/translations';
 
 describe('AiAssistantComponent', () => {
   let component: AiAssistantComponent;
@@ -15,9 +17,11 @@ describe('AiAssistantComponent', () => {
   let authServiceMock: any;
   let preferenceServiceMock: any;
   let sessionStartedSubject: Subject<any>;
+  let currentLangSignal: any;
 
   beforeEach(() => {
     sessionStartedSubject = new Subject<any>();
+    currentLangSignal = signal<SupportedLanguage>('en');
 
     aiServiceMock = {
       chat: vi.fn().mockReturnValue(of({ message: 'Hello response', language: 'en' }))
@@ -44,12 +48,19 @@ describe('AiAssistantComponent', () => {
       getPreferences: vi.fn().mockReturnValue(of({ language: 'en' }))
     };
 
+    const languageServiceMock = {
+      currentLanguage: currentLangSignal,
+      setLanguage: vi.fn().mockImplementation((lang: SupportedLanguage) => { currentLangSignal.set(lang); }),
+      t: vi.fn().mockImplementation((k: string) => k)
+    };
+
     const injector = Injector.create({
       providers: [
         { provide: AuthService, useValue: authServiceMock },
         { provide: AiService, useValue: aiServiceMock },
         { provide: AiConversationService, useValue: conversationServiceMock },
-        { provide: UserPreferenceService, useValue: preferenceServiceMock }
+        { provide: UserPreferenceService, useValue: preferenceServiceMock },
+        { provide: LanguageService, useValue: languageServiceMock }
       ]
     });
 

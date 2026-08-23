@@ -1,4 +1,6 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -8,8 +10,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
-import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { LanguageService } from '../../core/services/language.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { SupportedLanguage } from '../../core/i18n/translations';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +21,7 @@ import { Subscription } from 'rxjs';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    TranslatePipe,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -45,6 +49,7 @@ import { Subscription } from 'rxjs';
 export class LoginComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -52,6 +57,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   loading = false;
   errorMessage = '';
   private authSubscription?: Subscription;
+
+  setLang(lang: SupportedLanguage): void {
+    this.languageService.setLanguage(lang, false);
+  }
 
   readonly loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
