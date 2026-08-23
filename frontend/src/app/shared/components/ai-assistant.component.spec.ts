@@ -1,0 +1,98 @@
+import '@angular/compiler';
+import { Injector, runInInjectionContext } from '@angular/core';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of, throwError } from 'rxjs';
+import { AiAssistantComponent } from './ai-assistant.component';
+import { AuthService } from '../../core/services/auth.service';
+import { AiService } from '../../core/services/ai.service';
+import { UserPreferenceService } from '../../core/services/user-preference.service';
+
+describe('AiAssistantComponent', () => {
+  let component: AiAssistantComponent;
+  let aiServiceMock: any;
+  let authServiceMock: any;
+  let preferenceServiceMock: any;
+
+  beforeEach(() => {
+    aiServiceMock = {
+      chat: vi.fn().mockReturnValue(of({ message: 'Hello response', language: 'en' }))
+    };
+
+    authServiceMock = {
+      currentUser$: of({ userId: 'user-1', email: 'test@example.com', fullName: 'Test User', role: 'Customer' })
+    };
+
+    preferenceServiceMock = {
+      getPreferences: vi.fn().mockReturnValue(of({ language: 'en' }))
+    };
+
+    const injector = Injector.create({
+      providers: [
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: AiService, useValue: aiServiceMock },
+        { provide: UserPreferenceService, useValue: preferenceServiceMock }
+      ]
+    });
+
+    component = runInInjectionContext(injector, () => new AiAssistantComponent());
+  });
+
+  it('should create AI assistant component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should initialize with closed panel and default English language', () => {
+    expect(component.isOpen()).toBe(false);
+    expect(component.selectedLanguage()).toBe('en');
+  });
+
+  it('should open and close panel on toggle', () => {
+    expect(component.isOpen()).toBe(false);
+
+    component.togglePanel();
+    expect(component.isOpen()).toBe(true);
+
+    component.togglePanel();
+    expect(component.isOpen()).toBe(false);
+  });
+
+  it('should update language on selection', () => {
+    component.onLanguageChange('hi');
+    expect(component.selectedLanguage()).toBe('hi');
+
+    component.onLanguageChange('gu');
+    expect(component.selectedLanguage()).toBe('gu');
+  });
+
+  it('should send user message and append AI response', () => {
+    component.isOpen.set(true);
+    component.inputText = 'I need help with my crops';
+
+    component.sendMessage();
+
+    expect(aiServiceMock.chat).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'I need help with my crops',
+      language: 'en'
+    }));
+
+    expect(component.messages().length).toBeGreaterThan(1);
+    const lastMsg = component.messages()[component.messages().length - 1];
+    expect(lastMsg.sender).toBe('ai');
+    expect(lastMsg.text).toBe('Hello response');
+  });
+
+  it('should handle API error gracefully', () => {
+    aiServiceMock.chat.mockReturnValue(throwError(() => ({ message: 'AI unavailable' })));
+    component.isOpen.set(true);
+    component.inputText = 'Help me';
+
+    component.sendMessage();
+
+    expect(component.statusMessage()).toBeTruthy();
+  });
+
+  it('should handle unsupported voice browser gracefully', () => {
+    component.toggleListening();
+    expect(component.statusMessage()).toContain('not supported');
+  });
+});

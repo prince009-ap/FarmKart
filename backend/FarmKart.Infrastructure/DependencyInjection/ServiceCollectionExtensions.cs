@@ -18,6 +18,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+using FarmKart.Application.Abstractions.AI;
+using FarmKart.Infrastructure.Services.AI;
+
 namespace FarmKart.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
@@ -69,6 +72,20 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FarmKart.Application.Abstractions.UserPreference.IUserPreferenceService, UserPreferenceService>();
         services.AddScoped<FarmKart.Application.Abstractions.Report.IReportService, ReportService>();
         services.AddScoped<FarmKart.Application.Abstractions.Dispute.IDisputeService, DisputeService>();
+
+        // Register AI options and services
+        services.Configure<OpenAiOptions>(options =>
+        {
+            options.ApiKey = configuration["OPENAI_API_KEY"] ?? configuration["OpenAI:ApiKey"] ?? string.Empty;
+            options.Model = configuration["OPENAI_MODEL"] ?? configuration["OpenAI:Model"] ?? "gpt-4o-mini";
+            if (int.TryParse(configuration["OpenAI:TimeoutSeconds"], out var timeoutSec) && timeoutSec > 0)
+            {
+                options.TimeoutSeconds = timeoutSec;
+            }
+        });
+        services.AddHttpClient<IAiProvider, OpenAiProvider>();
+        services.AddScoped<IAiService, AiService>();
+
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

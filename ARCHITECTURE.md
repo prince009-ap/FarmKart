@@ -346,7 +346,28 @@ The Angular app follows a feature-based structure:
 - **Profile Profile Editing**: Inline update for `FullName` and `Phone` updating `ApplicationUser.PhoneNumber` and profile entity (`FarmerProfile`, `CustomerProfile`, or `WorkerProfile`).
 - **Security & Password Management**: `POST /api/preferences/change-password` delegates password validation and hashing directly to ASP.NET Core `UserManager.ChangePasswordAsync`.
 - **Danger Zone Compliance**: Danger Zone deactivation notice informs users of compliance rules retaining historical business records (Auctions, Bids, Orders, Machinery Rentals, Invoices) for legal audit compliance.
-- **Frontend Architecture**: Standalone `SettingsComponent` accessible at `/farmer/settings`, `/customer/settings`, and `/worker/settings` across all three role shells.
+
+## Multilingual AI + Voice Foundation Architecture (Phase AI-1)
+
+- **AI Provider Abstraction Layer**:
+  - `IAiService` interface in `FarmKart.Application.Abstractions.AI` defines high-level AI chat capabilities.
+  - `IAiProvider` interface in `FarmKart.Application.Abstractions.AI` decouples application logic from specific LLM vendors.
+  - `OpenAiProvider` in `FarmKart.Infrastructure.Services.AI` implements `IAiProvider` using `HttpClient` to communicate directly with OpenAI API (`https://api.openai.com/v1/chat/completions`).
+- **Configuration & Secrets Security**:
+  - Strongly typed `OpenAiOptions` bound to environment variables (`OPENAI_API_KEY`, `OPENAI_MODEL` default `gpt-4o-mini`, `OpenAI:TimeoutSeconds` 30s).
+  - API keys reside strictly on the backend and are NEVER exposed to Angular client code, local storage, browser network requests, or repository commits. `.env` is gitignored; `.env.example` templates are provided.
+- **Backend API & Authentication**:
+  - Authenticated endpoint `POST /api/ai/chat` guarded by `[Authorize]`.
+  - User identity is derived strictly from JWT `ClaimTypes.NameIdentifier`.
+  - Input validation enforces non-empty messages, supported language codes (`en`, `hi`, `gu`), 2000-character message length limits, and limits history to the last 6 messages to optimize token usage.
+- **Centralized Prompting & Guardrails**:
+  - Centralized FarmKart system prompt enforces concise, helpful responses in the requested language (`en` = English, `hi` = Hindi, `gu` = Gujarati) and understands mixed-language inputs (Hinglish/Gujlish).
+  - Guardrails explicitly forbid database mutation, data fabrication, or business action execution in Phase AI-1.
+- **Frontend Architecture & Voice Integration**:
+  - `AiAssistantComponent` (`app-ai-assistant`) mounted globally in `app.html` rendered when an authenticated user is logged in.
+  - Collapsible glassmorphic chat widget with language selector (`English`, `हिंदी`, `ગુજરાતી`), message list, animated thinking indicator, and error banners.
+  - Web Speech Recognition API integration (`SpeechRecognition` / `webkitSpeechRecognition`) supporting voice input mapped to locale languages (`en-IN`, `hi-IN`, `gu-IN`).
+  - Converts spoken speech to text and populates the text input box for user review and editing before sending (no auto-send). Gracefully handles unsupported browsers or permission denial.
 
 
 

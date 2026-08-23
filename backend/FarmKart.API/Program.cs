@@ -8,6 +8,31 @@ using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var envFilePath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+if (!File.Exists(envFilePath))
+{
+    envFilePath = Path.Combine(Directory.GetParent(builder.Environment.ContentRootPath)?.FullName ?? "", ".env");
+}
+if (File.Exists(envFilePath))
+{
+    foreach (var line in File.ReadAllLines(envFilePath))
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith("#")) continue;
+        var parts = trimmed.Split('=', 2);
+        if (parts.Length == 2)
+        {
+            var key = parts[0].Trim();
+            var val = parts[1].Trim();
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+            {
+                Environment.SetEnvironmentVariable(key, val);
+            }
+        }
+    }
+}
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services
     .AddPresentation()
     .AddApplication()
