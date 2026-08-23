@@ -400,3 +400,19 @@ The Angular app follows a feature-based structure:
   - Maps conversation history and current user message to Gemini's `contents` array (`role: "user" | "model"`).
   - Uses `JavaScriptEncoder.Create(UnicodeRanges.All)` to ensure clean UTF-8 serialization for Gujarati, Hindi, and English text without ASCII escaping.
   - Extracts generated content from `candidates[0].content.parts[0].text` and maps back to standard `AiChatResponse` DTO.
+
+## Profile AI (Phase AI-3) & Crop AI (Phase AI-4) Contextual Architecture
+
+- **Contextual Trigger Buttons**:
+  - Profile edit views (`farmer-profile`, `customer-profile`, `worker-profile`) include `[ 🤖 Fill Profile with AI ]` action buttons.
+  - Crop form view (`farmer-crop-form`) includes `[ 🤖 Add Crop with AI ]` and `[ 🤖 Edit Crop with AI ]` action buttons.
+- **Initial Data Pre-Population & Change Detection**:
+  - Existing form state is passed into `StartAiConversationRequest.initialData`.
+  - The AI form engine recognises pre-populated fields and skips them, asking questions ONLY for missing required/optional fields or requested edits.
+- **Live Form Control Synchronization**:
+  - Subscribes host component forms to `AiConversationService.fieldUpdated$` event stream.
+  - Form fields populate live in the browser DOM as the AI extracts values, allowing real-time visual feedback and manual user edits.
+- **Explicit Confirmation & Business API Reuse**:
+  - AI engine **NEVER** performs direct database writes or repository calls.
+  - Clicking `Confirm & Save` triggers `formCompleted$`, which invokes the host page's existing business update APIs (`FarmerProfileService.updateProfile()`, `CustomerProfileService.updateProfile()`, `WorkerJobService.updateProfile()`, `FarmerCropService.createCrop()` / `updateCrop()`).
+  - Authorization and database validation are strictly enforced by the backend business layer.

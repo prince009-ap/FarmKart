@@ -42,6 +42,10 @@
 
           <div class="flex items-center gap-3">
             @if (!editMode()) {
+              <button mat-stroked-button class="!bg-emerald-800/40 !text-white !border-emerald-400/40 hover:!bg-emerald-800/70 font-semibold" (click)="startProfileAi()">
+                <mat-icon class="!text-emerald-300">smart_toy</mat-icon>
+                Fill Profile with AI
+              </button>
               <button mat-flat-button class="!bg-white !text-emerald-900 hover:!bg-emerald-50 font-semibold" (click)="enterEditMode()">
                 <mat-icon>edit</mat-icon>
                 Edit Profile

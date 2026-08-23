@@ -19,6 +19,8 @@ import { FarmerProfileService } from './farmer-profile.service';
 import { FarmerProfile, FarmerProfileUpdateRequest, FarmSizeUnit } from '../../core/models/farmer.models';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
+import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 
 @Component({
   selector: 'app-farmer-profile',
@@ -39,6 +41,7 @@ import { environment } from '../../../environments/environment';
 })
 export class FarmerProfileComponent implements OnInit {
   private readonly profileService = inject(FarmerProfileService);
+  private readonly conversationService = inject(AiConversationService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -63,6 +66,22 @@ export class FarmerProfileComponent implements OnInit {
   ngOnInit(): void {
     this.buildForm();
     this.loadProfile();
+
+    this.conversationService.fieldUpdated$.subscribe((evt) => {
+      if (evt.taskName === 'update_farmer_profile' && evt.field && evt.value != null) {
+        if (evt.field === 'farmSize') {
+          this.profileForm.patchValue({ farmSize: parseFloat(evt.value) || null });
+        } else {
+          this.profileForm.patchValue({ [evt.field]: evt.value });
+        }
+      }
+    });
+
+    this.conversationService.formCompleted$.subscribe((evt) => {
+      if (evt.taskName === 'update_farmer_profile') {
+        this.saveProfile();
+      }
+    });
   }
 
   private buildForm(): void {
@@ -118,6 +137,37 @@ export class FarmerProfileComponent implements OnInit {
 
   enterEditMode(): void {
     this.editMode.set(true);
+  }
+
+  startProfileAi(): void {
+    this.enterEditMode();
+    const current = this.profileForm.value;
+    const initialData: Record<string, string | null> = {
+      fullName: current.fullName || null,
+      phone: current.phone || null,
+      address: current.address || null,
+      farmName: current.farmName || null,
+      farmSize: current.farmSize ? String(current.farmSize) : null,
+      farmSizeUnit: current.farmSizeUnit || 'Vigha',
+      farmLocation: current.farmLocation || null
+    };
+
+    const request: StartAiConversationRequest = {
+      taskName: 'update_farmer_profile',
+      pageName: 'farmer_profile',
+      fields: [
+        { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Farmer full name' },
+        { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },
+        { name: 'address', label: 'Address', type: 'text', required: true, description: 'Farmer address' },
+        { name: 'farmName', label: 'Farm Name', type: 'text', required: false, description: 'Name of the farm' },
+        { name: 'farmSize', label: 'Farm Size', type: 'decimal', required: false, description: 'Size of the farm in numbers' },
+        { name: 'farmSizeUnit', label: 'Farm Size Unit', type: 'select', required: false, description: 'Unit of farm size', options: ['Vigha', 'Acre', 'Hectare'] },
+        { name: 'farmLocation', label: 'Farm Location', type: 'text', required: false, description: 'Location of the farm' }
+      ],
+      initialData
+    };
+
+    this.conversationService.startConversation(request).subscribe();
   }
 
   cancelEdit(): void {

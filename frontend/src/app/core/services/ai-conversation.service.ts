@@ -19,6 +19,7 @@ export class AiConversationService {
 
   readonly activeSession = signal<AiConversationStateResponse | null>(null);
 
+  readonly sessionStarted$ = new Subject<AiConversationStateResponse>();
   readonly fieldUpdated$ = new Subject<AiFieldUpdatedEvent>();
   readonly formCompleted$ = new Subject<{ taskName: string; data: Record<string, string | null> }>();
   readonly formCancelled$ = new Subject<void>();
@@ -28,6 +29,7 @@ export class AiConversationService {
       tap(res => {
         this.activeSession.set(res);
         this.emitFieldUpdates(res);
+        this.sessionStarted$.next(res);
       })
     );
   }

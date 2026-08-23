@@ -1,14 +1,20 @@
 <section class="app-page app-page--narrow animate-fk-rise">
   <!-- Header -->
   <header class="app-page-header">
-    <div class="app-page-header__content">
-      <a routerLink="/farmer/crops" class="app-back-link">← Back to My Crops</a>
-      <h1 class="app-page-title mt-3">
-        {{ isEditMode() ? 'Edit Crop Details' : 'Add New Crop Record' }}
-      </h1>
-      <p class="app-page-summary">
-        {{ isEditMode() ? 'Update crop details, upload photos, set primary image, and manage harvest schedules.' : 'Register a new crop planted on your farm and upload crop photos.' }}
-      </p>
+    <div class="app-page-header__content flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <a routerLink="/farmer/crops" class="app-back-link">← Back to My Crops</a>
+        <h1 class="app-page-title mt-3">
+          {{ isEditMode() ? 'Edit Crop Details' : 'Add New Crop Record' }}
+        </h1>
+        <p class="app-page-summary">
+          {{ isEditMode() ? 'Update crop details, upload photos, set primary image, and manage harvest schedules.' : 'Register a new crop planted on your farm and upload crop photos.' }}
+        </p>
+      </div>
+      <button type="button" (click)="startCropAi()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm shrink-0 transition-colors">
+        <mat-icon class="!w-4 !h-4 !text-[18px]">smart_toy</mat-icon>
+        {{ isEditMode() ? '🤖 Edit Crop with AI' : '🤖 Add Crop with AI' }}
+      </button>
     </div>
   </header>
 

@@ -12,14 +12,23 @@
     </div>
 
     @if (!loading() && profile() && !editMode()) {
-      <button
-        mat-flat-button
-        color="primary"
-        class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 font-medium flex items-center gap-2"
-        (click)="enableEdit()">
-        <mat-icon>edit</mat-icon>
-        Edit Profile
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          mat-stroked-button
+          class="!border-emerald-600 !text-emerald-700 dark:!text-emerald-400 font-medium flex items-center gap-2"
+          (click)="startProfileAi()">
+          <mat-icon class="!text-emerald-600">smart_toy</mat-icon>
+          Fill Profile with AI
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 font-medium flex items-center gap-2"
+          (click)="enableEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit Profile
+        </button>
+      </div>
     }
   </div>
 

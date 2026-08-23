@@ -17,6 +17,8 @@ import {
   WorkerRatingSummary
 } from '../../core/models/worker.models';
 import { environment } from '../../../environments/environment';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
+import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -37,6 +39,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class WorkerProfileComponent implements OnInit {
   private readonly workerService = inject(WorkerJobService);
+  private readonly conversationService = inject(AiConversationService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -69,6 +72,49 @@ export class WorkerProfileComponent implements OnInit {
   ngOnInit(): void {
     this.buildForm();
     this.loadProfile();
+
+    this.conversationService.fieldUpdated$.subscribe((evt) => {
+      if (evt.taskName === 'update_worker_profile' && evt.field && evt.value != null) {
+        if (evt.field === 'experienceYears') {
+          this.profileForm.patchValue({ experienceYears: parseInt(evt.value, 10) || 0 });
+        } else {
+          this.profileForm.patchValue({ [evt.field]: evt.value });
+        }
+      }
+    });
+
+    this.conversationService.formCompleted$.subscribe((evt) => {
+      if (evt.taskName === 'update_worker_profile') {
+        this.onSubmit();
+      }
+    });
+  }
+
+  startProfileAi(): void {
+    this.enableEdit();
+    const current = this.profileForm.value;
+    const initialData: Record<string, string | null> = {
+      fullName: current.fullName || null,
+      phone: current.phone || null,
+      address: current.address || null,
+      experienceYears: current.experienceYears !== undefined && current.experienceYears !== null ? String(current.experienceYears) : null,
+      experienceDescription: current.experienceDescription || null
+    };
+
+    const request: StartAiConversationRequest = {
+      taskName: 'update_worker_profile',
+      pageName: 'worker_profile',
+      fields: [
+        { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Worker full name' },
+        { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },
+        { name: 'address', label: 'Address', type: 'text', required: true, description: 'Worker address' },
+        { name: 'experienceYears', label: 'Experience Years', type: 'number', required: true, description: 'Years of farming/worker experience' },
+        { name: 'experienceDescription', label: 'Experience Description', type: 'textarea', required: false, description: 'Details of skills and experience' }
+      ],
+      initialData
+    };
+
+    this.conversationService.startConversation(request).subscribe();
   }
 
   private buildForm(): void {

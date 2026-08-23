@@ -7,6 +7,8 @@ import { CustomerProfileService } from '../../core/services/customer-profile.ser
 import { AuthService } from '../../core/services/auth.service';
 import { CustomerProfileResponse, UpdateCustomerProfileRequest } from '../../core/models/customer-profile.models';
 import { environment } from '../../../environments/environment';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
+import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 
 @Component({
   selector: 'app-customer-profile',
@@ -27,9 +29,14 @@ import { environment } from '../../../environments/environment';
               <p class="text-xs text-slate-500 mt-1">Manage your customer account details, contact info, and profile image.</p>
             </div>
           </div>
-          <button *ngIf="!isEditing" (click)="toggleEdit()" class="px-4 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition flex items-center gap-2">
-            <span>Edit Profile</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button *ngIf="!isEditing" (click)="startProfileAi()" class="px-4 py-2 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200/80 rounded-xl transition flex items-center gap-2">
+              <span>🤖 Fill Profile with AI</span>
+            </button>
+            <button *ngIf="!isEditing" (click)="toggleEdit()" class="px-4 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition flex items-center gap-2">
+              <span>Edit Profile</span>
+            </button>
+          </div>
         </div>
 
         <!-- Global Alert Messages -->
@@ -179,13 +186,13 @@ import { environment } from '../../../environments/environment';
 })
 export class CustomerProfileComponent implements OnInit {
   private readonly profileService = inject(CustomerProfileService);
+  private readonly conversationService = inject(AiConversationService);
   private readonly authService = inject(AuthService);
 
   profile: CustomerProfileResponse | null = null;
-  isEditing = false;
+  isLoading = false;
   isSaving = false;
-  isUploadingImage = false;
-
+  isEditing = false;
   errorMessage = '';
   successMessage = '';
 
@@ -196,12 +203,50 @@ export class CustomerProfileComponent implements OnInit {
   selectedFile: File | null = null;
   selectedFileName = '';
   selectedImagePreview: string | null = null;
+  isUploadingImage = false;
 
   private imageTimestamp = Date.now();
   private avatarLoadFailed = false;
 
   ngOnInit(): void {
     this.loadProfile();
+
+    this.conversationService.fieldUpdated$.subscribe((evt) => {
+      if (evt.taskName === 'update_customer_profile' && evt.field && evt.value != null) {
+        if (evt.field === 'fullName') this.editFullName = evt.value;
+        if (evt.field === 'phone') this.editPhone = evt.value;
+        if (evt.field === 'address') this.editAddress = evt.value;
+      }
+    });
+
+    this.conversationService.formCompleted$.subscribe((evt) => {
+      if (evt.taskName === 'update_customer_profile') {
+        this.saveProfile();
+      }
+    });
+  }
+
+  startProfileAi(): void {
+    if (!this.isEditing) {
+      this.toggleEdit();
+    }
+
+    const request: StartAiConversationRequest = {
+      taskName: 'update_customer_profile',
+      pageName: 'customer_profile',
+      fields: [
+        { name: 'fullName', label: 'Full Name', type: 'text', required: true, description: 'Customer full name' },
+        { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: 'Contact phone number' },
+        { name: 'address', label: 'Delivery Address', type: 'text', required: false, description: 'Delivery address' }
+      ],
+      initialData: {
+        fullName: this.editFullName || null,
+        phone: this.editPhone || null,
+        address: this.editAddress || null
+      }
+    };
+
+    this.conversationService.startConversation(request).subscribe();
   }
 
   loadProfile(): void {

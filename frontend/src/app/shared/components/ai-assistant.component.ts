@@ -52,7 +52,7 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
                   </span>
                 </h3>
                 <p class="text-[11px] text-slate-400 leading-none mt-0.5">
-                  {{ taskSession() ? 'Task: ' + taskSession()?.taskName : 'Multilingual Voice Assistant' }}
+                  {{ taskSession() ? getTaskTitle(taskSession()?.taskName || '') : 'Multilingual Voice Assistant' }}
                 </p>
               </div>
             </div>
@@ -77,31 +77,23 @@ import { UserPreferenceService } from '../../core/services/user-preference.servi
             </div>
           </div>
 
-          <!-- AI-2 Test Mode Bar -->
-          <div class="px-3 py-1.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
-            @if (!taskSession()) {
-              <button
-                type="button"
-                (click)="startAi2TestMode()"
-                class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
-                <mat-icon class="!w-4 !h-4 !text-[16px]">science</mat-icon>
-                🧪 Start AI-2 Test Mode (complete_profile_test)
-              </button>
-            } @else {
+          <!-- Active Contextual Task Bar -->
+          @if (taskSession()) {
+            <div class="px-3 py-1.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
               <div class="flex items-center justify-between w-full text-xs">
                 <span class="text-emerald-400 font-medium flex items-center gap-1">
                   <mat-icon class="!w-4 !h-4 !text-[16px]">assignment</mat-icon>
-                  AI-2 Test Mode Active
+                  {{ getTaskTitle(taskSession()?.taskName || '') }}
                 </span>
                 <button
                   type="button"
                   (click)="cancelTaskSession()"
                   class="text-rose-400 hover:text-rose-300 hover:underline font-semibold text-[11px]">
-                  Exit Test Mode
+                  Cancel Task
                 </button>
               </div>
-            }
-          </div>
+            </div>
+          }
 
           <!-- Message History Window -->
           <div #scrollContainer class="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-950/60">
@@ -265,6 +257,20 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.conversationService.sessionStarted$.subscribe((res) => {
+      this.isOpen.set(true);
+      this.statusMessage.set(null);
+      const title = this.getTaskTitle(res.taskName);
+      const initialMsg: AiMessageItem = {
+        id: GuidUtils.newId(),
+        sender: 'ai',
+        text: `🤖 [${title}]\n\n${res.nextQuestion}`,
+        timestamp: new Date()
+      };
+      this.messages.set([initialMsg]);
+      this.scrollToBottom();
+    });
+
     this.initSpeechRecognition();
   }
 
@@ -309,40 +315,7 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
     }
   }
 
-  startAi2TestMode(): void {
-    const request: StartAiConversationRequest = {
-      taskName: 'complete_profile_test',
-      pageName: 'profile',
-      language: this.selectedLanguage(),
-      fields: [
-        { name: 'name', label: 'Full Name', type: 'text', required: true, description: "User's full name" },
-        { name: 'phone', label: 'Phone Number', type: 'phone', required: true, description: "User's phone number" },
-        { name: 'city', label: 'City', type: 'text', required: false, description: "User's city" }
-      ]
-    };
 
-    this.loading.set(true);
-    this.statusMessage.set(null);
-
-    this.conversationService.startConversation(request).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        const testMsg: AiMessageItem = {
-          id: GuidUtils.newId(),
-          sender: 'ai',
-          text: `🧪 [AI-2 Test Mode Started: complete_profile_test]\n\n${res.nextQuestion}`,
-          timestamp: new Date()
-        };
-        this.messages.set([testMsg]);
-        this.scrollToBottom();
-      },
-      error: (err) => {
-        this.loading.set(false);
-        const errorText = err?.error?.message || err?.message || 'Failed to start AI-2 Test Mode.';
-        this.statusMessage.set(errorText);
-      }
-    });
-  }
 
   sendMessage(): void {
     const text = this.inputText.trim();
@@ -461,6 +434,7 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
   // --- Voice Input / Web Speech Recognition ---
 
   private initSpeechRecognition(): void {
+    if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.speechRecognition = new SpeechRecognition();
@@ -543,6 +517,18 @@ export class AiAssistantComponent implements OnInit, OnDestroy {
       case 'hi': return 'Hindi';
       case 'gu': return 'Gujarati';
       default: return 'English';
+    }
+  }
+
+  getTaskTitle(taskName: string): string {
+    switch (taskName) {
+      case 'create_farmer_crop': return 'Crop Assistant (Add Crop)';
+      case 'update_farmer_crop': return 'Crop Assistant (Edit Crop)';
+      case 'update_farmer_profile': return 'Profile Assistant (Farmer)';
+      case 'update_customer_profile': return 'Profile Assistant (Customer)';
+      case 'update_worker_profile': return 'Profile Assistant (Worker)';
+      case 'complete_profile_test': return 'AI-2 Test Mode';
+      default: return taskName || 'Form Assistant';
     }
   }
 

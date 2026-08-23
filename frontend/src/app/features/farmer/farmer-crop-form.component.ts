@@ -12,6 +12,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FarmerCropService } from './farmer-crop.service';
 import { CreateCropRequest, CropImage, UpdateCropRequest } from '../../core/models/farmer-crop.models';
+import { AiConversationService } from '../../core/services/ai-conversation.service';
+import { StartAiConversationRequest } from '../../core/models/ai-conversation.models';
 
 interface PendingImageUpload {
   file: File;
@@ -39,6 +41,7 @@ interface PendingImageUpload {
 })
 export class FarmerCropFormComponent implements OnInit {
   private readonly cropService = inject(FarmerCropService);
+  private readonly conversationService = inject(AiConversationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -100,6 +103,56 @@ export class FarmerCropFormComponent implements OnInit {
       this.cropId.set(id);
       this.loadCropDetails(id);
     }
+
+    const taskName = this.isEditMode() ? 'update_farmer_crop' : 'create_farmer_crop';
+
+    this.conversationService.fieldUpdated$.subscribe((evt) => {
+      if ((evt.taskName === 'create_farmer_crop' || evt.taskName === 'update_farmer_crop') && evt.field && evt.value != null) {
+        if (evt.field === 'cropName') this.cropName.set(evt.value);
+        if (evt.field === 'cropType') this.cropType.set(evt.value);
+        if (evt.field === 'variety') this.variety.set(evt.value);
+        if (evt.field === 'area') this.area.set(parseFloat(evt.value) || null);
+        if (evt.field === 'areaUnit') this.areaUnit.set(evt.value);
+        if (evt.field === 'status') this.status.set(evt.value);
+        if (evt.field === 'description') this.description.set(evt.value);
+      }
+    });
+
+    this.conversationService.formCompleted$.subscribe((evt) => {
+      if (evt.taskName === 'create_farmer_crop' || evt.taskName === 'update_farmer_crop') {
+        this.saveCrop();
+      }
+    });
+  }
+
+  startCropAi(): void {
+    const taskName = this.isEditMode() ? 'update_farmer_crop' : 'create_farmer_crop';
+    const initialData: Record<string, string | null> = {
+      cropName: this.cropName() || null,
+      cropType: this.cropType() || 'Cereal',
+      variety: this.variety() || null,
+      area: this.area() !== null ? String(this.area()) : null,
+      areaUnit: this.areaUnit() || 'Bigha',
+      status: this.status() || 'Growing',
+      description: this.description() || null
+    };
+
+    const request: StartAiConversationRequest = {
+      taskName,
+      pageName: 'farmer_crop_form',
+      fields: [
+        { name: 'cropName', label: 'Crop Name', type: 'text', required: true, description: 'Name of the crop e.g. Wheat' },
+        { name: 'cropType', label: 'Crop Category', type: 'select', required: true, description: 'Category e.g. Cereal, Pulses, Vegetable, Fruit', options: this.cropCategories },
+        { name: 'variety', label: 'Variety', type: 'text', required: false, description: 'Crop variety e.g. Sharbati' },
+        { name: 'area', label: 'Farm Area', type: 'decimal', required: true, description: 'Planted area number' },
+        { name: 'areaUnit', label: 'Area Unit', type: 'select', required: true, description: 'Unit of area', options: ['Bigha', 'Acre', 'Hectare'] },
+        { name: 'status', label: 'Crop Status', type: 'select', required: true, description: 'Current status', options: ['Planned', 'Growing', 'ReadyForHarvest', 'Harvested', 'Sold', 'Archived'] },
+        { name: 'description', label: 'Description', type: 'textarea', required: false, description: 'Additional crop details' }
+      ],
+      initialData
+    };
+
+    this.conversationService.startConversation(request).subscribe();
   }
 
   loadCropDetails(id: string): void {

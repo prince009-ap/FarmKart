@@ -1,7 +1,7 @@
 import '@angular/compiler';
 import { Injector, runInInjectionContext } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { AiAssistantComponent } from './ai-assistant.component';
 import { AuthService } from '../../core/services/auth.service';
 import { AiService } from '../../core/services/ai.service';
@@ -14,18 +14,22 @@ describe('AiAssistantComponent', () => {
   let conversationServiceMock: any;
   let authServiceMock: any;
   let preferenceServiceMock: any;
+  let sessionStartedSubject: Subject<any>;
 
   beforeEach(() => {
+    sessionStartedSubject = new Subject<any>();
+
     aiServiceMock = {
       chat: vi.fn().mockReturnValue(of({ message: 'Hello response', language: 'en' }))
     };
 
     conversationServiceMock = {
       activeSession: vi.fn().mockReturnValue(null),
+      sessionStarted$: sessionStartedSubject,
       startConversation: vi.fn().mockReturnValue(of({
         conversationId: 'session-123',
-        taskName: 'complete_profile_test',
-        nextQuestion: 'What is your name?'
+        taskName: 'create_farmer_crop',
+        nextQuestion: 'What crop would you like to add?'
       })),
       sendMessage: vi.fn().mockReturnValue(of({ nextQuestion: 'Next task question?' })),
       cancelConversation: vi.fn().mockReturnValue(of(void 0)),
@@ -79,17 +83,21 @@ describe('AiAssistantComponent', () => {
     expect(component.selectedLanguage()).toBe('gu');
   });
 
-  it('should start AI-2 Test Mode when startAi2TestMode is called', () => {
-    component.startAi2TestMode();
+  it('should auto-open panel and render task question when sessionStarted$ fires', () => {
+    component.ngOnInit();
+    sessionStartedSubject.next({
+      conversationId: 'session-123',
+      taskName: 'create_farmer_crop',
+      pageName: 'crop',
+      language: 'en',
+      status: 'Collecting',
+      nextQuestion: 'What crop would you like to add?'
+    });
 
-    expect(conversationServiceMock.startConversation).toHaveBeenCalledWith(expect.objectContaining({
-      taskName: 'complete_profile_test',
-      pageName: 'profile'
-    }));
-
+    expect(component.isOpen()).toBe(true);
     const lastMsg = component.messages()[component.messages().length - 1];
-    expect(lastMsg.text).toContain('complete_profile_test');
-    expect(lastMsg.text).toContain('What is your name?');
+    expect(lastMsg.text).toContain('Crop Assistant (Add Crop)');
+    expect(lastMsg.text).toContain('What crop would you like to add?');
   });
 
   it('should send user message and append AI response in freeform mode', () => {
