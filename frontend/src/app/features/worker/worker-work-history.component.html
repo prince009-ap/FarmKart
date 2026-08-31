@@ -142,7 +142,7 @@
           <div class="flex items-start gap-2">
             <mat-icon class="text-slate-400 !w-4 !h-4 text-base mt-0.5">how_to_reg</mat-icon>
             <div>
-              <p class="text-slate-400 uppercase tracking-wider font-semibold">Attendance Summary</p>
+              <p class="text-slate-400 uppercase tracking-wider font-semibold">{{ 'worker.attendance' | translate }}</p>
               <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
                 <span *ngIf="item.presentCount > 0">{{ item.presentCount }} Present</span>
                 <span *ngIf="item.presentCount > 0 && item.halfDayCount > 0">, </span>

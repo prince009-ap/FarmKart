@@ -143,7 +143,7 @@
     <div *ngIf="searchQuery() || selectedCategory() !== 'All' || selectedStatus() !== 'All' || selectedSort() !== 'newest' || minPrice() || maxPrice() || minQty() || maxQty() || endingSoon()"
          class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-slate-500 font-semibold">Active Filters:</span>
+        <span class="text-slate-500 font-semibold">{{ 'marketplace.activeFilters' | translate }}:</span>
         <span *ngIf="searchQuery()" class="px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-mono text-[11px]">"{{ searchQuery() }}"</span>
         <span *ngIf="selectedCategory() !== 'All'" class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-mono text-[11px]">{{ selectedCategory() }}</span>
         <span *ngIf="selectedStatus() !== 'All'" class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-mono text-[11px]">{{ selectedStatus() }}</span>

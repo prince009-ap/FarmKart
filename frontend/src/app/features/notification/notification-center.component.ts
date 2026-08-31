@@ -57,7 +57,7 @@ import { NotificationResponse, PagedNotificationResponse } from '../../core/mode
             <!-- Category & Search -->
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 p-2 bg-slate-50">
-                <option value="">All Categories</option>
+                <option value="">{{ 'marketplace.allCategories' | translate }}</option>
                 <option value="auction">Auctions</option>
                 <option value="order">Orders</option>
                 <option value="payment">{{ 'nav.payments' | translate }}</option>

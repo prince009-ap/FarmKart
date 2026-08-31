@@ -43,7 +43,7 @@
             (change)="applyFilters()"
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
           >
-            <option value="">All Categories</option>
+            <option value="">{{ 'marketplace.allCategories' | translate }}</option>
             @for (cat of categories; track cat) {
               <option [value]="cat">{{ cat }}</option>
             }
@@ -58,10 +58,10 @@
             (change)="applyFilters()"
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
           >
-            <option value="newest">Newest First</option>
+            <option value="newest">{{ 'marketplace.newestFirst' | translate }}</option>
             <option value="oldest">Oldest First</option>
-            <option value="priceAsc">Price: Low to High</option>
-            <option value="priceDesc">Price: High to Low</option>
+            <option value="priceAsc">{{ 'marketplace.priceLowToHigh' | translate }}</option>
+            <option value="priceDesc">{{ 'marketplace.priceHighToLow' | translate }}</option>
           </select>
         </div>
 
@@ -95,8 +95,8 @@
             (change)="applyFilters()"
             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
           >
-            <option value="all">All Options</option>
-            <option value="true">Driver Available</option>
+            <option value="all">{{ 'common.all' | translate }}</option>
+            <option value="true">{{ 'machineryMarket.driverAvailable' | translate }}</option>
             <option value="false">Self-Drive Only</option>
           </select>
         </div>

@@ -235,7 +235,7 @@
               <!-- Date Range & Driver Options -->
               <div class="space-y-4">
                 <div>
-                  <label class="block text-xs font-bold text-slate-400 mb-1">Start Date</label>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">{{ 'machineryMarket.startDate' | translate }}</label>
                   <input
                     type="date"
                     [min]="minStartDate"
@@ -246,7 +246,7 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-bold text-slate-400 mb-1">End Date</label>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">{{ 'machineryMarket.endDate' | translate }}</label>
                   <input
                     type="date"
                     [min]="startDate() || minStartDate"
@@ -331,7 +331,7 @@
                     <span class="font-mono text-slate-200">₹{{ m.securityDeposit }}</span>
                   </div>
                   <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-sm font-bold">
-                    <span class="text-white">Total Payable</span>
+                    <span class="text-white">{{ 'machineryMarket.totalPayable' | translate }}</span>
                     <span class="text-amber-400 font-mono text-lg font-black">₹{{ calculatedTotalPayable() }}</span>
                   </div>
                 </div>

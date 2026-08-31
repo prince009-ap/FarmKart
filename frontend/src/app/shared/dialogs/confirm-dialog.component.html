@@ -7,7 +7,7 @@
   <p class="fk-confirm-dialog__message">{{ data.message }}</p>
 
   <div class="fk-confirm-dialog__actions">
-    <button mat-stroked-button type="button" (click)="cancel()">{{ data.cancelLabel || 'Cancel' }}</button>
+    <button mat-stroked-button type="button" (click)="cancel()">{{ data.cancelLabel || ('common.cancel' | translate) }}</button>
     <button
       mat-flat-button
       type="button"
@@ -15,7 +15,7 @@
       [class.fk-confirm-dialog__confirm--success]="data.tone === 'success'"
       (click)="confirm()"
     >
-      {{ data.confirmLabel || 'Confirm' }}
+      {{ data.confirmLabel || ('common.confirm' | translate) }}
     </button>
   </div>
 </div>

@@ -93,7 +93,7 @@
           </div>
 
           <div *ngIf="item.allocatedQuantityKg !== undefined && item.allocatedQuantityKg !== null" class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/60 col-span-2">
-            <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase block">Allocated Quantity</span>
+            <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase block">{{ 'auctionMarket.allocatedQty' | translate }}</span>
             <span class="text-sm font-black text-emerald-800 dark:text-emerald-300">
               {{ item.allocatedQuantityKg }} Kg ({{ item.allocatedQuantityMan }} Man)
             </span>

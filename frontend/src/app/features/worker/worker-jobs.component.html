@@ -22,7 +22,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Work category</mat-label>
         <mat-select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)">
-          <mat-option value="">All categories</mat-option>
+          <mat-option value="">{{ 'marketplace.allCategories' | translate }}</mat-option>
           @for (cat of categories(); track cat) {
             <mat-option [value]="cat">{{ cat }}</mat-option>
           }

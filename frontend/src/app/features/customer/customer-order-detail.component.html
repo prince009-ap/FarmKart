@@ -263,7 +263,7 @@
               <span class="font-bold text-slate-900 dark:text-white">{{ o.contactName }} ({{ o.contactPhone }})</span>
             </div>
             <div *ngIf="o.deliveryAddress" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500 font-semibold">Address</span>
+              <span class="text-slate-500 font-semibold">{{ 'auth.address' | translate }}</span>
               <span class="font-bold text-slate-900 dark:text-white text-right max-w-xs">{{ o.deliveryAddress }}</span>
             </div>
             <div *ngIf="o.deliveryCity" class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
