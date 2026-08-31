@@ -2,16 +2,16 @@
   <!-- Hero Banner -->
   <section class="app-hero-banner app-hero-banner--farmer flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
     <div>
-      <p class="app-hero-banner__eyebrow">{{ 'farmer.dashboardTitle' | translate }}</p>
+      <p class="app-hero-banner__eyebrow">{{ 'farmer.workspace' | translate }}</p>
       <h1 class="app-hero-banner__title">{{ 'nav.crops' | translate }}</h1>
       <p class="app-hero-banner__summary">
-        Track crop sowing dates, cultivated areas, expected harvest dates, crop photos, and lifecycle status.
+        {{ 'crops.summary' | translate }}
       </p>
     </div>
 
     <div class="app-hero-banner__actions shrink-0">
       <a mat-flat-button class="app-primary-btn" routerLink="/farmer/crops/new">
-        <mat-icon>add</mat-icon> Add New Crop
+        <mat-icon>add</mat-icon> {{ 'common.addCrop' | translate }}
       </a>
     </div>
   </section>
@@ -19,33 +19,33 @@
   <!-- Filter & Search Bar -->
   <section class="app-card grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
     <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Search crop name or variety</mat-label>
-      <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Wheat, Basmati, GW-322...">
+      <mat-label>{{ 'common.search' | translate }}</mat-label>
+      <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" [placeholder]="'Wheat, Basmati, GW-322...'">
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Filter by status</mat-label>
+      <mat-label>{{ 'common.filter' | translate }}</mat-label>
       <mat-select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
-        <mat-option value="">All Statuses</mat-option>
-        <mat-option value="Planned">Planned</mat-option>
-        <mat-option value="Growing">Growing</mat-option>
-        <mat-option value="ReadyForHarvest">Ready For Harvest</mat-option>
-        <mat-option value="Harvested">Harvested</mat-option>
-        <mat-option value="Sold">Sold</mat-option>
-        <mat-option value="Archived">Archived</mat-option>
+        <mat-option value="">{{ 'common.all' | translate }}</mat-option>
+        <mat-option value="Planned">{{ 'status.Planned' | translate }}</mat-option>
+        <mat-option value="Growing">{{ 'status.Growing' | translate }}</mat-option>
+        <mat-option value="ReadyForHarvest">{{ 'status.ReadyForHarvest' | translate }}</mat-option>
+        <mat-option value="Harvested">{{ 'status.Harvested' | translate }}</mat-option>
+        <mat-option value="Sold">{{ 'status.Sold' | translate }}</mat-option>
+        <mat-option value="Archived">{{ 'status.Archived' | translate }}</mat-option>
       </mat-select>
     </mat-form-field>
 
     <div class="text-right text-xs font-semibold text-slate-500">
-      Showing <strong>{{ filteredCrops.length }}</strong> of <strong>{{ crops().length }}</strong> crops
+      {{ filteredCrops.length }} / {{ crops().length }} {{ 'nav.crops' | translate }}
     </div>
   </section>
 
   <!-- Loading State -->
   <div *ngIf="loading()" class="app-alert app-alert--loading flex flex-col items-center justify-center py-12">
     <mat-spinner diameter="40"></mat-spinner>
-    <p class="mt-4 text-sm font-medium text-slate-600">Loading your crops...</p>
+    <p class="mt-4 text-sm font-medium text-slate-600">{{ 'common.loading' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -58,13 +58,13 @@
   <!-- Empty State -->
   <div *ngIf="!loading() && !error() && crops().length === 0" class="app-empty-state space-y-4">
     <mat-icon>eco</mat-icon>
-    <h2 class="app-empty-state__title">No crops added yet</h2>
+    <h2 class="app-empty-state__title">{{ 'crops.noCrops' | translate }}</h2>
     <p class="app-empty-state__text">
-      Start recording your agricultural crops to monitor cultivated area, sowing dates, photos, and harvest timelines.
+      {{ 'crops.addFirstCropDesc' | translate }}
     </p>
     <div class="pt-2">
       <a mat-flat-button class="app-primary-btn" routerLink="/farmer/crops/new">
-        <mat-icon>add</mat-icon> Add Crop Now
+        <mat-icon>add</mat-icon> {{ 'crops.addFirstCrop' | translate }}
       </a>
     </div>
   </div>
@@ -83,7 +83,7 @@
         
         <div *ngIf="!hasValidImage(crop)" class="flex flex-col items-center justify-center text-emerald-800/50 space-y-1">
           <mat-icon class="!w-12 !h-12 text-5xl">eco</mat-icon>
-          <span class="text-xs font-semibold">No Image Uploaded</span>
+          <span class="text-xs font-semibold">{{ 'common.noData' | translate }}</span>
         </div>
 
         <!-- Status Pill Overlay -->
@@ -97,7 +97,7 @@
             'bg-slate-700 text-white border-slate-600': crop.status === 'Sold' || crop.status === 'Archived'
           }"
         >
-          {{ crop.status === 'ReadyForHarvest' ? 'Ready For Harvest' : crop.status }}
+          {{ 'status.' + crop.status | translate }}
         </span>
 
         <!-- Category Badge Overlay -->
@@ -111,32 +111,32 @@
         <div class="space-y-3">
           <div>
             <h2 class="app-card__title !mt-0 text-xl">{{ crop.cropName }}</h2>
-            <p *ngIf="crop.variety" class="text-xs font-semibold text-slate-500 mt-0.5">Variety: {{ crop.variety }}</p>
+            <p *ngIf="crop.variety" class="text-xs font-semibold text-slate-500 mt-0.5">{{ 'crops.variety' | translate }}: {{ crop.variety }}</p>
           </div>
 
           <!-- Metric Details Banner -->
           <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Cultivated Area</span>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">{{ 'crops.area' | translate }}</span>
               <span class="font-extrabold text-slate-900 text-sm">{{ crop.area }} {{ crop.areaUnit }}</span>
             </div>
             <div>
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Planting Date</span>
-              <span class="font-semibold text-slate-700">{{ crop.sowingDate ? (crop.sowingDate | date:'mediumDate') : 'Not Set' }}</span>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">{{ 'crops.sowingDate' | translate }}</span>
+              <span class="font-semibold text-slate-700">{{ crop.sowingDate ? (crop.sowingDate | date:'mediumDate') : '-' }}</span>
             </div>
             <div class="col-span-2 pt-1 border-t border-slate-200">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Expected Harvest</span>
-              <span class="font-bold text-emerald-700">{{ crop.expectedHarvestDate ? (crop.expectedHarvestDate | date:'mediumDate') : 'Not Set' }}</span>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">{{ 'crops.harvestDate' | translate }}</span>
+              <span class="font-bold text-emerald-700">{{ crop.expectedHarvestDate ? (crop.expectedHarvestDate | date:'mediumDate') : '-' }}</span>
             </div>
 
             <!-- Stock quantity row — only for harvest-eligible statuses -->
             <div *ngIf="crop.status === 'ReadyForHarvest' || crop.status === 'Harvested' || crop.status === 'Sold' || crop.status === 'Archived'"
                  class="col-span-2 pt-1 border-t border-slate-200 flex items-center justify-between">
-              <span class="text-[10px] uppercase font-bold text-slate-400">Available Stock</span>
+              <span class="text-[10px] uppercase font-bold text-slate-400">{{ 'crops.unreservedStock' | translate }}</span>
               <span class="flex items-center gap-1 font-extrabold text-sm"
                     [ngClass]="crop.availableQuantityKg && crop.availableQuantityKg > 0 ? 'text-amber-700' : 'text-slate-400'">
                 <mat-icon class="!w-3.5 !h-3.5 !text-sm">inventory_2</mat-icon>
-                {{ crop.availableQuantityKg && crop.availableQuantityKg > 0 ? crop.availableQuantityFormatted : 'No stock' }}
+                {{ crop.availableQuantityKg && crop.availableQuantityKg > 0 ? crop.availableQuantityFormatted : ('common.noData' | translate) }}
               </span>
             </div>
           </div>
@@ -149,13 +149,13 @@
         <!-- Action Buttons -->
         <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
           <a [routerLink]="['/farmer/crops', crop.id]" mat-stroked-button class="!border-slate-300 text-xs flex-1">
-            <mat-icon class="!w-4 !h-4 text-base">visibility</mat-icon> View
+            <mat-icon class="!w-4 !h-4 text-base">visibility</mat-icon> {{ 'common.view' | translate }}
           </a>
           <a [routerLink]="['/farmer/crops', crop.id, 'edit']" mat-stroked-button class="!border-emerald-300 !text-emerald-800 text-xs flex-1">
-            <mat-icon class="!w-4 !h-4 text-base">edit</mat-icon> Edit
+            <mat-icon class="!w-4 !h-4 text-base">edit</mat-icon> {{ 'common.edit' | translate }}
           </a>
           <button (click)="openDeleteModal(crop)" mat-stroked-button class="!border-rose-300 !text-rose-700 text-xs shrink-0">
-            <mat-icon class="!w-4 !h-4 text-base">delete_outline</mat-icon> Delete
+            <mat-icon class="!w-4 !h-4 text-base">delete_outline</mat-icon> {{ 'common.delete' | translate }}
           </button>
         </div>
       </div>
@@ -170,17 +170,17 @@
       <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
         <mat-icon class="!w-7 !h-7 text-3xl">warning</mat-icon>
       </div>
-      <h3 class="text-lg font-bold text-slate-900">Delete Crop Record?</h3>
+      <h3 class="text-lg font-bold text-slate-900">{{ 'common.confirm' | translate }}</h3>
       <p class="text-xs text-slate-600">
-        Are you sure you want to delete <strong>{{ cropToDelete()?.cropName }}</strong>? This action cannot be undone.
+        {{ cropToDelete()?.cropName }}
       </p>
     </div>
 
     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
       <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="confirmDelete()" [disabled]="deleting()" class="!bg-rose-600 !text-white">
-        <span *ngIf="deleting()">Deleting...</span>
-        <span *ngIf="!deleting()">Confirm Delete</span>
+        <span *ngIf="deleting()">{{ 'common.loading' | translate }}</span>
+        <span *ngIf="!deleting()">{{ 'common.delete' | translate }}</span>
       </button>
     </div>
   </div>

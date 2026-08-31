@@ -106,10 +106,35 @@ export class LanguageService {
   }
 
   private syncUserPreferenceFromBackend(): void {
+    const currentLocal = this.currentLanguage();
+
     this.userPreferenceService.getPreferences().subscribe({
       next: (pref) => {
         if (pref && pref.language && ['en', 'hi', 'gu'].includes(pref.language.toLowerCase())) {
-          this.setLanguage(pref.language.toLowerCase() as SupportedLanguage, false);
+          const backendLang = pref.language.toLowerCase() as SupportedLanguage;
+          if (backendLang !== currentLocal) {
+            // User chose a language during login or local session -> update backend preference
+            this.userPreferenceService.updatePreferences({
+              language: currentLocal,
+              theme: 'light',
+              emailAlerts: true,
+              smsAlerts: true,
+              compactView: false
+            }).subscribe({
+              error: () => {}
+            });
+          }
+        } else {
+          // No backend preference set yet -> initialize backend with local selection
+          this.userPreferenceService.updatePreferences({
+            language: currentLocal,
+            theme: 'light',
+            emailAlerts: true,
+            smsAlerts: true,
+            compactView: false
+          }).subscribe({
+            error: () => {}
+          });
         }
       },
       error: () => {}

@@ -21,7 +21,7 @@ import { UserDisputeResponse } from '../../core/models/dispute.models';
 
         <div *ngIf="isLoading" class="bg-white rounded-2xl p-12 text-center text-slate-500 text-sm border border-slate-200/80">
           <span class="inline-block w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mb-2"></span>
-          <p>Loading dispute details...</p>
+          <p>{{ 'common.loading' | translate }}</p>
         </div>
 
         <div *ngIf="!isLoading && dispute" class="space-y-6">

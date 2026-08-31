@@ -24,11 +24,11 @@
           {{ job()!.farmLocation }}
         </div>
         <div>
-          <strong>Daily wage</strong>
+          <strong>{{ 'jobs.dailyWage' | translate }}</strong>
           {{ job()!.wagePerDay | number }} INR
         </div>
         <div>
-          <strong>Workers required</strong>
+          <strong>{{ 'jobs.workersRequired' | translate }}</strong>
           {{ job()!.workersRequired }}
         </div>
         <div>
@@ -46,7 +46,7 @@
       </dl>
 
       <div class="app-form-actions mt-8 pt-4 border-t border-slate-100">
-        <a mat-button routerLink="/farmer/jobs">Back to list</a>
+        <a mat-button routerLink="/farmer/jobs">{{ 'common.back' | translate }}</a>
         <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job()!.id, 'applications']">
           <mat-icon>group</mat-icon>
           Applications

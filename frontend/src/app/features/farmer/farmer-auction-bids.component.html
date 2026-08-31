@@ -4,7 +4,7 @@
     <div>
       <a [routerLink]="['/farmer/auctions', auctionId()]" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition-colors mb-1">
         <mat-icon class="text-base">arrow_back</mat-icon>
-        <span>Back to Auction Details</span>
+        <span>{{ 'common.back' | translate }}</span>
       </a>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-[family-name:var(--fk-font-display)] text-emerald-950">
         Bidding Activity — {{ auction()?.cropName || 'Auction' }}
@@ -38,11 +38,11 @@
         <span class="text-xl font-bold text-white mt-0.5 block">{{ a.quantityKg }} Kg ({{ a.quantityMan }} Man)</span>
       </div>
       <div>
-        <span class="text-xs text-emerald-300 block font-medium">Current Highest Bid</span>
+        <span class="text-xs text-emerald-300 block font-medium">{{ 'auctions.highestBid' | translate }}</span>
         <span class="text-xl font-bold text-amber-400 mt-0.5 block">₹{{ a.currentHighestBid }} / Man</span>
       </div>
       <div>
-        <span class="text-xs text-emerald-300 block font-medium">Total Demand</span>
+        <span class="text-xs text-emerald-300 block font-medium">{{ 'common.total' | translate }}</span>
         <span class="text-xl font-bold text-white mt-0.5 block">{{ a.totalRequestedQuantityKg }} Kg</span>
       </div>
       <div>
@@ -56,7 +56,7 @@
   @if (isLoading()) {
     <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center gap-3">
       <mat-spinner diameter="40" strokeWidth="3" class="text-emerald-600"></mat-spinner>
-      <p class="text-sm font-medium text-slate-600">Loading bidding history...</p>
+      <p class="text-sm font-medium text-slate-600">{{ 'common.loading' | translate }}</p>
     </div>
   }
 
@@ -77,7 +77,7 @@
       <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
         <mat-icon class="text-3xl">gavel</mat-icon>
       </div>
-      <h3 class="text-base font-bold text-slate-800">No bids placed yet</h3>
+      <h3 class="text-base font-bold text-slate-800">{{ 'common.noData' | translate }}</h3>
       <p class="text-xs text-slate-500 max-w-sm">
         Customers have not submitted bids for this auction yet. Bids will update automatically in real-time.
       </p>

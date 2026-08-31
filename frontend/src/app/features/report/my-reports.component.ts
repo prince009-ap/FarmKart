@@ -43,12 +43,12 @@ import { UserReportResponse, PagedReportResponse } from '../../core/models/repor
         <div class="space-y-4">
           <div *ngIf="isLoading" class="bg-white rounded-2xl p-12 text-center text-slate-500 text-sm border border-slate-200/80">
             <span class="inline-block w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin mb-2"></span>
-            <p>Loading reports...</p>
+            <p>{{ 'common.loading' | translate }}</p>
           </div>
 
           <div *ngIf="!isLoading && reports.length === 0" class="bg-white rounded-2xl p-12 text-center border border-slate-200/80">
             <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400 text-xl">📋</div>
-            <h3 class="text-base font-semibold text-slate-800">No Reports Found</h3>
+            <h3 class="text-base font-semibold text-slate-800">{{ 'reports.noReports' | translate }}</h3>
             <p class="text-xs text-slate-500 mt-1">You have not submitted any reports matching the selected criteria.</p>
           </div>
 

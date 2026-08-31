@@ -10,7 +10,7 @@
     <!-- Loading State -->
     <div *ngIf="loading()" class="flex flex-col items-center justify-center py-16">
       <mat-spinner diameter="40"></mat-spinner>
-      <p class="mt-4 text-sm font-medium text-emerald-800">Loading assigned workers...</p>
+      <p class="mt-4 text-sm font-medium text-emerald-800">{{ 'common.loading' | translate }}</p>
     </div>
 
     <!-- Error State -->
@@ -45,7 +45,7 @@
               <mat-icon class="mr-1">event_available</mat-icon> Manage Attendance
             </a>
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-center sm:text-right">
-              <span class="text-xs uppercase tracking-wider font-semibold text-emerald-800 block">Assigned Workers</span>
+              <span class="text-xs uppercase tracking-wider font-semibold text-emerald-800 block">{{ 'jobs.assignedWorkers' | translate }}</span>
               <p class="text-2xl font-extrabold text-emerald-950 mt-0.5">
                 {{ assignments().length }} / {{ currentJob.workersRequired }}
               </p>
@@ -222,7 +222,7 @@
           [disabled]="submittingRating()">
           @if (submittingRating()) {
             <mat-spinner diameter="18" color="accent"></mat-spinner>
-            <span>Submitting...</span>
+            <span>{{ 'common.loading' | translate }}</span>
           } @else {
             <ng-container>
               <mat-icon>send</mat-icon>

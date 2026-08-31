@@ -17,7 +17,7 @@ import { UserDisputeResponse, PagedDisputeResponse } from '../../core/models/dis
         <!-- Header -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-slate-900">My Transaction Disputes</h1>
+            <h1 class="text-2xl font-bold text-slate-900">{{ 'disputes.title' | translate }}</h1>
             <p class="text-xs text-slate-500">Track and manage transaction disputes raised for Orders, Machinery Rentals, or Auction Allocations.</p>
           </div>
         </div>
@@ -45,12 +45,12 @@ import { UserDisputeResponse, PagedDisputeResponse } from '../../core/models/dis
         <div class="space-y-4">
           <div *ngIf="isLoading" class="bg-white rounded-2xl p-12 text-center text-slate-500 text-sm border border-slate-200/80">
             <span class="inline-block w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mb-2"></span>
-            <p>Loading disputes...</p>
+            <p>{{ 'common.loading' | translate }}</p>
           </div>
 
           <div *ngIf="!isLoading && disputes.length === 0" class="bg-white rounded-2xl p-12 text-center border border-slate-200/80">
             <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400 text-xl">⚠️</div>
-            <h3 class="text-base font-semibold text-slate-800">No Disputes Found</h3>
+            <h3 class="text-base font-semibold text-slate-800">{{ 'disputes.noDisputes' | translate }}</h3>
             <p class="text-xs text-slate-500 mt-1">You have no active or closed disputes matching the selected criteria.</p>
           </div>
 

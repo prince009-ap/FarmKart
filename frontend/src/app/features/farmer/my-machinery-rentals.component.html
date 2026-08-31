@@ -68,7 +68,7 @@
     @if (!isLoading() && !errorMessage() && filterRentals().length === 0) {
       <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
         <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">assignment</mat-icon>
-        <p class="text-slate-400 font-semibold text-base">No incoming rental bookings found.</p>
+        <p class="text-slate-400 font-semibold text-base">{{ 'common.noData' | translate }}</p>
         <p class="text-xs text-slate-500">When users book your machinery, their requests will appear here!</p>
       </div>
     }

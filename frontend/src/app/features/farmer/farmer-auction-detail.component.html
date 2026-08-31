@@ -2,14 +2,14 @@
   <!-- Back Link -->
   <a routerLink="/farmer/auctions" class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 hover:text-emerald-950 transition-colors">
     <mat-icon class="text-base">arrow_back</mat-icon>
-    <span>Back to My Auctions</span>
+    <span>{{ 'common.back' | translate }}</span>
   </a>
 
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="py-16 text-center bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center gap-3">
       <mat-spinner diameter="40" strokeWidth="3" class="text-emerald-600"></mat-spinner>
-      <p class="text-sm font-medium text-slate-600">Loading auction information...</p>
+      <p class="text-sm font-medium text-slate-600">{{ 'common.loading' | translate }}</p>
     </div>
   }
 
@@ -92,17 +92,17 @@
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
         <div class="bg-emerald-900/40 p-4 rounded-xl border border-emerald-700/40">
-          <span class="text-xs text-emerald-300 block font-medium">Current Highest Bid</span>
+          <span class="text-xs text-emerald-300 block font-medium">{{ 'auctions.highestBid' | translate }}</span>
           <span class="text-xl sm:text-2xl font-bold text-amber-400 mt-1 block">₹{{ a.currentHighestBid }} / Man</span>
         </div>
 
         <div class="bg-emerald-900/40 p-4 rounded-xl border border-emerald-700/40">
-          <span class="text-xs text-emerald-300 block font-medium">Total Bids</span>
+          <span class="text-xs text-emerald-300 block font-medium">{{ 'nav.bids' | translate }}</span>
           <span class="text-xl sm:text-2xl font-bold text-white mt-1 block">{{ a.totalBids }}</span>
         </div>
 
         <div class="bg-emerald-900/40 p-4 rounded-xl border border-emerald-700/40">
-          <span class="text-xs text-emerald-300 block font-medium">Total Demand</span>
+          <span class="text-xs text-emerald-300 block font-medium">{{ 'common.total' | translate }}</span>
           <span class="text-xl sm:text-2xl font-bold text-white mt-1 block">{{ a.totalRequestedQuantityKg }} Kg</span>
         </div>
 
@@ -131,7 +131,7 @@
             <span class="font-semibold text-slate-800">{{ a.availableStockKg }} Kg</span>
           </div>
           <div class="flex justify-between py-1 border-b border-slate-50">
-            <span class="text-slate-500">Reserved Stock:</span>
+            <span class="text-slate-500">{{ 'crops.reservedStock' | translate }}:</span>
             <span class="font-semibold text-amber-700">{{ a.reservedStockKg }} Kg</span>
           </div>
           <div class="flex justify-between py-1">
@@ -191,7 +191,7 @@
                   <th class="p-3">Allocated</th>
                   <th class="p-3">Winning Rate</th>
                   <th class="p-3">Total Payable</th>
-                  <th class="p-3">Status</th>
+                  <th class="p-3">{{ 'common.status' | translate }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">

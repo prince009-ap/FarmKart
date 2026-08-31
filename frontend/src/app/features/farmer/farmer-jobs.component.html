@@ -1,13 +1,13 @@
 <section class="app-page animate-fk-rise">
   <header class="app-page-header">
     <div class="app-page-header__content">
-      <p class="app-page-eyebrow">Labor workspace</p>
+      <p class="app-page-eyebrow">{{ 'farmer.workspace' | translate }}</p>
       <h1 class="app-page-title">{{ 'nav.jobs' | translate }}</h1>
-      <p class="app-page-summary">Create and manage your farm job postings for local workers.</p>
+      <p class="app-page-summary">{{ 'jobs.summary' | translate }}</p>
     </div>
     <a mat-flat-button color="primary" class="app-primary-btn" routerLink="/farmer/jobs/create">
       <mat-icon>add</mat-icon>
-      Create Job
+      {{ 'jobs.createJob' | translate }}
     </a>
   </header>
 
@@ -19,7 +19,7 @@
     <div class="app-alert app-alert--error">
       <mat-icon>error_outline</mat-icon>
       <div>
-        <strong>Unable to load jobs</strong>
+        <strong>{{ 'common.error' | translate }}</strong>
         <p class="mt-1">{{ error() }}</p>
         <button mat-button class="mt-2" (click)="loadJobs()">{{ 'common.refresh' | translate }}</button>
       </div>
@@ -27,9 +27,9 @@
   } @else if (!jobs().length) {
     <div class="app-empty-state">
       <mat-icon>work_outline</mat-icon>
-      <h2 class="app-empty-state__title">No jobs posted yet</h2>
-      <p class="app-empty-state__text">Create your first job to connect with skilled farm workers in your area.</p>
-      <a mat-flat-button color="primary" class="app-primary-btn mt-5" routerLink="/farmer/jobs/create">Create your first job</a>
+      <h2 class="app-empty-state__title">{{ 'jobs.noJobsPosted' | translate }}</h2>
+      <p class="app-empty-state__text">{{ 'jobs.createFirstJobDesc' | translate }}</p>
+      <a mat-flat-button color="primary" class="app-primary-btn mt-5" routerLink="/farmer/jobs/create">{{ 'jobs.createFirstJob' | translate }}</a>
     </div>
   } @else {
     <div class="app-grid lg:grid-cols-2">
@@ -40,41 +40,41 @@
               <h2 class="text-lg font-bold text-slate-900">{{ job.title }}</h2>
               <p class="app-job-card__meta">{{ job.workCategory }} · {{ job.farmLocation }}</p>
             </div>
-            <span class="app-badge app-badge--status">{{ job.status }}</span>
+            <span class="app-badge app-badge--status">{{ job.status | translate }}</span>
           </div>
 
           <div class="app-job-card__stats">
-            <div><strong>Daily wage</strong>₹{{ job.wagePerDay | number }}</div>
-            <div><strong>Workers</strong>{{ job.workersRequired }}</div>
-            <div><strong>Starts</strong>{{ job.startDate | date:'mediumDate' }}</div>
-            <div><strong>Ends</strong>{{ job.endDate | date:'mediumDate' }}</div>
+            <div><strong>{{ 'jobs.dailyWage' | translate }}</strong>₹{{ job.wagePerDay | number }}</div>
+            <div><strong>{{ 'jobs.workersRequired' | translate }}</strong>{{ job.workersRequired }}</div>
+            <div><strong>{{ 'jobs.starts' | translate }}</strong>{{ job.startDate | date:'mediumDate' }}</div>
+            <div><strong>{{ 'jobs.ends' | translate }}</strong>{{ job.endDate | date:'mediumDate' }}</div>
           </div>
 
           <div class="app-job-card__actions app-job-card__actions--toolbar">
             <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id]">
               <mat-icon>visibility</mat-icon>
-              View
+              {{ 'common.view' | translate }}
             </a>
             <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job.id, 'applications']">
               <mat-icon>group</mat-icon>
-              Applications
+              {{ 'jobs.applications' | translate }}
             </a>
             <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'assignments']">
               <mat-icon>badge</mat-icon>
-              Assigned Workers
+              {{ 'jobs.assignedWorkers' | translate }}
             </a>
             <a mat-stroked-button class="app-btn-accent-outline" [routerLink]="['/farmer/jobs', job.id, 'attendance']">
               <mat-icon>event_available</mat-icon>
-              Attendance
+              {{ 'jobs.attendance' | translate }}
             </a>
             @if (canEdit(job)) {
               <a mat-stroked-button [routerLink]="['/farmer/jobs', job.id, 'edit']">
                 <mat-icon>edit</mat-icon>
-                Edit
+                {{ 'common.edit' | translate }}
               </a>
               <button mat-stroked-button class="app-btn-danger-outline" [disabled]="cancellingId() === job.id" (click)="cancelJob(job)">
                 <mat-icon>delete_outline</mat-icon>
-                Cancel
+                {{ 'common.cancel' | translate }}
               </button>
             }
           </div>

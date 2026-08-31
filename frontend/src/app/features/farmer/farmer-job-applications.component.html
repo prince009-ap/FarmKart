@@ -2,7 +2,7 @@
   <header class="app-page-header">
     <div class="app-page-header__content">
       <a routerLink="/farmer/jobs" class="app-back-link">← {{ 'common.back' | translate }} to My Jobs</a>
-      <h1 class="app-page-title mt-3">Job Applications</h1>
+      <h1 class="app-page-title mt-3">{{ 'nav.jobApplications' | translate }}</h1>
       <p class="app-page-summary">Review worker applications and manage hiring for this posting.</p>
     </div>
   </header>
@@ -10,14 +10,14 @@
   @if (loading()) {
     <div class="app-alert app-alert--loading">
       <mat-spinner diameter="40"></mat-spinner>
-      <p class="mt-4 text-slate-600 font-medium">Loading job applications...</p>
+      <p class="mt-4 text-slate-600 font-medium">{{ 'common.loading' | translate }}</p>
     </div>
   } @else if (error()) {
     <div class="app-alert app-alert--error">
       <mat-icon>error_outline</mat-icon>
       <div>
         <strong>{{ error() }}</strong>
-        <a mat-flat-button class="app-primary-btn mt-3" routerLink="/farmer/jobs">Back to Jobs List</a>
+        <a mat-flat-button class="app-primary-btn mt-3" routerLink="/farmer/jobs">{{ 'common.back' | translate }}</a>
       </div>
     </div>
   } @else {
@@ -69,7 +69,7 @@
     @if (applications().length === 0) {
       <div class="app-empty-state">
         <mat-icon>group_outline</mat-icon>
-        <h2 class="app-empty-state__title">No applications yet</h2>
+        <h2 class="app-empty-state__title">{{ 'common.noData' | translate }}</h2>
         <p class="app-empty-state__text">Workers searching for farm labor will appear here once they apply to this job.</p>
       </div>
     } @else {

@@ -8,7 +8,7 @@
           <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <mat-icon class="!w-6 !h-6 text-2xl">bar_chart</mat-icon>
           </span>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Farmer Analytics Dashboard</h1>
+          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ 'nav.analytics' | translate }}</h1>
         </div>
         <p class="text-xs sm:text-sm text-slate-400 mt-1 pl-11 font-medium">
           Real-time crop auction performance, revenue, orders, ratings, and machinery analytics.
@@ -49,7 +49,7 @@
         <!-- Revenue Card -->
         <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/50 to-slate-900/80 border border-emerald-800/40 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Total Revenue</span>
+            <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">{{ 'farmer.totalRevenue' | translate }}</span>
             <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">₹</div>
           </div>
           <p class="text-2xl sm:text-3xl font-black text-white mt-3">₹{{ d.totalRevenue | number:'1.0-0' }}</p>
@@ -75,7 +75,7 @@
         <!-- Auctions Card -->
         <div class="p-5 rounded-2xl bg-gradient-to-br from-sky-950/50 to-slate-900/80 border border-sky-800/40 shadow-xl relative overflow-hidden group hover:border-sky-500/50 transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">Total Auctions</span>
+            <span class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">{{ 'auctions.totalAuctions' | translate }}</span>
             <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">⚡</div>
           </div>
           <p class="text-2xl sm:text-3xl font-black text-white mt-3">{{ d.totalAuctions }}</p>
@@ -102,7 +102,7 @@
       <!-- SECONDARY METRICS BAR -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-          <span class="text-[10px] text-slate-400 uppercase font-bold block">Total Bids</span>
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">{{ 'nav.bids' | translate }}</span>
           <span class="text-lg font-black text-white">{{ d.totalBidsReceived }}</span>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
@@ -110,7 +110,7 @@
           <span class="text-lg font-black text-white">{{ d.averageBidsPerAuction }}</span>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
-          <span class="text-[10px] text-slate-400 uppercase font-bold block">Highest Bid</span>
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">{{ 'auctions.highestBid' | translate }}</span>
           <span class="text-lg font-black text-emerald-400">₹{{ d.highestBidAmount | number:'1.0-0' }}</span>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-center">
@@ -180,7 +180,7 @@
                 }
                 @if (d.topSellingCrops.length === 0) {
                   <tr>
-                    <td colspan="4" class="py-6 text-center text-slate-500 font-medium">No crops sold in this date range</td>
+                    <td colspan="4" class="py-6 text-center text-slate-500 font-medium">{{ 'common.noData' | translate }}</td>
                   </tr>
                 }
               </tbody>
@@ -243,12 +243,12 @@
             <thead>
               <tr class="border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
                 <th class="py-2.5 px-3">Crop Name</th>
-                <th class="py-2.5 px-3">Quantity</th>
+                <th class="py-2.5 px-3">{{ 'common.quantity' | translate }}</th>
                 <th class="py-2.5 px-3">Start Price</th>
                 <th class="py-2.5 px-3">Top Bid</th>
                 <th class="py-2.5 px-3">Winning / Man</th>
                 <th class="py-2.5 px-3 text-center">Bids</th>
-                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3">{{ 'common.status' | translate }}</th>
                 <th class="py-2.5 px-3 text-right">Created Date</th>
               </tr>
             </thead>

@@ -4,37 +4,37 @@
   <div class="p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white shadow-xl flex flex-wrap items-center justify-between gap-4 border border-emerald-800/50">
     <div class="space-y-1">
       <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 uppercase tracking-wider">
-        Auction Sales Orders
+        {{ 'farmer.workspace' | translate }}
       </span>
       <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">{{ 'nav.orders' | translate }}</h1>
-      <p class="text-xs text-emerald-200/80 font-medium">Manage and fulfill orders from your successful auction sales.</p>
+      <p class="text-xs text-emerald-200/80 font-medium">{{ 'orders.summary' | translate }}</p>
     </div>
   </div>
 
   <!-- Summary Metrics Cards -->
   <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
     <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-slate-500 uppercase">Total Orders</span>
+      <span class="text-[11px] font-bold text-slate-500 uppercase">{{ 'customer.totalOrders' | translate }}</span>
       <p class="text-xl font-black text-slate-900 dark:text-white">{{ summary()?.totalOrders ?? 0 }}</p>
     </div>
     <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase">Confirmed</span>
+      <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase">{{ 'status.Confirmed' | translate }}</span>
       <p class="text-xl font-black text-emerald-700 dark:text-emerald-300">{{ summary()?.confirmedOrdersCount ?? 0 }}</p>
     </div>
     <div class="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-sky-700 dark:text-sky-400 uppercase">Ready Pickup</span>
+      <span class="text-[11px] font-bold text-sky-700 dark:text-sky-400 uppercase">{{ 'status.Active' | translate }}</span>
       <p class="text-xl font-black text-sky-700 dark:text-sky-300">{{ summary()?.readyForPickupCount ?? 0 }}</p>
     </div>
     <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase">In Transit</span>
+      <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase">{{ 'status.Active' | translate }}</span>
       <p class="text-xl font-black text-amber-700 dark:text-amber-300">{{ summary()?.pickedUpCount ?? 0 }}</p>
     </div>
     <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 uppercase">Delivered</span>
+      <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 uppercase">{{ 'status.Delivered' | translate }}</span>
       <p class="text-xl font-black text-indigo-700 dark:text-indigo-300">{{ summary()?.deliveredCount ?? 0 }}</p>
     </div>
     <div class="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900/60 shadow-sm space-y-1">
-      <span class="text-[11px] font-bold text-teal-700 dark:text-teal-400 uppercase">Completed</span>
+      <span class="text-[11px] font-bold text-teal-700 dark:text-teal-400 uppercase">{{ 'status.Completed' | translate }}</span>
       <p class="text-xl font-black text-teal-700 dark:text-teal-300">{{ summary()?.completedCount ?? 0 }}</p>
     </div>
   </div>
@@ -49,7 +49,7 @@
         type="text"
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event); onSearchChange()"
-        placeholder="Search by Order #, Crop, Customer..."
+        [placeholder]="'common.search' | translate"
         class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
       />
     </div>
@@ -60,42 +60,42 @@
         (click)="onStatusChange('ALL')"
         [ngClass]="selectedStatus() === 'ALL' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        All
+        {{ 'common.all' | translate }}
       </button>
 
       <button
         (click)="onStatusChange('CONFIRMED')"
         [ngClass]="selectedStatus() === 'CONFIRMED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        Confirmed
+        {{ 'status.Confirmed' | translate }}
       </button>
 
       <button
         (click)="onStatusChange('READY_FOR_PICKUP')"
         [ngClass]="selectedStatus() === 'READY_FOR_PICKUP' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        Ready Pickup
+        {{ 'orders.farmPickup' | translate }}
       </button>
 
       <button
         (click)="onStatusChange('DISPATCHED')"
         [ngClass]="selectedStatus() === 'DISPATCHED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        Dispatched / Picked Up
+        {{ 'orders.homeDelivery' | translate }}
       </button>
 
       <button
         (click)="onStatusChange('DELIVERED')"
         [ngClass]="selectedStatus() === 'DELIVERED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        Delivered
+        {{ 'status.Delivered' | translate }}
       </button>
 
       <button
         (click)="onStatusChange('COMPLETED')"
         [ngClass]="selectedStatus() === 'COMPLETED' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
         class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-        Completed
+        {{ 'status.Completed' | translate }}
       </button>
     </div>
   </div>
@@ -103,7 +103,7 @@
   <!-- Loading State -->
   <div *ngIf="isLoading()" class="py-20 text-center space-y-3">
     <div class="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-xs font-semibold text-slate-500">Loading your orders...</p>
+    <p class="text-xs font-semibold text-slate-500">{{ 'common.loading' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -111,7 +111,7 @@
     <mat-icon class="text-rose-500 !w-12 !h-12 text-5xl">warning</mat-icon>
     <h2 class="text-base font-bold text-rose-800 dark:text-rose-300">{{ errorMessage() }}</h2>
     <button (click)="loadOrders()" mat-flat-button class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
-      <mat-icon>refresh</mat-icon> Retry
+      <mat-icon>refresh</mat-icon> {{ 'common.refresh' | translate }}
     </button>
   </div>
 
@@ -121,11 +121,11 @@
       <mat-icon class="!w-8 !h-8 text-4xl">shopping_bag</mat-icon>
     </div>
     <div class="space-y-1">
-      <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">No orders found</h2>
-      <p class="text-xs text-slate-500">Orders matching your search/filters will appear here.</p>
+      <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">{{ 'orders.noOrders' | translate }}</h2>
+      <p class="text-xs text-slate-500">{{ 'orders.noOrdersDesc' | translate }}</p>
     </div>
     <a mat-flat-button [routerLink]="['/farmer/auctions']" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
-      <mat-icon>gavel</mat-icon> View My Auctions
+      <mat-icon>gavel</mat-icon> {{ 'nav.myAuctions' | translate }}
     </a>
   </div>
 
@@ -137,15 +137,15 @@
         <!-- Order Header -->
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
-            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Order Number</span>
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{{ 'orders.orderNumber' | translate }}</span>
             <p class="text-base font-extrabold text-slate-900 dark:text-white font-mono">#{{ item.orderNumber }}</p>
           </div>
           <div class="flex flex-col items-end gap-1">
             <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-400/40 uppercase">
-              ✓ {{ item.status }}
+              ✓ {{ 'status.' + item.status | translate }}
             </span>
             <span class="px-2 py-0.5 rounded text-[9px] font-extrabold" [ngClass]="item.fulfillmentMode === 'PICKUP' ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' : 'bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300'">
-              {{ item.fulfillmentMode === 'PICKUP' ? '📦 Pickup' : '🚚 Delivery' }}
+              {{ item.fulfillmentMode === 'PICKUP' ? ('orders.farmPickup' | translate) : ('orders.homeDelivery' | translate) }}
             </span>
           </div>
         </div>
@@ -169,19 +169,19 @@
               {{ item.cropType }}
             </span>
             <h3 class="text-base font-extrabold text-slate-900 dark:text-white truncate">{{ item.cropName }}</h3>
-            <p class="text-xs text-slate-500 truncate">Customer: <strong class="text-slate-800 dark:text-slate-200">{{ item.customerName }}</strong></p>
+            <p class="text-xs text-slate-500 truncate">{{ 'orders.buyer' | translate }}: <strong class="text-slate-800 dark:text-slate-200">{{ item.customerName }}</strong></p>
           </div>
         </div>
 
         <!-- Purchase & Amount Breakdown -->
         <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
           <div>
-            <span class="text-[10px] text-slate-400 font-semibold uppercase">Quantity</span>
+            <span class="text-[10px] text-slate-400 font-semibold uppercase">{{ 'common.quantity' | translate }}</span>
             <p class="font-extrabold text-slate-900 dark:text-white">{{ item.allocatedQuantityKg }} Kg</p>
             <p class="text-[10px] text-slate-500">({{ item.allocatedQuantityMan }} Man)</p>
           </div>
           <div>
-            <span class="text-[10px] text-slate-400 font-semibold uppercase">Winning Price</span>
+            <span class="text-[10px] text-slate-400 font-semibold uppercase">{{ 'auctions.highestBid' | translate }}</span>
             <p class="font-extrabold text-emerald-600 dark:text-emerald-400">₹{{ item.pricePerMan }} / Man</p>
           </div>
         </div>
@@ -190,16 +190,16 @@
       <!-- Footer & Action Button -->
       <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div>
-          <span class="text-[10px] text-slate-400 font-semibold uppercase">Total Amount</span>
+          <span class="text-[10px] text-slate-400 font-semibold uppercase">{{ 'common.total' | translate }}</span>
           <p class="text-lg font-black text-slate-900 dark:text-white">₹{{ item.totalAmount | number:'1.0-2' }}</p>
         </div>
 
         <div class="flex items-center gap-2">
           <a *ngIf="item.paymentStatus === 'PAID'" mat-stroked-button [routerLink]="['/farmer/orders', item.orderId, 'invoice']" class="!border-emerald-600 !text-emerald-400 !rounded-xl text-xs font-bold">
-            <mat-icon class="!w-4 !h-4 text-sm">receipt_long</mat-icon> INVOICE
+            <mat-icon class="!w-4 !h-4 text-sm">receipt_long</mat-icon> {{ 'orders.viewInvoice' | translate }}
           </a>
           <a mat-flat-button [routerLink]="['/farmer/orders', item.orderId]" class="!bg-emerald-600 !rounded-xl text-xs font-bold !text-white">
-            <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> MANAGE
+            <mat-icon class="!w-4 !h-4 text-sm">visibility</mat-icon> {{ 'common.viewDetails' | translate }}
           </a>
         </div>
       </div>

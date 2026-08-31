@@ -5,17 +5,17 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-          <span class="text-amber-500">🚜</span> My Listed Machinery
+          <span class="text-amber-500">🚜</span> {{ 'nav.myMachinery' | translate }}
         </h1>
-        <p class="text-sm text-slate-400">Manage your machinery listings, view received reviews, and incoming bookings.</p>
+        <p class="text-sm text-slate-400">{{ 'machinery.summary' | translate }}</p>
       </div>
 
       <div class="flex items-center gap-3">
         <a [routerLink]="rentalsRoute" mat-button class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
-          <mat-icon class="!w-4 !h-4 !text-sm">view_list</mat-icon> Incoming Rental Bookings
+          <mat-icon class="!w-4 !h-4 !text-sm">view_list</mat-icon> {{ 'nav.myRentals' | translate }}
         </a>
         <a [routerLink]="newMachineryRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
-          <mat-icon class="!w-4 !h-4 !text-sm">add</mat-icon> Add New Machinery
+          <mat-icon class="!w-4 !h-4 !text-sm">add</mat-icon> {{ 'machinery.addMachinery' | translate }}
         </a>
       </div>
     </div>
@@ -39,11 +39,11 @@
     @if (!isLoading() && !errorMessage() && machineryList().length === 0) {
       <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
         <span class="text-6xl">🚜</span>
-        <p class="text-slate-400 font-semibold text-base">You haven't listed any machinery yet.</p>
-        <p class="text-xs text-slate-500">List your tractors, seeders, or harvesters to earn passive rental income!</p>
+        <p class="text-slate-400 font-semibold text-base">{{ 'machinery.noMachinery' | translate }}</p>
+        <p class="text-xs text-slate-500">{{ 'machinery.noMachineryDesc' | translate }}</p>
         <div class="pt-2">
           <a [routerLink]="newMachineryRoute" mat-flat-button class="!bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-bold">
-            List Machinery Now
+            {{ 'machinery.addMachinery' | translate }}
           </a>
         </div>
       </div>
@@ -70,7 +70,7 @@
                 </span>
                 @if (!m.isActive) {
                   <span class="bg-red-950/90 text-red-300 border border-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    Inactive
+                    {{ 'status.Unavailable' | translate }}
                   </span>
                 }
               </div>
@@ -94,12 +94,12 @@
               <!-- Pricing Box -->
               <div class="bg-slate-950/70 rounded-xl p-3 border border-slate-800 flex items-center justify-between text-xs">
                 <div>
-                  <p class="text-[10px] text-slate-400 uppercase font-bold">Daily Rent</p>
+                  <p class="text-[10px] text-slate-400 uppercase font-bold">{{ 'machinery.dailyRent' | translate }}</p>
                   <p class="text-base font-black text-amber-400 font-mono">₹{{ m.dailyRent }}<span class="text-xs font-normal text-slate-400">/day</span></p>
                 </div>
                 <div class="text-right">
-                  <p class="text-[10px] text-slate-400 uppercase font-bold">Status</p>
-                  <p class="font-bold text-emerald-400">{{ m.availabilityStatus }}</p>
+                  <p class="text-[10px] text-slate-400 uppercase font-bold">{{ 'common.status' | translate }}</p>
+                  <p class="font-bold text-emerald-400">{{ 'status.' + m.availabilityStatus | translate }}</p>
                 </div>
               </div>
 
@@ -109,12 +109,12 @@
                   (click)="viewReviews(m.id, m.name)"
                   mat-button
                   class="!text-amber-400 hover:!text-amber-300 border border-slate-800 !rounded-xl text-xs font-bold flex-1">
-                  <mat-icon class="!w-4 !h-4 !text-sm">star</mat-icon> Reviews
+                  <mat-icon class="!w-4 !h-4 !text-sm">star</mat-icon> {{ 'nav.reviews' | translate }}
                 </button>
                 <a [routerLink]="getEditRoute(m.id)"
                    mat-button
                    class="!text-slate-300 hover:!text-white border border-slate-700 !rounded-xl text-xs font-bold">
-                  <mat-icon class="!w-4 !h-4 !text-sm">edit</mat-icon> Edit
+                  <mat-icon class="!w-4 !h-4 !text-sm">edit</mat-icon> {{ 'common.edit' | translate }}
                 </a>
                 <button
                   (click)="deleteMachinery(m.id, m.name)"

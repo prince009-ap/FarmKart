@@ -27,7 +27,7 @@
   <!-- Loading State -->
   <div *ngIf="loading()" class="app-alert app-alert--loading flex flex-col items-center justify-center py-12">
     <mat-spinner diameter="40"></mat-spinner>
-    <p class="mt-4 text-sm font-medium text-slate-600">Loading crop details...</p>
+    <p class="mt-4 text-sm font-medium text-slate-600">{{ 'common.loading' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -113,7 +113,7 @@
 
         <!-- Area Metric -->
         <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Cultivated Area</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">{{ 'crops.area' | translate }}</span>
           <p class="text-2xl font-extrabold text-slate-900">
             {{ crop()?.area }} <span class="text-sm font-bold text-slate-600">{{ crop()?.areaUnit }}</span>
           </p>
@@ -134,7 +134,7 @@
           <div class="flex items-start gap-3 text-xs">
             <mat-icon class="text-emerald-600 mt-0.5">event_available</mat-icon>
             <div>
-              <span class="font-bold text-slate-500 uppercase text-[10px] block">Expected Harvest Date</span>
+              <span class="font-bold text-slate-500 uppercase text-[10px] block">{{ 'crops.harvestDate' | translate }}</span>
               <span class="font-bold text-emerald-700 text-sm">
                 {{ crop()?.expectedHarvestDate ? (crop()?.expectedHarvestDate | date:'mediumDate') : 'Not Set' }}
               </span>
@@ -215,7 +215,7 @@
           <h2 class="app-card__title !mt-0 flex items-center gap-2"><mat-icon class="text-emerald-600">gavel</mat-icon> Crop Auctions</h2>
           <button mat-flat-button class="app-primary-btn !text-xs" (click)="openAuctionModal()"><mat-icon>add</mat-icon> Create Auction</button>
         </div>
-        <p *ngIf="auctions().length === 0" class="text-xs text-slate-500">No auctions created for this crop.</p>
+        <p *ngIf="auctions().length === 0" class="text-xs text-slate-500">{{ 'common.noData' | translate }}</p>
         <div *ngFor="let auction of auctions()" class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-xs space-y-3 shadow-xs">
           <div class="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 dark:border-slate-800 pb-3">
             <div>
@@ -262,7 +262,7 @@
     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
       <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="confirmDelete()" [disabled]="deleting()" class="!bg-rose-600 !text-white">
-        <span *ngIf="deleting()">Deleting...</span>
+        <span *ngIf="deleting()">{{ 'common.loading' | translate }}</span>
         <span *ngIf="!deleting()">Confirm Delete</span>
       </button>
     </div>
@@ -428,7 +428,7 @@
     <div class="px-5 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
       <button mat-stroked-button (click)="closeStockModal()" [disabled]="savingStock()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="saveStock()" [disabled]="savingStock()" class="app-primary-btn">
-        <span *ngIf="savingStock()">Saving...</span>
+        <span *ngIf="savingStock()">{{ 'common.loading' | translate }}</span>
         <span *ngIf="!savingStock()" class="flex items-center gap-1">
           <mat-icon class="!w-4 !h-4 !text-base">save</mat-icon> Save Stock Record
         </span>
@@ -458,7 +458,7 @@
     <!-- Loading -->
     <div *ngIf="loadingHistory()" class="p-8 flex flex-col items-center justify-center gap-3">
       <mat-spinner diameter="32"></mat-spinner>
-      <p class="text-xs text-slate-500">Loading transactions...</p>
+      <p class="text-xs text-slate-500">{{ 'common.loading' | translate }}</p>
     </div>
 
     <!-- Empty State -->
