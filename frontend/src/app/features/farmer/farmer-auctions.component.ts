@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -17,6 +18,7 @@ type AuctionFilter = 'ALL' | 'UPCOMING' | 'LIVE' | 'ENDED' | 'CANCELLED';
   selector: 'app-farmer-auctions',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     FormsModule,

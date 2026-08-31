@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -11,7 +12,8 @@ import { ConfirmDialogService } from '../../shared/dialogs/confirm-dialog.servic
 @Component({
   selector: 'app-farmer-jobs',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    TranslatePipe,CommonModule, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './farmer-jobs.component.html'
 })
 export class FarmerJobsComponent implements OnInit {

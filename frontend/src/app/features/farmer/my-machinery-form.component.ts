@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -13,6 +14,7 @@ import { MACHINERY_CATEGORIES } from '../../core/models/machinery.models';
   selector: 'app-my-machinery-form',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     FormsModule,

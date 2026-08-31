@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,14 +8,15 @@ import { UserReportResponse, PagedReportResponse } from '../../core/models/repor
 @Component({
   selector: 'app-my-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    TranslatePipe,CommonModule, FormsModule],
   template: `
     <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto space-y-6">
         <!-- Header -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-slate-900">My Reports</h1>
+            <h1 class="text-2xl font-bold text-slate-900">{{ 'reports.title' | translate }}</h1>
             <p class="text-xs text-slate-500">Track all your submitted reports regarding listings, machinery, or user reviews.</p>
           </div>
         </div>

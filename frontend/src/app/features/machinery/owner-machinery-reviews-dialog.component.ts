@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, Inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -16,6 +17,7 @@ export interface OwnerMachineryReviewsDialogData {
   selector: 'app-owner-machinery-reviews-dialog',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     MatDialogModule,
     MatButtonModule,

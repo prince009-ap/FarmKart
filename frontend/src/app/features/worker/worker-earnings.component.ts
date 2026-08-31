@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,7 @@ import { WorkerEarningsSummary } from '../../core/models/worker.models';
   selector: 'app-worker-earnings',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     MatButtonModule,
     MatIconModule,

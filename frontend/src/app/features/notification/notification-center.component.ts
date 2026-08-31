@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,8 @@ import { NotificationResponse, PagedNotificationResponse } from '../../core/mode
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    TranslatePipe,CommonModule, FormsModule, RouterModule],
   template: `
     <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto space-y-6">

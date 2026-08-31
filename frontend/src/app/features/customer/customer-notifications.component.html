@@ -8,7 +8,7 @@
           <mat-icon class="text-sm w-4 h-4">notifications_active</mat-icon>
           In-App Notifications
         </div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-white">Notifications</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-white">{{ 'nav.notifications' | translate }}</h1>
         <p class="text-slate-400 text-sm mt-1">Stay updated on your auction orders, payment confirmations, and delivery status.</p>
       </div>
 
@@ -46,7 +46,7 @@
           <mat-icon class="text-red-400">error</mat-icon>
           <span>{{ loadError() }}</span>
         </div>
-        <button mat-button class="!text-red-300" (click)="loadNotifications()">Retry</button>
+        <button mat-button class="!text-red-300" (click)="loadNotifications()">{{ 'common.refresh' | translate }}</button>
       </div>
     }
 

@@ -1,7 +1,7 @@
 <section class="app-page app-page--narrow animate-fk-rise">
   <header class="app-page-header">
     <div class="app-page-header__content">
-      <a routerLink="/farmer/jobs" class="app-back-link">← Back to jobs</a>
+      <a routerLink="/farmer/jobs" class="app-back-link">← {{ 'common.back' | translate }} to jobs</a>
       <h1 class="app-page-title mt-3">{{ jobId ? 'Edit Job' : 'Create Job' }}</h1>
       <p class="app-page-summary">Share the practical details workers need before applying.</p>
     </div>
@@ -115,7 +115,7 @@
       </div>
 
       <div class="app-form-actions">
-        <a mat-button routerLink="/farmer/jobs">Cancel</a>
+        <a mat-button routerLink="/farmer/jobs">{{ 'common.cancel' | translate }}</a>
         <button mat-flat-button color="primary" class="app-primary-btn" [disabled]="form.invalid || saving()">
           {{ saving() ? 'Saving...' : (jobId ? 'Save changes' : 'Post job') }}
         </button>

@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -12,6 +13,7 @@ import { MachineryRentalResponse, MachineryRentalStatus } from '../../core/model
   selector: 'app-my-machinery-rentals',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,13 +9,14 @@ import { UserDisputeResponse } from '../../core/models/dispute.models';
 @Component({
   selector: 'app-dispute-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    TranslatePipe,CommonModule, FormsModule, RouterModule],
   template: `
     <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Back Navigation -->
         <button (click)="goBack()" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
-          ← Back to My Disputes
+          ← {{ 'common.back' | translate }} to My Disputes
         </button>
 
         <div *ngIf="isLoading" class="bg-white rounded-2xl p-12 text-center text-slate-500 text-sm border border-slate-200/80">

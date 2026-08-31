@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +13,7 @@ import { UserMyReviewsSummaryResponse, UnifiedReviewItemResponse } from '../../c
   selector: 'app-farmer-reviews',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     MatCardModule,
     MatButtonModule,

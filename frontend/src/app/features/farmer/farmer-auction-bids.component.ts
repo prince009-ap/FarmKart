@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,6 +15,7 @@ import { FarmerAuction, FarmerAuctionBid } from '../../core/models/farmer-crop.m
   selector: 'app-farmer-auction-bids',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     FormsModule,

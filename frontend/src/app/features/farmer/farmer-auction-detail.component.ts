@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,6 +15,7 @@ import { AuctionCountdownComponent } from '../../shared/auction-countdown.compon
   selector: 'app-farmer-auction-detail',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     MatIconModule,

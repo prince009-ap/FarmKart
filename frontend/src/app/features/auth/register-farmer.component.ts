@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -17,6 +18,7 @@ import { FarmSizeUnit } from '../../core/models/auth.models';
   selector: 'app-register-farmer',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     ReactiveFormsModule,
     RouterLink,

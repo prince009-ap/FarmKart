@@ -2,8 +2,8 @@
   <!-- Hero Banner -->
   <section class="app-hero-banner app-hero-banner--farmer flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
     <div>
-      <p class="app-hero-banner__eyebrow">Farmer Workspace</p>
-      <h1 class="app-hero-banner__title">My Crops</h1>
+      <p class="app-hero-banner__eyebrow">{{ 'farmer.dashboardTitle' | translate }}</p>
+      <h1 class="app-hero-banner__title">{{ 'nav.crops' | translate }}</h1>
       <p class="app-hero-banner__summary">
         Track crop sowing dates, cultivated areas, expected harvest dates, crop photos, and lifecycle status.
       </p>
@@ -52,7 +52,7 @@
   <div *ngIf="error() && !loading()" class="app-alert app-alert--error text-center flex flex-col items-center py-8">
     <mat-icon class="!w-10 !h-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
     <p class="font-semibold">{{ error() }}</p>
-    <button mat-flat-button (click)="loadCrops()" class="mt-4 app-primary-btn">Retry</button>
+    <button mat-flat-button (click)="loadCrops()" class="mt-4 app-primary-btn">{{ 'common.refresh' | translate }}</button>
   </div>
 
   <!-- Empty State -->
@@ -177,7 +177,7 @@
     </div>
 
     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-      <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">Cancel</button>
+      <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="confirmDelete()" [disabled]="deleting()" class="!bg-rose-600 !text-white">
         <span *ngIf="deleting()">Deleting...</span>
         <span *ngIf="!deleting()">Confirm Delete</span>

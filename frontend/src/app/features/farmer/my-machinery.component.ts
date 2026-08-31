@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -14,6 +15,7 @@ import { OwnerMachineryReviewsDialogComponent } from '../machinery/owner-machine
   selector: 'app-my-machinery',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

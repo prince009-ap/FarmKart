@@ -58,6 +58,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       wishlist: 'My Wishlist',
       disputes: 'Disputes',
       reports: 'Reports',
+      earnings: 'My Earnings',
+      workHistory: 'Work History',
+      preferences: 'Job Preferences',
       soon: 'Soon'
     },
     common: {
@@ -311,6 +314,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       wishlist: 'मेरी विशलिस्ट',
       disputes: 'विवाद',
       reports: 'रिपोर्ट',
+      earnings: 'मेरी कमाई',
+      workHistory: 'कार्य इतिहास',
+      preferences: 'कार्य प्राथमिकताएं',
       soon: 'शीघ्र'
     },
     common: {
@@ -564,6 +570,9 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       wishlist: 'મારી વિશલિસ્ટ',
       disputes: 'વિવાદો',
       reports: 'અહેવાલો',
+      earnings: 'મારી કમાણી',
+      workHistory: 'કામનો ઇતિહાસ',
+      preferences: 'કામની પસંદગીઓ',
       soon: 'ટૂંક સમયમાં'
     },
     common: {

@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,6 +13,7 @@ import { FarmerPublicProfileResponse } from '../../core/models/farmer-profile.mo
   selector: 'app-farmer-public-profile',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     MatIconModule,

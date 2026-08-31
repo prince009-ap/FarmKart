@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,6 +17,7 @@ import { FarmerJobService } from './farmer-job.service';
   selector: 'app-farmer-job-form',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     ReactiveFormsModule,
     RouterLink,

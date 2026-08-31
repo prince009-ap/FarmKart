@@ -2,7 +2,7 @@
   <!-- Back Link & Header -->
   <header class="app-page-header">
     <div class="app-page-header__content">
-      <a routerLink="/farmer/crops" class="app-back-link">← Back to My Crops</a>
+      <a routerLink="/farmer/crops" class="app-back-link">← {{ 'common.back' | translate }} to My Crops</a>
       <div *ngIf="crop()" class="flex flex-wrap items-center justify-between gap-4 mt-3">
         <div>
           <span class="app-badge app-badge--active">{{ crop()?.cropType }}</span>
@@ -34,7 +34,7 @@
   <div *ngIf="error() && !loading()" class="app-alert app-alert--error text-center flex flex-col items-center py-8">
     <mat-icon class="!w-10 !h-10 !text-3xl text-rose-600 mb-2">error_outline</mat-icon>
     <p class="font-semibold">{{ error() }}</p>
-    <a routerLink="/farmer/crops" mat-flat-button class="mt-4 app-primary-btn">Back to Crops</a>
+    <a routerLink="/farmer/crops" mat-flat-button class="mt-4 app-primary-btn">{{ 'common.back' | translate }}</a>
   </div>
 
   <!-- Crop Content -->
@@ -260,7 +260,7 @@
     </div>
 
     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-      <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">Cancel</button>
+      <button mat-stroked-button (click)="closeDeleteModal()" [disabled]="deleting()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="confirmDelete()" [disabled]="deleting()" class="!bg-rose-600 !text-white">
         <span *ngIf="deleting()">Deleting...</span>
         <span *ngIf="!deleting()">Confirm Delete</span>
@@ -273,7 +273,7 @@
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden">
     <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
       <div>
-        <h3 class="font-bold text-slate-900 dark:text-white text-base">Create Auction</h3>
+        <h3 class="font-bold text-slate-900 dark:text-white text-base">{{ 'common.create' | translate }}</h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Available physical stock: <strong class="text-emerald-600 dark:text-emerald-400">{{ stockSummary()?.availableQuantityKg || 0 }} Kg</strong></p>
       </div>
       <button mat-icon-button (click)="closeAuctionModal()" class="!text-slate-400">
@@ -342,7 +342,7 @@
       </div>
     </div>
     <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-      <button mat-stroked-button (click)="closeAuctionModal()" class="!rounded-xl text-xs">Cancel</button>
+      <button mat-stroked-button (click)="closeAuctionModal()" class="!rounded-xl text-xs">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button class="app-primary-btn !rounded-xl text-xs" [disabled]="savingAuction()" (click)="createAuction()">{{ savingAuction() ? 'Creating...' : 'Create Auction' }}</button>
     </div>
   </div>
@@ -426,7 +426,7 @@
     </div>
 
     <div class="px-5 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-      <button mat-stroked-button (click)="closeStockModal()" [disabled]="savingStock()">Cancel</button>
+      <button mat-stroked-button (click)="closeStockModal()" [disabled]="savingStock()">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button (click)="saveStock()" [disabled]="savingStock()" class="app-primary-btn">
         <span *ngIf="savingStock()">Saving...</span>
         <span *ngIf="!savingStock()" class="flex items-center gap-1">

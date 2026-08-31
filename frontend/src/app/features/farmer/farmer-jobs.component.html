@@ -2,7 +2,7 @@
   <header class="app-page-header">
     <div class="app-page-header__content">
       <p class="app-page-eyebrow">Labor workspace</p>
-      <h1 class="app-page-title">My Jobs</h1>
+      <h1 class="app-page-title">{{ 'nav.jobs' | translate }}</h1>
       <p class="app-page-summary">Create and manage your farm job postings for local workers.</p>
     </div>
     <a mat-flat-button color="primary" class="app-primary-btn" routerLink="/farmer/jobs/create">
@@ -21,7 +21,7 @@
       <div>
         <strong>Unable to load jobs</strong>
         <p class="mt-1">{{ error() }}</p>
-        <button mat-button class="mt-2" (click)="loadJobs()">Retry</button>
+        <button mat-button class="mt-2" (click)="loadJobs()">{{ 'common.refresh' | translate }}</button>
       </div>
     </div>
   } @else if (!jobs().length) {

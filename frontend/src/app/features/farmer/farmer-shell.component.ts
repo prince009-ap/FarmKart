@@ -17,6 +17,7 @@ interface NavItem {
   label: string;
   route: string;
   icon: string;
+  translationKey: string;
   isPlaceholder?: boolean;
 }
 
@@ -50,19 +51,21 @@ export class FarmerShellComponent implements OnInit {
   unreadNotificationsCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/farmer', icon: 'dashboard' },
-    { label: 'Analytics', route: '/farmer/analytics', icon: 'bar_chart' },
-    { label: 'My Profile', route: '/farmer/profile', icon: 'person' },
-    { label: 'Jobs', route: '/farmer/jobs', icon: 'work' },
-    { label: 'My Crops', route: '/farmer/crops', icon: 'eco' },
-    { label: 'My Auctions', route: '/farmer/auctions', icon: 'gavel' },
-    { label: 'My Orders', route: '/farmer/orders', icon: 'shopping_bag' },
-    { label: 'My Reviews', route: '/farmer/reviews', icon: 'star_rate' },
-    { label: 'Rent Machinery', route: '/farmer/machinery/marketplace', icon: 'storefront' },
-    { label: 'My Machinery', route: '/farmer/machinery', icon: 'construction' },
-    { label: 'My Rentals', route: '/farmer/my-rentals', icon: 'receipt_long' },
-    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications' },
-    { label: 'Settings', route: '/farmer/settings', icon: 'settings' }
+    { label: 'Dashboard', route: '/farmer', icon: 'dashboard', translationKey: 'nav.dashboard' },
+    { label: 'Analytics', route: '/farmer/analytics', icon: 'bar_chart', translationKey: 'nav.analytics' },
+    { label: 'My Profile', route: '/farmer/profile', icon: 'person', translationKey: 'nav.profile' },
+    { label: 'Jobs', route: '/farmer/jobs', icon: 'work', translationKey: 'nav.jobPostings' },
+    { label: 'My Crops', route: '/farmer/crops', icon: 'eco', translationKey: 'nav.crops' },
+    { label: 'My Auctions', route: '/farmer/auctions', icon: 'gavel', translationKey: 'nav.myAuctions' },
+    { label: 'My Orders', route: '/farmer/orders', icon: 'shopping_bag', translationKey: 'nav.orders' },
+    { label: 'My Reviews', route: '/farmer/reviews', icon: 'star_rate', translationKey: 'nav.reviews' },
+    { label: 'My Machinery', route: '/farmer/machinery', icon: 'construction', translationKey: 'nav.myMachinery' },
+    { label: 'My Rentals', route: '/farmer/my-rentals', icon: 'receipt_long', translationKey: 'nav.myRentals' },
+    { label: 'My Wishlist', route: '/farmer/wishlist', icon: 'favorite', translationKey: 'nav.wishlist' },
+    { label: 'My Reports', route: '/farmer/reports', icon: 'report_problem', translationKey: 'nav.reports' },
+    { label: 'My Disputes', route: '/farmer/disputes', icon: 'gavel', translationKey: 'nav.disputes' },
+    { label: 'Notifications', route: '/farmer/notifications', icon: 'notifications', translationKey: 'nav.notifications' },
+    { label: 'Settings', route: '/farmer/settings', icon: 'settings', translationKey: 'nav.settings' }
   ];
 
   ngOnInit(): void {

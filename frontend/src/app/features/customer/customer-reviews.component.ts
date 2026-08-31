@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +15,7 @@ import { OrderReviewDialogComponent } from './order-review-dialog.component';
   selector: 'app-customer-reviews',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     MatCardModule,
     MatButtonModule,

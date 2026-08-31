@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,6 +15,7 @@ import { FarmerJobService } from './farmer-job.service';
   selector: 'app-farmer-job-assignments',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     FormsModule,

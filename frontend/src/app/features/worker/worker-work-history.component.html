@@ -27,7 +27,7 @@
       <mat-icon>error_outline</mat-icon>
       <span>{{ loadError() }}</span>
     </div>
-    <button mat-button color="warn" (click)="loadHistory()">Retry</button>
+    <button mat-button color="warn" (click)="loadHistory()">{{ 'common.refresh' | translate }}</button>
   </div>
 
   <ng-container *ngIf="!loading() && !loadError()">

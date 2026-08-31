@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +20,7 @@ interface AttendanceRow {
   selector: 'app-farmer-attendance',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     FormsModule,
     RouterLink,

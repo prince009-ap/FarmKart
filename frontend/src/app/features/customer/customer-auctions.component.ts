@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +19,7 @@ import { WishlistButtonComponent } from '../../shared/wishlist-button.component'
   selector: 'app-customer-auctions',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     FormsModule,
     RouterLink,

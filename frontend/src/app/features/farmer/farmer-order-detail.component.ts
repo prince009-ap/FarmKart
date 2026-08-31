@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +12,7 @@ import { FarmerOrderDetail } from '../../core/models/farmer-order.models';
   selector: 'app-farmer-order-detail',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     FormsModule,
     RouterLink,

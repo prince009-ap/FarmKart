@@ -14,6 +14,7 @@ interface NavItem {
   label: string;
   route: string;
   icon: string;
+  translationKey: string;
   isPlaceholder?: boolean;
 }
 
@@ -45,20 +46,20 @@ export class CustomerShellComponent implements OnInit {
   unreadNotificationsCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/customer', icon: 'dashboard' },
-    { label: 'Analytics', route: '/customer/analytics', icon: 'insights' },
-    { label: 'Browse Auctions', route: '/customer/auctions', icon: 'gavel' },
-    { label: 'Rent Machinery', route: '/customer/machinery', icon: 'storefront' },
-    { label: 'My Machinery', route: '/customer/my-machinery', icon: 'construction' },
-    { label: 'My Rentals', route: '/customer/my-rentals', icon: 'receipt_long' },
-    { label: 'My Wishlist', route: '/customer/wishlist', icon: 'favorite' },
-    { label: 'My Bids', route: '/customer/bids', icon: 'local_offer' },
-    { label: 'My Orders', route: '/customer/orders', icon: 'shopping_bag' },
-    { label: 'My Reviews', route: '/customer/reviews', icon: 'star_rate' },
-    { label: 'Payments', route: '/customer/payments', icon: 'payments' },
-    { label: 'Notifications', route: '/customer/notifications', icon: 'notifications' },
-    { label: 'Settings', route: '/customer/settings', icon: 'settings' },
-    { label: 'My Profile', route: '/customer/profile', icon: 'person' }
+    { label: 'Dashboard', route: '/customer', icon: 'dashboard', translationKey: 'nav.dashboard' },
+    { label: 'Analytics', route: '/customer/analytics', icon: 'insights', translationKey: 'nav.analytics' },
+    { label: 'Browse Auctions', route: '/customer/auctions', icon: 'gavel', translationKey: 'nav.browseAuctions' },
+    { label: 'Rent Machinery', route: '/customer/machinery', icon: 'storefront', translationKey: 'nav.rentMachinery' },
+    { label: 'My Machinery', route: '/customer/my-machinery', icon: 'construction', translationKey: 'nav.myMachinery' },
+    { label: 'My Rentals', route: '/customer/my-rentals', icon: 'receipt_long', translationKey: 'nav.myRentals' },
+    { label: 'My Wishlist', route: '/customer/wishlist', icon: 'favorite', translationKey: 'nav.wishlist' },
+    { label: 'My Bids', route: '/customer/bids', icon: 'local_offer', translationKey: 'nav.bids' },
+    { label: 'My Orders', route: '/customer/orders', icon: 'shopping_bag', translationKey: 'nav.orders' },
+    { label: 'My Reviews', route: '/customer/reviews', icon: 'star_rate', translationKey: 'nav.reviews' },
+    { label: 'Payments', route: '/customer/payments', icon: 'payments', translationKey: 'nav.payments' },
+    { label: 'Notifications', route: '/customer/notifications', icon: 'notifications', translationKey: 'nav.notifications' },
+    { label: 'Settings', route: '/customer/settings', icon: 'settings', translationKey: 'nav.settings' },
+    { label: 'My Profile', route: '/customer/profile', icon: 'person', translationKey: 'nav.profile' }
   ];
 
   ngOnInit(): void {

@@ -15,6 +15,7 @@ interface NavItem {
   label: string;
   route: string;
   icon: string;
+  translationKey: string;
   isPlaceholder?: boolean;
 }
 
@@ -46,17 +47,17 @@ export class WorkerShellComponent implements OnInit {
   unreadNotifCount = signal<number>(0);
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/worker', icon: 'dashboard' },
-    { label: 'Browse Jobs', route: '/worker/jobs', icon: 'work' },
-    { label: 'My Applications', route: '/worker/applications', icon: 'assignment' },
-    { label: 'My Assignments', route: '/worker/assignments', icon: 'assignment_turned_in' },
-    { label: 'My Attendance', route: '/worker/attendance', icon: 'event_available' },
-    { label: 'My Earnings', route: '/worker/earnings', icon: 'account_balance_wallet' },
-    { label: 'Work History', route: '/worker/work-history', icon: 'history' },
-    { label: 'Job Preferences', route: '/worker/preferences', icon: 'tune' },
-    { label: 'Notifications', route: '/worker/notifications', icon: 'notifications' },
-    { label: 'Settings', route: '/worker/settings', icon: 'settings' },
-    { label: 'My Profile', route: '/worker/profile', icon: 'person' }
+    { label: 'Dashboard', route: '/worker', icon: 'dashboard', translationKey: 'nav.dashboard' },
+    { label: 'Browse Jobs', route: '/worker/jobs', icon: 'work', translationKey: 'nav.jobPostings' },
+    { label: 'My Applications', route: '/worker/applications', icon: 'assignment', translationKey: 'nav.jobApplications' },
+    { label: 'My Assignments', route: '/worker/assignments', icon: 'assignment_turned_in', translationKey: 'nav.jobAssignments' },
+    { label: 'My Attendance', route: '/worker/attendance', icon: 'event_available', translationKey: 'nav.attendance' },
+    { label: 'My Earnings', route: '/worker/earnings', icon: 'account_balance_wallet', translationKey: 'nav.earnings' },
+    { label: 'Work History', route: '/worker/work-history', icon: 'history', translationKey: 'nav.workHistory' },
+    { label: 'Job Preferences', route: '/worker/preferences', icon: 'tune', translationKey: 'nav.preferences' },
+    { label: 'Notifications', route: '/worker/notifications', icon: 'notifications', translationKey: 'nav.notifications' },
+    { label: 'Settings', route: '/worker/settings', icon: 'settings', translationKey: 'nav.settings' },
+    { label: 'My Profile', route: '/worker/profile', icon: 'person', translationKey: 'nav.profile' }
   ];
 
   ngOnInit(): void {

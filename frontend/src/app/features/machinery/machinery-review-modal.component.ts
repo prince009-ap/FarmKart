@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, Inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +21,7 @@ export interface MachineryReviewModalData {
   selector: 'app-machinery-review-modal',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     FormsModule,
     MatDialogModule,

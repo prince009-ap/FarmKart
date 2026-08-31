@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -15,6 +16,7 @@ import { passwordMatchValidator } from './password-match.validator';
   selector: 'app-register-customer',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     ReactiveFormsModule,
     RouterLink,

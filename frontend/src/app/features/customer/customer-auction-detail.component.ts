@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,6 +13,7 @@ import { AuctionCountdownComponent } from '../../shared/auction-countdown.compon
   selector: 'app-customer-auction-detail',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     FormsModule,

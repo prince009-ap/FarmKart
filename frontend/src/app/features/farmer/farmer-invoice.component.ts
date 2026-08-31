@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -11,6 +12,7 @@ import { InvoiceResponse } from '../../core/models/invoice.models';
   selector: 'app-farmer-invoice',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

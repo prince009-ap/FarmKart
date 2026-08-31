@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -12,6 +13,7 @@ import { WorkerNotification } from '../../core/models/worker.models';
   selector: 'app-worker-notifications',
   standalone: true,
   imports: [
+    TranslatePipe,
     CommonModule,
     MatButtonModule,
     MatIconModule,
