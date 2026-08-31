@@ -116,7 +116,7 @@ export interface OwnerMachineryReviewsDialogData {
 
       <!-- Footer -->
       <div class="flex justify-end pt-2 border-t border-slate-800">
-        <button mat-button (click)="close()" class="!text-slate-300 hover:!text-white text-xs">Close</button>
+        <button mat-button (click)="close()" class="!text-slate-300 hover:!text-white text-xs">{{ 'common.close' | translate }}</button>
       </div>
 
     </div>

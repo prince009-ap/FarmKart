@@ -70,7 +70,7 @@
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
         <div class="auth-form-grid">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Full Name</mat-label>
+            <mat-label>{{ 'auth.fullName' | translate }}</mat-label>
             <input matInput formControlName="fullName" placeholder="Jane Doe" type="text" />
             @if (registerForm.get('fullName')?.hasError('required')) {
               <mat-error>Full Name is required</mat-error>
@@ -78,7 +78,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Email Address</mat-label>
+            <mat-label>{{ 'auth.email' | translate }}</mat-label>
             <input matInput formControlName="email" placeholder="jane@example.com" type="email" />
             @if (registerForm.get('email')?.hasError('required')) {
               <mat-error>Email is required</mat-error>
@@ -89,7 +89,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Password</mat-label>
+            <mat-label>{{ 'auth.password' | translate }}</mat-label>
             <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
             <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'">
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -120,7 +120,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full auth-form-grid__full">
-            <mat-label>Phone Number</mat-label>
+            <mat-label>{{ 'auth.phone' | translate }}</mat-label>
             <input matInput formControlName="phone" placeholder="9876543210" type="tel" />
             @if (registerForm.get('phone')?.hasError('required')) {
               <mat-error>Phone is required</mat-error>

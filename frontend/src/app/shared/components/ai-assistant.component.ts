@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, OnDestroy, inject, signal, ElementRef, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +16,8 @@ import { LanguageService } from '../../core/services/language.service';
 @Component({
   selector: 'app-ai-assistant',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [
+    TranslatePipe,CommonModule, FormsModule, MatButtonModule, MatIconModule, MatTooltipModule],
   template: `
     @if (authService.currentUser$ | async) {
       <!-- Floating Trigger Button -->

@@ -25,7 +25,7 @@
           <span class="auth-hero__stat-label">Fresh produce</span>
         </div>
         <div class="auth-hero__stat">
-          <span class="auth-hero__stat-value">Jobs</span>
+          <span class="auth-hero__stat-value">{{ 'nav.jobPostings' | translate }}</span>
           <span class="auth-hero__stat-label">Local labor</span>
         </div>
         <div class="auth-hero__stat">
@@ -116,17 +116,17 @@
           <div class="auth-role-grid">
             <a routerLink="/auth/register/farmer" class="auth-role-card auth-role-card--farmer">
               <mat-icon>agriculture</mat-icon>
-              <span class="auth-role-card__label">Farmer</span>
+              <span class="auth-role-card__label">{{ 'auth.farmer' | translate }}</span>
             </a>
 
             <a routerLink="/auth/register/worker" class="auth-role-card auth-role-card--worker">
               <mat-icon>engineering</mat-icon>
-              <span class="auth-role-card__label">Worker</span>
+              <span class="auth-role-card__label">{{ 'auth.worker' | translate }}</span>
             </a>
 
             <a routerLink="/auth/register/customer" class="auth-role-card auth-role-card--customer">
               <mat-icon>shopping_basket</mat-icon>
-              <span class="auth-role-card__label">Customer</span>
+              <span class="auth-role-card__label">{{ 'auth.customer' | translate }}</span>
             </a>
           </div>
         </footer>

@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +8,8 @@ import { DisputeEntityType } from '../../core/models/dispute.models';
 @Component({
   selector: 'app-dispute-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    TranslatePipe,CommonModule, FormsModule],
   template: `
     <div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
       <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-amber-100">
@@ -60,7 +62,7 @@ import { DisputeEntityType } from '../../core/models/dispute.models';
 
           <!-- Actions -->
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button type="button" (click)="close()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition">Cancel</button>
+            <button type="button" (click)="close()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition">{{ 'common.cancel' | translate }}</button>
             <button type="submit" [disabled]="isSubmitting || !reason || !description" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-xl shadow-lg shadow-amber-600/20 transition flex items-center gap-2">
               <span *ngIf="isSubmitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               Raise Dispute

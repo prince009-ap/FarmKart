@@ -60,7 +60,7 @@ import { NotificationResponse, PagedNotificationResponse } from '../../core/mode
                 <option value="">All Categories</option>
                 <option value="auction">Auctions</option>
                 <option value="order">Orders</option>
-                <option value="payment">Payments</option>
+                <option value="payment">{{ 'nav.payments' | translate }}</option>
                 <option value="rental">Machinery Rentals</option>
                 <option value="review">Reviews</option>
                 <option value="dispute">Disputes & Reports</option>

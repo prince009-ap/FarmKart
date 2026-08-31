@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TimeSeriesChart, TimeSeriesPoint } from '../core/models/analytics.models';
@@ -5,7 +6,8 @@ import { TimeSeriesChart, TimeSeriesPoint } from '../core/models/analytics.model
 @Component({
   selector: 'app-analytics-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    TranslatePipe,CommonModule],
   template: `
     <div class="relative w-full overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-800/80 p-5 shadow-xl backdrop-blur-md">
       <!-- Header -->

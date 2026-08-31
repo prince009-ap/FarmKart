@@ -24,7 +24,7 @@ import { UserReportResponse, PagedReportResponse } from '../../core/models/repor
         <!-- Filter Bar -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 flex flex-wrap items-center justify-between gap-4">
           <div class="flex bg-slate-100 p-1 rounded-xl">
-            <button (click)="setStatus('')" [class.bg-white]="selectedStatus === ''" [class.shadow-sm]="selectedStatus === ''" class="px-4 py-1.5 text-xs font-semibold rounded-lg transition text-slate-700">All</button>
+            <button (click)="setStatus('')" [class.bg-white]="selectedStatus === ''" [class.shadow-sm]="selectedStatus === ''" class="px-4 py-1.5 text-xs font-semibold rounded-lg transition text-slate-700">{{ 'common.all' | translate }}</button>
             <button (click)="setStatus('Open')" [class.bg-white]="selectedStatus === 'Open'" [class.shadow-sm]="selectedStatus === 'Open'" class="px-4 py-1.5 text-xs font-semibold rounded-lg transition text-slate-700">Open</button>
             <button (click)="setStatus('UnderReview')" [class.bg-white]="selectedStatus === 'UnderReview'" [class.shadow-sm]="selectedStatus === 'UnderReview'" class="px-4 py-1.5 text-xs font-semibold rounded-lg transition text-slate-700">Under Review</button>
             <button (click)="setStatus('Resolved')" [class.bg-white]="selectedStatus === 'Resolved'" [class.shadow-sm]="selectedStatus === 'Resolved'" class="px-4 py-1.5 text-xs font-semibold rounded-lg transition text-slate-700">Resolved</button>
