@@ -113,6 +113,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAiRecommendationProvider, AiRecommendationProvider>();
         services.AddScoped<IRecommendationEngine, RecommendationEngine>();
 
+        // AI Worker Recommendation (AI-02)
+        services.AddScoped<IWorkerRecommendationService, WorkerRecommendationService>();
+
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

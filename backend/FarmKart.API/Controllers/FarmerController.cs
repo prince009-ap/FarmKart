@@ -24,6 +24,7 @@ public class FarmerController : ControllerBase
     private readonly IFarmerAssignmentService _farmerAssignmentService;
     private readonly IFarmerAttendanceService _farmerAttendanceService;
     private readonly IWorkerReviewService _workerReviewService;
+    private readonly IWorkerRecommendationService _workerRecommendationService;
 
     public FarmerController(
         IFarmerProfileService farmerProfileService,
@@ -31,7 +32,8 @@ public class FarmerController : ControllerBase
         IFarmerApplicationService farmerApplicationService,
         IFarmerAssignmentService farmerAssignmentService,
         IFarmerAttendanceService farmerAttendanceService,
-        IWorkerReviewService workerReviewService)
+        IWorkerReviewService workerReviewService,
+        IWorkerRecommendationService workerRecommendationService)
     {
         _farmerProfileService = farmerProfileService;
         _farmerJobService = farmerJobService;
@@ -39,6 +41,7 @@ public class FarmerController : ControllerBase
         _farmerAssignmentService = farmerAssignmentService;
         _farmerAttendanceService = farmerAttendanceService;
         _workerReviewService = workerReviewService;
+        _workerRecommendationService = workerRecommendationService;
     }
 
     [HttpGet("profile")]
@@ -209,6 +212,35 @@ public class FarmerController : ControllerBase
         try { await _farmerJobService.CancelJobAsync(userId.Value, id); return NoContent(); }
         catch (JobNotFoundException) { return NotFound(new { message = "Job not found." }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    [HttpGet("jobs/{jobId:guid}/recommended-workers")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WorkerRecommendationResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRecommendedWorkers(
+        Guid jobId,
+        [FromQuery] int topN = 5,
+        CancellationToken cancellationToken = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var result = await _workerRecommendationService.GetRecommendedWorkersAsync(
+                userId.Value, jobId, topN, cancellationToken);
+            return Ok(result);
+        }
+        catch (ProfileNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (JobNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpGet("jobs/{jobId:guid}/applications")]

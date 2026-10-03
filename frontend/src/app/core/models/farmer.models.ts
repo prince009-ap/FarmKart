@@ -124,3 +124,32 @@ export interface FarmerAttendanceRecord {
   checkOut?: string | null;
   totalHours: number;
 }
+
+
+export interface WorkerRecommendationItem {
+  workerProfileId: string;
+  userId: string;
+  fullName: string;
+  profileImageUrl?: string | null;
+  experienceYears: number;
+  expectedDailyWage: number;
+  city?: string | null;
+  state?: string | null;
+  averageRating: number;
+  totalReviews: number;
+  skills: string[];
+  hasApplied: boolean;
+  matchScore: number;
+  confidenceScore: number;
+  reasons: string[];
+  warnings: string[];
+}
+
+export interface WorkerRecommendationResponse {
+  jobId: string;
+  jobTitle: string;
+  workCategory: string;
+  recommendations: WorkerRecommendationItem[];
+  aiEnriched: boolean;
+  fallbackReason?: string | null;
+}

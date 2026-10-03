@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { FarmerAttendanceRecord, FarmerJob, FarmerJobApplication, FarmerJobRequest, FarmerWorkerAssignment, SaveJobAttendanceRequest } from '../../core/models/farmer.models';
+import { FarmerAttendanceRecord, FarmerJob, FarmerJobApplication, FarmerJobRequest, FarmerWorkerAssignment, SaveJobAttendanceRequest, WorkerRecommendationResponse } from '../../core/models/farmer.models';
 import { CreateWorkerReviewRequest, WorkerReview } from '../../core/models/worker.models';
 
 @Injectable({ providedIn: 'root' })
@@ -53,5 +53,9 @@ export class FarmerJobService {
 
   getWorkerReview(assignmentId: string): Observable<WorkerReview> {
     return this.http.get<WorkerReview>(`${this.assignApiUrl}/${assignmentId}/review`);
+  }
+
+  getRecommendedWorkers(jobId: string, topN = 5): Observable<WorkerRecommendationResponse> {
+    return this.http.get<WorkerRecommendationResponse>(`${this.apiUrl}/${jobId}/recommended-workers?topN=${topN}`);
   }
 }

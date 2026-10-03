@@ -63,6 +63,7 @@
   - [x] AI Chatbot & Assistant (AiController, AiService, GeminiProvider, OpenAiProvider)
   - [x] AI Job Description & Form Pre-Fill (AiConversationEngine, InMemoryAiConversationSessionStore)
   - [x] Phase AI-01: Common AI Recommendation Engine Foundation (Generic reusable RecommendationEngine, RecommendationCandidate, RecommendationRequest, RecommendationResult, RecommendationResponse contracts, IAiRecommendationProvider abstraction wrapping existing IAiProvider, structured JSON prompt, score clamping, entity ID whitelist validation, deterministic fallback, candidates safeguard, 18 unit tests passing in RecommendationEngineTests, Angular recommendation.models.ts contract, 563 total backend tests passing & Angular build succeeded)
+  - [x] Phase AI-02: AI Worker Recommendation (WorkerRecommendationService, GET /api/farmer/jobs/{jobId}/recommended-workers endpoint guarded by [Authorize(Roles="Farmer")], Hard eligibility filtering for IsAvailable, AvailableFrom date bounds & active assignment date overlap, Soft matching factors: Skill match, Experience match, Availability match, Wage compatibility, Star rating & Location match, AI reasoning enrichment via AI-01, 21 test scenarios passing in WorkerRecommendationTests, Angular FarmerJobDetailComponent UI integration with match score %, confidence %, reasons list, warnings & skills tags, 584 total backend tests passing & Angular build succeeded)
 - [ ] Phase 11: Test expansion, hardening, and deployment readiness
 
 ## Phase 1 Deliverables
