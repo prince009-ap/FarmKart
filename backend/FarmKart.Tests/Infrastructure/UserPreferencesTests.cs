@@ -29,7 +29,7 @@ public class UserPreferencesTests : IDisposable
         var services = new ServiceCollection();
 
         services.AddDbContext<FarmKartDbContext>(options =>
-            options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+            options.UseSqlServer(TestSqlServer.ConnectionString(_dbName)));
 
         services.AddLogging();
         services.AddIdentityCore<ApplicationUser>(options =>
@@ -216,3 +216,4 @@ public class UserPreferencesTests : IDisposable
         _db.Dispose();
     }
 }
+

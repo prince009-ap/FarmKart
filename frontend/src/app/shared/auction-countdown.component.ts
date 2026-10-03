@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../core/pipes/translate.pipe';
 import {
   Component,
   Input,
@@ -29,7 +28,7 @@ export interface AuctionTimerState {
   selector: 'app-auction-countdown',
   standalone: true,
   imports: [
-    TranslatePipe,CommonModule, MatIconModule],
+    CommonModule, MatIconModule],
   template: `
     <ng-container [ngSwitch]="state().status">
 

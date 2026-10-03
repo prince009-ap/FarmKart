@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -9,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-coming-soon',
   standalone: true,
   imports: [
-    TranslatePipe,CommonModule, RouterLink, MatButtonModule, MatIconModule],
+    CommonModule, RouterLink, MatButtonModule, MatIconModule],
   templateUrl: './coming-soon.component.html'
 })
 export class ComingSoonComponent implements OnInit {

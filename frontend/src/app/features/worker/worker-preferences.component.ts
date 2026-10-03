@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,7 +14,6 @@ import { WorkerPreferences, WorkerPreferencesUpdateRequest } from '../../core/mo
   selector: 'app-worker-preferences',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

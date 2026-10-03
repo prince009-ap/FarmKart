@@ -188,8 +188,11 @@ public sealed class FarmerProfileService : IFarmerProfileService
                         .Where(r => r.RelatedEntityType == ReviewEntityType.MachineryRental && r.RelatedEntityId.HasValue && custRentalGuids.Contains(r.RelatedEntityId.Value))
                         .ToListAsync(cancellationToken);
 
+                    var rentalToMachineryMap = custRentals.ToDictionary(r => r.Id, r => r.MachineryId);
                     var custMachineryReviewsMap = custMachineryReviews
-                        .GroupBy(r => custRentals.FirstOrDefault(ren => ren.Id == r.RelatedEntityId.Value)?.MachineryId)
+                        .GroupBy(r => r.RelatedEntityId.HasValue && rentalToMachineryMap.TryGetValue(r.RelatedEntityId.Value, out var machineryId)
+                            ? machineryId
+                            : (Guid?)null)
                         .Where(g => g.Key.HasValue)
                         .ToDictionary(g => g.Key!.Value, g => g.ToList());
 

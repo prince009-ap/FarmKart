@@ -256,24 +256,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'my-reports',
+        path: 'wishlist',
         loadComponent: () =>
-          import('./features/report/my-reports.component').then(
-            (module) => module.MyReportsComponent,
-          ),
-      },
-      {
-        path: 'my-disputes',
-        loadComponent: () =>
-          import('./features/dispute/my-disputes.component').then(
-            (module) => module.MyDisputesComponent,
-          ),
-      },
-      {
-        path: 'disputes/:id',
-        loadComponent: () =>
-          import('./features/dispute/dispute-detail.component').then(
-            (module) => module.DisputeDetailComponent,
+          import('./features/customer/customer-wishlist.component').then(
+            (module) => module.CustomerWishlistComponent,
           ),
       },
       {
@@ -393,27 +379,6 @@ export const routes: Routes = [
             (module) => module.WorkerNotificationsComponent,
           ),
       },
-      {
-        path: 'my-reports',
-        loadComponent: () =>
-          import('./features/report/my-reports.component').then(
-            (module) => module.MyReportsComponent,
-          ),
-      },
-      {
-        path: 'my-disputes',
-        loadComponent: () =>
-          import('./features/dispute/my-disputes.component').then(
-            (module) => module.MyDisputesComponent,
-          ),
-      },
-      {
-        path: 'disputes/:id',
-        loadComponent: () =>
-          import('./features/dispute/dispute-detail.component').then(
-            (module) => module.DisputeDetailComponent,
-          ),
-      },
     ],
   },
   {
@@ -529,27 +494,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/customer/customer-notifications.component').then(
             (module) => module.CustomerNotificationsComponent,
-          ),
-      },
-      {
-        path: 'my-reports',
-        loadComponent: () =>
-          import('./features/report/my-reports.component').then(
-            (module) => module.MyReportsComponent,
-          ),
-      },
-      {
-        path: 'my-disputes',
-        loadComponent: () =>
-          import('./features/dispute/my-disputes.component').then(
-            (module) => module.MyDisputesComponent,
-          ),
-      },
-      {
-        path: 'disputes/:id',
-        loadComponent: () =>
-          import('./features/dispute/dispute-detail.component').then(
-            (module) => module.DisputeDetailComponent,
           ),
       },
       {

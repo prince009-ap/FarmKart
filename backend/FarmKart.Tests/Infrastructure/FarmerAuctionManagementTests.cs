@@ -52,7 +52,7 @@ public class FarmerAuctionManagementTests : IClassFixture<WebApplicationFactory<
                 if (descriptor != null) services.Remove(descriptor);
 
                 services.AddDbContext<FarmKartDbContext>(options =>
-                    options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+                    options.UseSqlServer(TestSqlServer.ConnectionString(_dbName)));
 
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
@@ -248,3 +248,4 @@ public class FarmerAuctionManagementTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(15, bids[0].RequestedQuantityMan);
     }
 }
+

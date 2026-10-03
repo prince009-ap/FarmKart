@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -12,7 +11,6 @@ import { WorkerJobService } from './worker-job.service';
   selector: 'app-worker-assignments',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

@@ -58,7 +58,7 @@ public class WorkerNotificationTests : IClassFixture<WebApplicationFactory<Progr
                 }
 
                 services.AddDbContext<FarmKartDbContext>(options =>
-                    options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+                    options.UseSqlServer(TestSqlServer.ConnectionString(_dbName)));
 
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
@@ -504,3 +504,4 @@ public class WorkerNotificationTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Contains(notifs, n => n.Title.Contains("Attendance Updated", StringComparison.OrdinalIgnoreCase));
     }
 }
+

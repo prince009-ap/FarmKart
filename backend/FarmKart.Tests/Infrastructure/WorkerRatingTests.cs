@@ -55,7 +55,7 @@ public class WorkerRatingTests : IClassFixture<WebApplicationFactory<Program>>, 
                 }
 
                 services.AddDbContext<FarmKartDbContext>(options =>
-                    options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+                    options.UseSqlServer(TestSqlServer.ConnectionString(_dbName)));
 
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
@@ -423,3 +423,4 @@ public class WorkerRatingTests : IClassFixture<WebApplicationFactory<Program>>, 
         Assert.Contains(notifs, n => n.Title.Contains("New Review Received", StringComparison.OrdinalIgnoreCase));
     }
 }
+

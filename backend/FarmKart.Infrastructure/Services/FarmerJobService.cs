@@ -110,6 +110,8 @@ public sealed class FarmerJobService : IFarmerJobService
     private static void ValidateDates(DateOnly startDate, DateOnly endDate)
     {
         if (endDate < startDate) throw new ArgumentException("EndDate must be on or after StartDate.");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (endDate < today) throw new ArgumentException("EndDate cannot be in the past.");
     }
 
     private static void Apply(Job job, string title, string description, string workCategory, string? cropType,

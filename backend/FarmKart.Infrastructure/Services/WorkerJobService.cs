@@ -38,10 +38,11 @@ public sealed class WorkerJobService : IWorkerJobService
             appliedJobIds = [.. ids];
         }
 
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var openJobs = await _dbContext.Jobs
             .AsNoTracking()
             .Include(j => j.FarmerProfile)
-            .Where(j => j.Status == JobStatus.Open)
+            .Where(j => j.Status == JobStatus.Open && j.EndDate >= today)
             .OrderByDescending(j => j.CreatedAtUtc)
             .ToListAsync();
 
@@ -91,6 +92,12 @@ public sealed class WorkerJobService : IWorkerJobService
         if (job is null)
         {
             throw new JobNotFoundException("This job is not available for application.");
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (job.EndDate < today)
+        {
+            throw new InvalidOperationException($"This job posting ended on {job.EndDate:MMM dd, yyyy} and is no longer accepting applications.");
         }
 
         var alreadyApplied = await _dbContext.JobApplications

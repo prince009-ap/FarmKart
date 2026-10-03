@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -6,7 +5,7 @@ import { MatChipsModule } from '@angular/material/chips';
 @Component({
   selector: 'app-shell',
   imports: [
-    TranslatePipe,MatCardModule, MatChipsModule],
+    MatCardModule, MatChipsModule],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
 })

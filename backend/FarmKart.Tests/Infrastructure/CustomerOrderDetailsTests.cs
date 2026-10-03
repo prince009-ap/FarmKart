@@ -21,7 +21,7 @@ public sealed class CustomerOrderDetailsTests : IAsyncLifetime
     {
         var dbName = $"FarmKartDb_CustOrderDetailsTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(dbName))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -224,3 +224,4 @@ public sealed class CustomerOrderDetailsTests : IAsyncLifetime
             _orderService.GetCustomerOrderDetailsAsync(customerUser2.Id, order.Id));
     }
 }
+

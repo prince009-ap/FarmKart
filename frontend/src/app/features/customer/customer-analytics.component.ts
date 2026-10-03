@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +11,6 @@ import { AnalyticsDateFilterComponent } from '../../shared/analytics-date-filter
   selector: 'app-customer-analytics',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     MatButtonModule,
     MatIconModule,

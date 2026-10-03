@@ -1,224 +1,184 @@
-<div class="min-h-screen bg-slate-950 text-white py-8 px-4 font-sans">
-  <div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-5xl mx-auto px-6 py-8 my-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+        <mat-icon class="text-rose-500 !w-7 !h-7 text-2xl">favorite</mat-icon>
+        My Wishlist
+        <span *ngIf="counts() && counts()!.total > 0" class="text-xs px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 font-mono font-bold">
+          {{ counts()!.total }}
+        </span>
+      </h1>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+        Saved crops, auctions, and machinery you are interested in.
+      </p>
+    </div>
+    <a routerLink="/customer/auctions" mat-flat-button class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-bold px-4 py-2.5 flex items-center gap-1.5 w-max">
+      <mat-icon class="!text-lg !w-5 !h-5">shopping_bag</mat-icon> Browse Marketplace
+    </a>
+  </div>
 
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-          <mat-icon class="text-rose-500 !w-7 !h-7 text-2xl">favorite</mat-icon>
-          My Wishlist
-          @if (counts() && counts()!.total > 0) {
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
-              {{ counts()!.total }}
-            </span>
-          }
-        </h1>
-        <p class="text-sm text-slate-400">Saved crops, auctions, and machinery you are interested in.</p>
-      </div>
-      <a routerLink="/customer/auctions" mat-button class="!text-slate-400 hover:!text-white flex items-center gap-1">
-        <mat-icon>shopping_bag</mat-icon> Browse Marketplace
+  <!-- Filter Tabs -->
+  <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap">
+    <button
+      (click)="onTabChange('All')"
+      [class]="selectedTab() === 'All'
+        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'"
+      class="px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2">
+      All
+      <span *ngIf="counts()" class="text-[10px] opacity-80">({{ counts()!.total }})</span>
+    </button>
+
+    <button
+      (click)="onTabChange('Auction')"
+      [class]="selectedTab() === 'Auction'
+        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'"
+      class="px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2">
+      🏷️ Auctions
+      <span *ngIf="counts()" class="text-[10px] opacity-80">({{ counts()!.auctionCount }})</span>
+    </button>
+
+    <button
+      (click)="onTabChange('Machinery')"
+      [class]="selectedTab() === 'Machinery'
+        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'"
+      class="px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2">
+      🚜 Machinery
+      <span *ngIf="counts()" class="text-[10px] opacity-80">({{ counts()!.machineryCount }})</span>
+    </button>
+
+    <button
+      (click)="onTabChange('Crop')"
+      [class]="selectedTab() === 'Crop'
+        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'"
+      class="px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2">
+      🌾 Crops
+      <span *ngIf="counts()" class="text-[10px] opacity-80">({{ counts()!.cropCount }})</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="flex justify-center py-16">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-700 dark:text-rose-300 text-sm flex items-center gap-2">
+    <mat-icon class="text-rose-500">error</mat-icon>
+    <span>{{ errorMessage() }}</span>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && !errorMessage() && items().length === 0" class="text-center py-16 space-y-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+    <div class="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 mx-auto flex items-center justify-center mb-2">
+      <mat-icon class="!text-3xl !w-8 !h-8">favorite_border</mat-icon>
+    </div>
+    <p class="text-slate-800 dark:text-white font-bold text-base">Your wishlist is empty.</p>
+    <p class="text-xs text-slate-500 dark:text-slate-400">Save auctions, machinery, or crops to keep track of interesting items!</p>
+    <div class="pt-2">
+      <a routerLink="/customer/auctions" mat-flat-button class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-bold px-5 py-2">
+        Explore Marketplace
       </a>
     </div>
+  </div>
 
-    <!-- Filter Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-800 pb-3 flex-wrap">
-      <button
-        (click)="onTabChange('All')"
-        [class]="selectedTab() === 'All' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
-        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
-        All
-        @if (counts()) {
-          <span class="text-[10px] opacity-75">({{ counts()!.total }})</span>
-        }
-      </button>
+  <!-- Wishlist Item Grid -->
+  <div *ngIf="!isLoading() && items().length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+    <div *ngFor="let item of items()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 relative flex flex-col justify-between hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all">
 
-      <button
-        (click)="onTabChange('Auction')"
-        [class]="selectedTab() === 'Auction' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
-        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
-        🏷️ Auctions
-        @if (counts()) {
-          <span class="text-[10px] opacity-75">({{ counts()!.auctionCount }})</span>
-        }
-      </button>
+      <!-- Item Type Badge & Heart Button -->
+      <div class="flex items-center justify-between">
+        <span [class]="item.itemType === 'Auction' ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800' : item.itemType === 'Machinery' ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'"
+              class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border">
+          {{ item.itemType === 'Auction' ? '🏷️ Auction' : item.itemType === 'Machinery' ? '🚜 Machinery' : '🌾 Crop' }}
+        </span>
 
-      <button
-        (click)="onTabChange('Machinery')"
-        [class]="selectedTab() === 'Machinery' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
-        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
-        🚜 Machinery
-        @if (counts()) {
-          <span class="text-[10px] opacity-75">({{ counts()!.machineryCount }})</span>
-        }
-      </button>
-
-      <button
-        (click)="onTabChange('Crop')"
-        [class]="selectedTab() === 'Crop' ? 'bg-slate-800 text-white border-slate-600' : 'text-slate-400 hover:text-white border-transparent'"
-        class="px-4 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-2">
-        🌾 Crops
-        @if (counts()) {
-          <span class="text-[10px] opacity-75">({{ counts()!.cropCount }})</span>
-        }
-      </button>
-    </div>
-
-    <!-- Loading State -->
-    @if (isLoading()) {
-      <div class="flex justify-center py-16">
-        <mat-spinner diameter="40"></mat-spinner>
+        <app-wishlist-button
+          [itemType]="item.itemType"
+          [itemId]="item.itemId"
+          [isFavoritedInitial]="true"
+          (favoritedChange)="onItemRemoved(item.itemId)"
+        ></app-wishlist-button>
       </div>
-    }
 
-    <!-- Error State -->
-    @if (!isLoading() && errorMessage()) {
-      <div class="p-4 bg-red-950/60 border border-red-800 rounded-2xl text-red-300 text-sm flex items-center gap-2">
-        <mat-icon class="text-red-400">error</mat-icon>
-        <span>{{ errorMessage() }}</span>
+      <!-- Image & Primary Info -->
+      <div class="flex items-start gap-3">
+        <ng-container *ngIf="item.itemType === 'Machinery'; else cropInfo">
+          <img *ngIf="item.machineryPrimaryImageUrl" [src]="item.machineryPrimaryImageUrl" [alt]="item.machineryName || 'Machinery'" class="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+          <div *ngIf="!item.machineryPrimaryImageUrl" class="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-3xl shrink-0">🚜</div>
+          
+          <div class="space-y-0.5 overflow-hidden">
+            <p class="font-bold text-slate-900 dark:text-white text-sm truncate">{{ item.machineryName || 'Machinery' }}</p>
+            <p class="text-xs text-amber-600 dark:text-amber-400 font-mono font-semibold">{{ item.machineryCategory }}</p>
+            <p *ngIf="item.machineryOwnerName" class="text-xs text-slate-500 dark:text-slate-400">by <span class="text-slate-700 dark:text-slate-200 font-semibold">{{ item.machineryOwnerName }}</span></p>
+          </div>
+        </ng-container>
+
+        <ng-template #cropInfo>
+          <img *ngIf="item.primaryImageUrl" [src]="item.primaryImageUrl" [alt]="item.cropName || 'Crop'" class="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
+          <div *ngIf="!item.primaryImageUrl" class="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-3xl shrink-0">🌾</div>
+
+          <div class="space-y-0.5 overflow-hidden">
+            <p class="font-bold text-slate-900 dark:text-white text-sm truncate">{{ item.cropName || 'Crop Listing' }}</p>
+            <p *ngIf="item.variety" class="text-xs text-slate-500 font-mono">{{ item.variety }}</p>
+            <p *ngIf="item.farmerName" class="text-xs text-slate-500 dark:text-slate-400">by <span class="text-slate-700 dark:text-slate-200 font-semibold">{{ item.farmerName }}</span></p>
+          </div>
+        </ng-template>
       </div>
-    }
 
-    <!-- Empty State -->
-    @if (!isLoading() && !errorMessage() && items().length === 0) {
-      <div class="text-center py-16 space-y-3 bg-slate-900/50 rounded-3xl border border-slate-800/80 p-8">
-        <mat-icon class="!text-6xl !w-16 !h-16 text-slate-600">favorite_border</mat-icon>
-        <p class="text-slate-400 font-semibold text-base">Your wishlist is empty.</p>
-        <p class="text-xs text-slate-500">Save auctions, machinery, or crops to keep track of interesting items!</p>
-        <div class="pt-2">
-          <a routerLink="/customer/auctions" mat-flat-button class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-bold">
-            Explore Marketplace
-          </a>
+      <!-- Machinery Specific Details -->
+      <div *ngIf="item.itemType === 'Machinery'" class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1 text-xs">
+        <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+          <span>Daily Rent:</span>
+          <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">₹{{ item.machineryDailyRent }}/day</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+          <span>Status:</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ item.machineryStatus }}</span>
         </div>
       </div>
-    }
 
-    <!-- Wishlist Item Grid -->
-    @if (!isLoading() && items().length > 0) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        @for (item of items(); track item.id) {
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative flex flex-col justify-between hover:border-slate-700 transition-colors">
+      <!-- Auction Specific Details -->
+      <div *ngIf="item.itemType === 'Auction'" class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1.5 text-xs">
+        <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+          <span>Starting Price:</span>
+          <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">₹{{ item.startingBidPrice }} / Man</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+          <span>Highest Bid:</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">₹{{ item.currentHighestBid || item.startingBidPrice }} / Man</span>
+        </div>
 
-            <!-- Item Type Badge & Heart Button -->
-            <div class="flex items-center justify-between">
-              <span [class]="item.itemType === 'Auction' ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' : item.itemType === 'Machinery' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'"
-                    class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border">
-                {{ item.itemType === 'Auction' ? '🏷️ Auction' : item.itemType === 'Machinery' ? '🚜 Machinery' : '🌾 Crop' }}
-              </span>
+        <div class="pt-1 flex items-center justify-between border-t border-slate-200 dark:border-slate-700 text-[11px]">
+          <span *ngIf="item.isAuctionExpired" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">
+            Ended
+          </span>
+          <span *ngIf="!item.isAuctionExpired" class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
+            {{ item.auctionStatus || 'LIVE' }}
+          </span>
 
-              <app-wishlist-button
-                [itemType]="item.itemType"
-                [itemId]="item.itemId"
-                [isFavoritedInitial]="true"
-                (favoritedChange)="onItemRemoved(item.itemId)"
-              ></app-wishlist-button>
-            </div>
-
-            <!-- Image & Primary Info -->
-            <div class="flex items-start gap-3">
-              @if (item.itemType === 'Machinery') {
-                @if (item.machineryPrimaryImageUrl) {
-                  <img [src]="item.machineryPrimaryImageUrl" [alt]="item.machineryName || 'Machinery'" class="w-16 h-16 rounded-xl object-cover border border-slate-700 shrink-0">
-                } @else {
-                  <div class="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">🚜</div>
-                }
-                <div class="space-y-0.5 overflow-hidden">
-                  <p class="font-bold text-white text-sm truncate">{{ item.machineryName || 'Machinery' }}</p>
-                  <p class="text-xs text-amber-400 font-mono">{{ item.machineryCategory }}</p>
-                  @if (item.machineryOwnerName) {
-                    <p class="text-xs text-slate-400">by <span class="text-slate-300 font-semibold">{{ item.machineryOwnerName }}</span></p>
-                  }
-                </div>
-              } @else {
-                @if (item.primaryImageUrl) {
-                  <img [src]="item.primaryImageUrl" [alt]="item.cropName || 'Crop'" class="w-16 h-16 rounded-xl object-cover border border-slate-700 shrink-0">
-                } @else {
-                  <div class="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">🌾</div>
-                }
-
-                <div class="space-y-0.5 overflow-hidden">
-                  <p class="font-bold text-white text-sm truncate">{{ item.cropName || 'Crop Listing' }}</p>
-                  @if (item.variety) {
-                    <p class="text-xs text-slate-400 font-mono">{{ item.variety }}</p>
-                  }
-                  @if (item.farmerName) {
-                    <p class="text-xs text-slate-400">by <span class="text-slate-300 font-semibold">{{ item.farmerName }}</span></p>
-                  }
-                </div>
-              }
-            </div>
-
-            <!-- Machinery Specific Details -->
-            @if (item.itemType === 'Machinery') {
-              <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                <div class="flex justify-between items-center text-slate-400">
-                  <span>Daily Rent:</span>
-                  <span class="font-bold text-amber-400 font-mono">₹{{ item.machineryDailyRent }}/day</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-400">
-                  <span>Status:</span>
-                  <span class="font-bold text-emerald-400">{{ item.machineryStatus }}</span>
-                </div>
-              </div>
-            }
-
-            <!-- Auction Specific Details -->
-            @if (item.itemType === 'Auction') {
-              <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
-                <div class="flex justify-between items-center text-slate-400">
-                  <span>Starting Price:</span>
-                  <span class="font-bold text-amber-400 font-mono">₹{{ item.startingBidPrice }} / Man</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-400">
-                  <span>Highest Bid:</span>
-                  <span class="font-bold text-emerald-400 font-mono">₹{{ item.currentHighestBid || item.startingBidPrice }} / Man</span>
-                </div>
-
-                <!-- Expired vs Active Status -->
-                <div class="pt-1 flex items-center justify-between border-t border-slate-800/60 text-[11px]">
-                  @if (item.isAuctionExpired) {
-                    <span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-bold border border-slate-700">
-                      Ended
-                    </span>
-                  } @else {
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                      {{ item.auctionStatus || 'LIVE' }}
-                    </span>
-                  }
-
-                  @if (item.quantityMan) {
-                    <span class="text-slate-400 font-mono">{{ item.quantityMan }} Man ({{ item.quantityKg }} Kg)</span>
-                  }
-                </div>
-              </div>
-            }
-
-            <!-- Unavailable Item Warning -->
-            @if (!item.isItemAvailable) {
-              <div class="p-2 bg-amber-950/40 border border-amber-800/60 rounded-xl text-amber-300 text-xs flex items-center gap-1.5">
-                <mat-icon class="!text-sm !w-4 !h-4 text-amber-400">warning</mat-icon>
-                <span>Item unavailable or deleted</span>
-              </div>
-            }
-
-            <!-- Action Button -->
-            @if (item.itemType === 'Auction' && item.isItemAvailable) {
-              <a [routerLink]="['/customer/auctions', item.itemId]"
-                 mat-flat-button
-                 class="!w-full !bg-sky-600 hover:!bg-sky-500 !text-white !rounded-xl text-xs font-extrabold">
-                View Auction Details
-              </a>
-            }
-            @if (item.itemType === 'Machinery' && item.isItemAvailable) {
-              <a [routerLink]="['/customer/machinery', item.itemId]"
-                 mat-flat-button
-                 class="!w-full !bg-amber-600 hover:!bg-amber-500 !text-white !rounded-xl text-xs font-extrabold">
-                View Machinery Details
-              </a>
-            }
-          </div>
-        }
+          <span *ngIf="item.quantityMan" class="text-slate-500 font-mono font-medium">{{ item.quantityMan }} Man ({{ item.quantityKg }} Kg)</span>
+        </div>
       </div>
-    }
 
+      <!-- Unavailable Item Warning -->
+      <div *ngIf="!item.isItemAvailable" class="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex items-center gap-1.5">
+        <mat-icon class="!text-sm !w-4 !h-4 text-amber-500">warning</mat-icon>
+        <span>Item unavailable or deleted</span>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pt-2">
+        <a [routerLink]="getItemDetailRoute(item)"
+           mat-flat-button
+           class="!w-full !bg-emerald-600 hover:!bg-emerald-700 !text-white !rounded-xl text-xs font-bold py-2">
+          View Details
+        </a>
+      </div>
+    </div>
   </div>
 </div>

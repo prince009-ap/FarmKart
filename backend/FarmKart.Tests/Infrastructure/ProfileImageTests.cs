@@ -41,7 +41,7 @@ public class ProfileImageTests
         var services = new ServiceCollection();
 
         services.AddDbContext<FarmKartDbContext>(options =>
-            options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+            options.UseSqlServer(TestSqlServer.ConnectionString(dbName)));
 
         services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole<Guid>>()
@@ -283,7 +283,7 @@ public class ProfileImageTests
             using var stream1 = new MemoryStream(jpgBytes);
             var res1 = await customerService.UploadProfileImageAsync(user.Id, stream1, "pic1.jpg", "image/jpeg", jpgBytes.Length);
 
-            var path1 = Path.Combine(webRoot, res1.ProfileImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            var path1 = Path.Combine(webRoot, res1.ProfileImageUrl!.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
             Assert.True(File.Exists(path1));
 
             // Second image upload (replacement)
@@ -291,7 +291,7 @@ public class ProfileImageTests
             using var stream2 = new MemoryStream(pngBytes);
             var res2 = await customerService.UploadProfileImageAsync(user.Id, stream2, "pic2.png", "image/png", pngBytes.Length);
 
-            var path2 = Path.Combine(webRoot, res2.ProfileImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            var path2 = Path.Combine(webRoot, res2.ProfileImageUrl!.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
             Assert.True(File.Exists(path2));
             Assert.False(File.Exists(path1)); // Old file should be deleted!
@@ -307,3 +307,4 @@ public class ProfileImageTests
         }
     }
 }
+

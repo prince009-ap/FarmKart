@@ -10,7 +10,7 @@ namespace FarmKart.API.Controllers;
 
 [ApiController]
 [Route("api/customer/wishlist")]
-[Authorize(Roles = Roles.Customer)]
+[Authorize(Roles = $"{Roles.Customer},{Roles.Farmer},{Roles.Worker}")]
 public sealed class CustomerWishlistController(IWishlistService wishlistService) : ControllerBase
 {
     private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);

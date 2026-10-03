@@ -7,6 +7,8 @@ import { of } from 'rxjs';
 import { NotificationResponse } from '../../core/models/notification.models';
 import { vi, describe, beforeEach, it, expect } from 'vitest';
 
+import { LanguageService } from '../../core/services/language.service';
+
 describe('CustomerNotificationsComponent', () => {
   let component: CustomerNotificationsComponent;
   let fixture: ComponentFixture<CustomerNotificationsComponent>;
@@ -17,6 +19,12 @@ describe('CustomerNotificationsComponent', () => {
   };
   let mockRouter: { navigate: ReturnType<typeof vi.fn> };
   let mockSnackBar: { open: ReturnType<typeof vi.fn> };
+
+  const mockLanguageService = {
+    currentLanguage: () => 'en',
+    t: (key: string) => key,
+    translateStatus: (status: string) => status
+  };
 
   const mockNotifications: NotificationResponse[] = [
     {
@@ -55,7 +63,8 @@ describe('CustomerNotificationsComponent', () => {
       providers: [
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter },
-        { provide: MatSnackBar, useValue: mockSnackBar }
+        { provide: MatSnackBar, useValue: mockSnackBar },
+        { provide: LanguageService, useValue: mockLanguageService }
       ]
     }).compileComponents();
 

@@ -23,7 +23,7 @@ public sealed class OrderReviewTests : IAsyncLifetime
     {
         var dbName = $"FarmKartDb_ReviewTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(dbName))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -416,3 +416,4 @@ public sealed class OrderReviewTests : IAsyncLifetime
         Assert.Equal(5, history[0].Rating);
     }
 }
+

@@ -178,7 +178,8 @@ public sealed class OrderService(FarmKartDbContext dbContext, INotificationServi
 
             await transaction.CommitAsync(cancellationToken);
 
-            return MapOrderToResponse(order, payment.Auction);
+            var auctionForResponse = payment.Auction ?? throw new InvalidOperationException("Paid order cannot be created without its auction details.");
+            return MapOrderToResponse(order, auctionForResponse);
         });
     }
 

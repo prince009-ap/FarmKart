@@ -23,7 +23,7 @@ public sealed class OrderNotificationsAndSettlementTests : IAsyncLifetime
     {
         var dbName = $"FarmKartDb_NotificationsSettlementTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(dbName))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -333,3 +333,4 @@ public sealed class OrderNotificationsAndSettlementTests : IAsyncLifetime
         Assert.True(order.OrderId != Guid.Empty);
     }
 }
+

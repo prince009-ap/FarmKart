@@ -25,7 +25,7 @@ public class WorkerRegistrationTests
         var services = new ServiceCollection();
 
         services.AddDbContext<FarmKartDbContext>(options =>
-            options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+            options.UseSqlServer(TestSqlServer.ConnectionString(dbName)));
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {
@@ -268,3 +268,4 @@ public class WorkerRegistrationTests
         }
     }
 }
+

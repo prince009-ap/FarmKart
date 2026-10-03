@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -11,7 +10,6 @@ import { CustomerPaymentHistory } from '../../core/models/customer-auction.model
   selector: 'app-customer-payments',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

@@ -57,8 +57,8 @@
           </div>
 
           <div class="app-job-card__stats">
-            <div><strong>{{ 'status.Active' | translate }}</strong>{{ app.appliedAtUtc | date:'mediumDate' }}</div>
-            <div><strong>Job dates</strong>{{ app.startDate | date:'mediumDate' }} – {{ app.endDate | date:'mediumDate' }}</div>
+            <div><strong>{{ 'worker.appliedDate' | translate }}: </strong>{{ app.appliedAtUtc | date:'mediumDate' }}</div>
+            <div><strong>Job dates: </strong>{{ app.startDate | date:'mediumDate' }} – {{ app.endDate | date:'mediumDate' }}</div>
           </div>
 
           @if (app.message) {

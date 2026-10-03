@@ -56,7 +56,7 @@ public class CookieAuthTests : IClassFixture<WebApplicationFactory<Program>>, ID
                 }
 
                 services.AddDbContext<FarmKartDbContext>(options =>
-                    options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+                    options.UseSqlServer(TestSqlServer.ConnectionString(dbName)));
 
                 // Build a temporary service provider to create the database schema before host startup
                 var sp = services.BuildServiceProvider();
@@ -295,3 +295,4 @@ public class CookieAuthTests : IClassFixture<WebApplicationFactory<Program>>, ID
 
     private record TestAuthResult(string UserId, string Email, string Role);
 }
+

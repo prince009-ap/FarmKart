@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +7,7 @@ import { AnalyticsDateRange, AnalyticsDateRangeRequest } from '../core/models/an
   selector: 'app-analytics-date-filter',
   standalone: true,
   imports: [
-    TranslatePipe,CommonModule, FormsModule],
+    CommonModule, FormsModule],
   template: `
     <div class="flex items-center flex-wrap gap-3 bg-slate-900/90 border border-slate-800 p-2.5 rounded-2xl shadow-lg backdrop-blur-md">
       <div class="flex items-center gap-2">

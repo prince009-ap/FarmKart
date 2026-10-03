@@ -24,7 +24,7 @@ public sealed class ReportsAndDisputesTests : IAsyncLifetime
     {
         var dbName = $"FarmKartDb_ReportsDisputesTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(dbName))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -205,3 +205,4 @@ public sealed class ReportsAndDisputesTests : IAsyncLifetime
         Assert.Equal("Issue settled directly", closedDispute.ResolutionNote);
     }
 }
+

@@ -1,7 +1,6 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,7 +12,6 @@ import { WishlistButtonComponent } from '../../shared/wishlist-button.component'
   selector: 'app-customer-wishlist',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,
@@ -24,14 +22,15 @@ import { WishlistButtonComponent } from '../../shared/wishlist-button.component'
   templateUrl: './customer-wishlist.component.html'
 })
 export class CustomerWishlistComponent implements OnInit {
+  private readonly wishlistService = inject(WishlistService);
+  private readonly router = inject(Router);
+
   items = signal<WishlistItemResponse[]>([]);
   counts = signal<WishlistCountResponse | null>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
   selectedTab = signal<'All' | 'Crop' | 'Auction' | 'Machinery'>('All');
-
-  constructor(private wishlistService: WishlistService) {}
 
   ngOnInit(): void {
     this.loadWishlist();
@@ -67,6 +66,22 @@ export class CustomerWishlistComponent implements OnInit {
 
   onItemRemoved(itemId: string): void {
     this.items.set(this.items().filter(i => i.itemId !== itemId));
-    this.loadWishlist();
+    this.wishlistService.getCount().subscribe({
+      next: (cnt) => this.counts.set(cnt),
+      error: () => {}
+    });
+  }
+
+  getItemDetailRoute(item: WishlistItemResponse): any[] {
+    const isFarmer = this.router.url.startsWith('/farmer');
+    const prefix = isFarmer ? '/farmer' : '/customer';
+
+    if (item.itemType === 'Auction') {
+      return [prefix === '/farmer' ? '/farmer/auctions' : '/customer/auctions', item.itemId];
+    }
+    if (item.itemType === 'Machinery') {
+      return [prefix === '/farmer' ? '/farmer/machinery' : '/customer/machinery', item.itemId];
+    }
+    return [prefix === '/farmer' ? '/farmer/crops' : '/customer/auctions'];
   }
 }

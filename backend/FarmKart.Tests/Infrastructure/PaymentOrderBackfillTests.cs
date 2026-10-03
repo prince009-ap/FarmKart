@@ -22,7 +22,7 @@ public sealed class PaymentOrderBackfillTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database=FarmKartDb_BackfillTest_{Guid.NewGuid()};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString($"FarmKartDb_BackfillTest_{Guid.NewGuid()}"))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -743,3 +743,4 @@ public sealed class PaymentOrderBackfillTests : IAsyncLifetime
         Assert.Equal("CONFIRMED", orders[0].Status);
     }
 }
+

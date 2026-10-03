@@ -119,6 +119,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       profile: 'Profile',
       settings: 'Settings',
       language: 'Language',
+      jobs: 'Job Postings',
       jobPostings: 'Job Postings',
       jobApplications: 'Job Applications',
       jobAssignments: 'Job Assignments',
@@ -179,6 +180,14 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       notes: 'Notes'
     },
     status: {
+      Confirmed: 'Confirmed',
+      Delivered: 'Delivered',
+      ReadyForPickup: 'Ready For Pickup',
+      OutForDelivery: 'Out For Delivery',
+      Processing: 'Processing',
+      Shipped: 'Shipped',
+      Assigned: 'Assigned',
+      Open: 'Open',
       Active: 'Active',
       Pending: 'Pending',
       Completed: 'Completed',
@@ -201,6 +210,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       Won: 'Won'
     },
     farmer: {
+      workspace: 'Farmer Workspace',
       dashboardTitle: 'Farmer Dashboard',
       dashboardSubtitle: 'Manage your crops, auctions, machinery rentals, and orders.',
       fillProfileWithAi: '🤖 Fill Profile with AI',
@@ -249,6 +259,28 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       emptyWishlist: 'Your wishlist is empty.'
     },
     worker: {
+      applications: 'My Job Applications',
+      workspace: 'Worker Workspace',
+      availableJobs: 'Available Jobs',
+      jobApplications: 'My Job Applications',
+      jobAssignments: 'Job Assignments',
+      attendance: 'Work Attendance',
+      earnings: 'My Earnings',
+      preferences: 'Job Preferences',
+      absent: 'Absent',
+      present: 'Present',
+      attendanceRate: 'Attendance Rate',
+      completionProgress: 'Completion Progress',
+      expectedDailyWage: 'Expected Daily Wage',
+      experienceDesc: 'Experience Description',
+      profileCompletion: 'Profile Completion',
+      recentReviews: 'Recent Farmer Reviews',
+      verificationStatus: 'Verification Status',
+      yearsInAgriculture: 'Years in Agriculture',
+      yearsOfExperience: 'Years of Experience',
+      availabilityNotes: 'Availability Notes',
+      availableFrom: 'Available From',
+      availableImmediately: 'Available Immediately',
       dashboardTitle: 'Worker Dashboard',
       dashboardSubtitle: 'Manage your work availability, job preferences, and profile.',
       experienceYears: 'Years of Experience',
@@ -263,7 +295,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       recentJobs: 'Recent Job Openings',
       browseJobsTitle: 'Browse Farm Jobs',
       applyNow: 'Apply Now',
-      applied: 'Applied'
+      applied: 'Applied',
+      workHistory: 'Work History',
+      appliedDate: 'Applied Date',
+      assignmentDetails: 'Assignment Information',
+      browseJobsDesc: 'Explore and apply to verified agricultural labor requests posted by local farmers.',
+      myApplicationsDesc: 'Track the status and timeline of job applications submitted to farmers.',
+      myAssignmentsDesc: 'View your active assigned farm jobs, work locations, and schedules.',
+      myEarningsDesc: 'Track total earnings, completed work logs, and daily wage records.',
+      workHistoryDesc: 'Review your completed agricultural job assignments and earned wages.',
+      myProfileDesc: 'View and manage your worker profile, skills, experience, and availability.'
     },
     profile: {
       title: 'My Profile',
@@ -320,6 +361,67 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       cancelTask: 'Cancel Task',
       confirmTitle: 'Confirmation Summary',
       askConfirm: 'Do you want to confirm and submit this form?'
+    },
+        jobs: {
+      summary: 'Manage your job postings, view applications, and track attendance.',
+      createJob: 'Create Job',
+      dailyWage: 'Daily Wage',
+      workersRequired: 'Workers Required',
+      starts: 'Starts',
+      ends: 'Ends',
+      applications: 'Applications',
+      assignedWorkers: 'Assigned Workers',
+      attendance: 'Attendance',
+      createFirstJob: 'Post Your First Job',
+      createFirstJobDesc: 'Need labor for harvesting, sowing, or farm maintenance? Post a job now.',
+      noJobsPosted: 'No Jobs Posted Yet',
+      startDate: 'Start Date',
+      endDate: 'End Date'
+    },
+    crops: {
+      summary: 'Manage your crops, auctions, machinery rentals, and orders.',
+      variety: 'Variety',
+      area: 'Farm Area',
+      sowingDate: 'Sowing Date',
+      harvestDate: 'Expected Harvest',
+      noCrops: 'No Crops Found',
+      addFirstCrop: 'Add Your First Crop',
+      addFirstCropDesc: 'Start tracking your farm produce and list them for auction.',
+      unreservedStock: 'Available Stock',
+      reservedStock: 'Allocated Stock'
+    },
+    auctions: {
+      summary: 'Create and manage live auctions for your harvested crops.',
+      createAuction: 'Create Auction',
+      totalAuctions: 'Total Auctions',
+      startingBid: 'Starting Price',
+      highestBid: 'Highest Bid',
+      noAuctions: 'No Auctions Found',
+      noAuctionsDesc: 'Create an auction to sell your crops to top bidders.',
+      viewBids: 'View Bids',
+      allocationStatus: 'Allocation Status'
+    },
+    orders: {
+      summary: 'Track your orders, fulfillment, and customer invoices.',
+      buyer: 'Buyer',
+      orderNumber: 'Order #',
+      farmPickup: 'Farm Pickup',
+      homeDelivery: 'Home Delivery',
+      viewInvoice: 'View Invoice',
+      noOrders: 'No Orders Yet',
+      noOrdersDesc: 'When customers buy your auction allocations, orders will appear here.'
+    },
+    machinery: {
+      summary: 'Manage your farm equipment listings and rental bookings.',
+      addMachinery: 'Add Machinery',
+      dailyRent: 'Daily Rent',
+      noMachinery: 'No Machinery Listed',
+      noMachineryDesc: 'List your tractors, harvesters, or equipment to earn rental income.'
+    },
+    reviews: {
+      cropReviews: 'Crop Customer Reviews',
+      machineryReviews: 'Machinery Rental Reviews',
+      customerReviews: 'Customer Feedback & Ratings'
     },
     validation: {
       required: 'This field is required.',
@@ -503,6 +605,14 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       notes: 'टिप्पणियाँ'
     },
     status: {
+      Confirmed: 'Confirmed',
+      Delivered: 'Delivered',
+      ReadyForPickup: 'Ready For Pickup',
+      OutForDelivery: 'Out For Delivery',
+      Processing: 'Processing',
+      Shipped: 'Shipped',
+      Assigned: 'Assigned',
+      Open: 'Open',
       Active: 'सक्रिय',
       Pending: 'लंबित',
       Completed: 'पूर्ण',
@@ -525,6 +635,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       Won: 'जीता'
     },
     farmer: {
+      workspace: 'किसान कार्यक्षेत्र',
       dashboardTitle: 'किसान डैशबोर्ड',
       dashboardSubtitle: 'अपनी फसलों, नीलामी, मशीनरी किराये और ऑर्डर का प्रबंधन करें।',
       fillProfileWithAi: '🤖 AI के साथ प्रोफाइल भरें',
@@ -573,6 +684,27 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       emptyWishlist: 'आपकी विशलिस्ट खाली है।'
     },
     worker: {
+      workspace: 'Worker Workspace',
+      availableJobs: 'Available Jobs',
+      jobApplications: 'My Job Applications',
+      jobAssignments: 'Job Assignments',
+      attendance: 'Work Attendance',
+      earnings: 'My Earnings',
+      preferences: 'Job Preferences',
+      absent: 'Absent',
+      present: 'Present',
+      attendanceRate: 'Attendance Rate',
+      completionProgress: 'Completion Progress',
+      expectedDailyWage: 'Expected Daily Wage',
+      experienceDesc: 'Experience Description',
+      profileCompletion: 'Profile Completion',
+      recentReviews: 'Recent Farmer Reviews',
+      verificationStatus: 'Verification Status',
+      yearsInAgriculture: 'Years in Agriculture',
+      yearsOfExperience: 'Years of Experience',
+      availabilityNotes: 'Availability Notes',
+      availableFrom: 'Available From',
+      availableImmediately: 'Available Immediately',
       dashboardTitle: 'श्रमिक डैशबोर्ड',
       dashboardSubtitle: 'अपनी कार्य उपलब्धता, नौकरी की प्राथमिकताएं और प्रोफाइल प्रबंधित करें।',
       experienceYears: 'अनुभव के वर्ष',
@@ -587,7 +719,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       recentJobs: 'हाल की नौकरियां',
       browseJobsTitle: 'कृषि नौकरियां देखें',
       applyNow: 'आवेदन करें',
-      applied: 'आवेदन किया'
+      applied: 'आवेदन किया',
+      workHistory: 'कार्य इतिहास',
+      appliedDate: 'आवेदन तिथि',
+      assignmentDetails: 'आवंटन विवरण',
+      browseJobsDesc: 'स्थानीय किसानों द्वारा पोस्ट की गई सत्यापित कृषि श्रम नौकरियों को खोजें और आवेदन करें।',
+      myApplicationsDesc: 'किसानों को सबमिट किए गए जॉब आवेदनों की स्थिति और टाइमलाइन ट्रैक करें।',
+      myAssignmentsDesc: 'अपने सक्रिय आवंटित खेत कार्यों, कार्य स्थानों और शेड्यूल को देखें।',
+      myEarningsDesc: 'कुल कमाई, पूर्ण किए गए कार्य लॉग और दैनिक मजदूरी रिकॉर्ड ट्रैक करें।',
+      workHistoryDesc: 'अपने पूर्ण कृषि कार्य आवंटन और अर्जित मजदूरी की समीक्षा करें।',
+      myProfileDesc: 'अपनी कार्यकर्ता प्रोफ़ाइल, कौशल, अनुभव और उपलब्धता देखें और प्रबंधित करें।'
     },
     profile: {
       title: 'मेरी प्रोफाइल',
@@ -644,6 +785,67 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       cancelTask: 'कार्य रद्द करें',
       confirmTitle: 'पुष्टि सारांश',
       askConfirm: 'क्या आप इस फॉर्म की पुष्टि और सबमिट करना चाहते हैं?'
+    },
+        jobs: {
+      summary: 'अपनी नौकरी की सूची प्रबंधित करें, आवेदन देखें और उपस्थिति ट्रैक करें।',
+      createJob: 'नौकरी बनाएं',
+      dailyWage: 'दैनिक मजदूरी',
+      workersRequired: 'आवश्यक मजदूर',
+      starts: 'शुरू',
+      ends: 'समाप्त',
+      applications: 'आवेदन',
+      assignedWorkers: 'आवंटित मजदूर',
+      attendance: 'उपस्थिति',
+      createFirstJob: 'अपनी पहली नौकरी पोस्ट करें',
+      createFirstJobDesc: 'कटाई, बुआई या खेत के रखरखाव के लिए मजदूरों की आवश्यकता है? अभी नौकरी पोस्ट करें।',
+      noJobsPosted: 'अभी तक कोई नौकरी पोस्ट नहीं की गई',
+      startDate: 'प्रारंभ तिथि',
+      endDate: 'समाप्ति तिथि'
+    },
+    crops: {
+      summary: 'अपनी फसलों, नीलामी, मशीनरी किराये और ऑर्डर को प्रबंधित करें।',
+      variety: 'किस्म',
+      area: 'खेत का क्षेत्रफल',
+      sowingDate: 'बुआई की तारीख',
+      harvestDate: 'अनुमानित कटाई',
+      noCrops: 'कोई फसल नहीं मिली',
+      addFirstCrop: 'अपनी पहली फसल जोड़ें',
+      addFirstCropDesc: 'अपनी कृषि उपज को ट्रैक करना शुरू करें और उन्हें नीलामी के लिए सूचीबद्ध करें।',
+      unreservedStock: 'उपलब्ध स्टॉक',
+      reservedStock: 'आवंटित स्टॉक'
+    },
+    auctions: {
+      summary: 'अपनी कटी हुई फसलों के लिए लाइव नीलामी बनाएं और प्रबंधित करें।',
+      createAuction: 'नीलामी बनाएं',
+      totalAuctions: 'कुल नीलामी',
+      startingBid: 'शुरुआती कीमत',
+      highestBid: 'उच्चतम बोली',
+      noAuctions: 'कोई नीलामी नहीं मिली',
+      noAuctionsDesc: 'अपनी फसलों को उच्चतम बोलीदाताओं को बेचने के लिए एक नीलामी बनाएं।',
+      viewBids: 'बोलियां देखें',
+      allocationStatus: 'आवंटन स्थिति'
+    },
+    orders: {
+      summary: 'अपने ऑर्डर, पूर्ति और ग्राहक इनवॉइस को ट्रैक करें।',
+      buyer: 'खरीदार',
+      orderNumber: 'ऑर्डर #',
+      farmPickup: 'खेत से पिकअप',
+      homeDelivery: 'होम डिलीवरी',
+      viewInvoice: 'इनवॉइस देखें',
+      noOrders: 'अभी तक कोई ऑर्डर नहीं',
+      noOrdersDesc: 'जब ग्राहक आपके नीलामी आवंटन खरीदेंगे, तो ऑर्डर यहां दिखाई देंगे।'
+    },
+    machinery: {
+      summary: 'अपने कृषि उपकरण लिस्टिंग और किराये की बुकिंग प्रबंधित करें।',
+      addMachinery: 'मशीनरी जोड़ें',
+      dailyRent: 'दैनिक किराया',
+      noMachinery: 'कोई मशीनरी सूचीबद्ध नहीं',
+      noMachineryDesc: 'किराये की आय अर्जित करने के लिए अपने ट्रैक्टर, हार्वेस्टर या उपकरण सूचीबद्ध करें।'
+    },
+    reviews: {
+      cropReviews: 'फसल ग्राहक समीक्षाएं',
+      machineryReviews: 'मशीनरी किराया समीक्षाएं',
+      customerReviews: 'ग्राहक प्रतिक्रिया और रेटिंग'
     },
     validation: {
       required: 'यह क्षेत्र अनिवार्य है।',
@@ -827,6 +1029,14 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       notes: 'નોંધો'
     },
     status: {
+      Confirmed: 'Confirmed',
+      Delivered: 'Delivered',
+      ReadyForPickup: 'Ready For Pickup',
+      OutForDelivery: 'Out For Delivery',
+      Processing: 'Processing',
+      Shipped: 'Shipped',
+      Assigned: 'Assigned',
+      Open: 'Open',
       Active: 'સક્રિય',
       Pending: 'પેન્ડિંગ',
       Completed: 'પૂર્ણ',
@@ -849,6 +1059,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       Won: 'જીત્યા'
     },
     farmer: {
+      workspace: 'ખેડૂત કાર્યક્ષેત્ર',
       dashboardTitle: 'ખેડૂત ડેશબોર્ડ',
       dashboardSubtitle: 'તમારા પાક, હરાજી, મશીનરી ભાડા અને ઓર્ડરનું સંચાલન કરો.',
       fillProfileWithAi: '🤖 AI વડે પ્રોફાઇલ ભરો',
@@ -897,6 +1108,27 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       emptyWishlist: 'તમારી વિશલિસ્ટ ખાલી છે.'
     },
     worker: {
+      workspace: 'Worker Workspace',
+      availableJobs: 'Available Jobs',
+      jobApplications: 'My Job Applications',
+      jobAssignments: 'Job Assignments',
+      attendance: 'Work Attendance',
+      earnings: 'My Earnings',
+      preferences: 'Job Preferences',
+      absent: 'Absent',
+      present: 'Present',
+      attendanceRate: 'Attendance Rate',
+      completionProgress: 'Completion Progress',
+      expectedDailyWage: 'Expected Daily Wage',
+      experienceDesc: 'Experience Description',
+      profileCompletion: 'Profile Completion',
+      recentReviews: 'Recent Farmer Reviews',
+      verificationStatus: 'Verification Status',
+      yearsInAgriculture: 'Years in Agriculture',
+      yearsOfExperience: 'Years of Experience',
+      availabilityNotes: 'Availability Notes',
+      availableFrom: 'Available From',
+      availableImmediately: 'Available Immediately',
       dashboardTitle: 'શ્રમિક ડેશબોર્ડ',
       dashboardSubtitle: 'તમારી કામની ઉપલબ્ધતા, નોકરીની પસંદગીઓ અને પ્રોફાઇલ સંચાલિત કરો.',
       experienceYears: 'અનુભવના વર્ષો',
@@ -911,7 +1143,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       recentJobs: 'તાજેતરની નોકરીઓ',
       browseJobsTitle: 'ખેતીવાડી નોકરીઓ જુઓ',
       applyNow: 'અરજી કરો',
-      applied: 'અરજી કરી'
+      applied: 'અરજી કરી',
+      workHistory: 'કામનો ઇતિહાસ',
+      appliedDate: 'અરજી તારીખ',
+      assignmentDetails: 'સોંપણી વિગતો',
+      browseJobsDesc: 'સ્થાનિક ખેડૂતો દ્વારા પોસ્ટ કરાયેલ ચકાસાયેલ ખેતીકામની નોકરીઓ શોધો અને અરજી કરો.',
+      myApplicationsDesc: 'ખેડૂતોને સબમિટ કરેલ જોબ અરજીઓની સ્થિતિ અને ટાઇમલાઇન ટ્રૅક કરો.',
+      myAssignmentsDesc: 'તમારા સક્રિય સોંપાયેલા ખેતરના કામ, સ્થળો અને શિડ્યુલ જુઓ.',
+      myEarningsDesc: 'કુલ કમાણી, પૂર્ણ થયેલ કામના લોગ અને દૈનિક મંજૂરી રેકોર્ડ ટ્રૅક કરો.',
+      workHistoryDesc: 'તમારા પૂર્ણ થયેલ ખેતીકામ અને કમાયેલ મંજૂરીની સમીક્ષા કરો.',
+      myProfileDesc: 'તમારી વર્કર પ્રોફાઇલ, કૌશલ્ય, અનુભવ અને ઉપલબ્ધતા જુઓ અને સંચાલિત કરો.'
     },
     profile: {
       title: 'મારી પ્રોફાઇલ',
@@ -968,6 +1209,67 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
       cancelTask: 'કાર્ય રદ કરો',
       confirmTitle: 'ખાતરી સારાંશ',
       askConfirm: 'શું તમે આ ફોર્મની ખાતરી કરીને સબમિટ કરવા માંગો છો?'
+    },
+        jobs: {
+      summary: 'તમારી જોબ પોસ્ટિંગ્સ મેનેજ કરો, અરજીઓ જુઓ અને હાજરી ટ્રેક કરો.',
+      createJob: 'જોબ બનાવો',
+      dailyWage: 'દૈનિક વેતન',
+      workersRequired: 'જરૂરી કામદારો',
+      starts: 'શરૂઆતી તારીખ',
+      ends: 'અંતિમ તારીખ',
+      applications: 'અરજીઓ',
+      assignedWorkers: 'સોંપાયેલ કામદારો',
+      attendance: 'હાજરી',
+      createFirstJob: 'તમારી પહેલી જોબ પોસ્ટ કરો',
+      createFirstJobDesc: 'લણણી, વાવણી અથવા ખેતરની જાળવણી માટે કામદારોની જરૂર છે? હમણાં જોબ પોસ્ટ કરો.',
+      noJobsPosted: 'હજી સુધી કોઈ જોબ પોસ્ટ કરાઈ નથી',
+      startDate: 'શરૂઆતી તારીખ',
+      endDate: 'અંતિમ તારીખ'
+    },
+    crops: {
+      summary: 'તમારા પાક, હરાજી, મશીનરી ભાડું અને ઓર્ડર મેનેજ કરો.',
+      variety: 'જાત',
+      area: 'ખેતર વિસ્તાર',
+      sowingDate: 'વાવણી તારીખ',
+      harvestDate: 'અપેક્ષિત લણણી',
+      noCrops: 'કોઈ પાક મળ્યો નથી',
+      addFirstCrop: 'તમારો પહેલો પાક ઉમેરો',
+      addFirstCropDesc: 'તમારા ખેતરના ઉત્પાદનને ટ્રેક કરવાનું શરૂ કરો અને હરાજી માટે યાદીબદ્ધ કરો.',
+      unreservedStock: 'ઉપબ્ધ સ્ટોક',
+      reservedStock: 'ફાળવેલ સ્ટોક'
+    },
+    auctions: {
+      summary: 'તમારા લણણી કરેલ પાક માટે લાઈવ હરાજી બનાવો અને મેનેજ કરો.',
+      createAuction: 'હરાજી બનાવો',
+      totalAuctions: 'કુલ હરાજી',
+      startingBid: 'શરૂઆતી કિંમત',
+      highestBid: 'સર્વોચ્ચ બોલી',
+      noAuctions: 'કોઈ હરાજી મળી નથી',
+      noAuctionsDesc: 'તમારા પાકને શ્રેષ્ઠ બોલી લગાવનારાઓને વેચવા માટે હરાજી બનાવો.',
+      viewBids: 'બોલીઓ જુઓ',
+      allocationStatus: 'ફાળવણી સ્થિતિ'
+    },
+    orders: {
+      summary: 'તમારા ઓર્ડર, ડિલિવરી અને ગ્રાહક ઇનવોઇસ ટ્રેક કરો.',
+      buyer: 'ખરીદનાર',
+      orderNumber: 'ઓર્ડર #',
+      farmPickup: 'ખેતર પરથી પિકઅપ',
+      homeDelivery: 'હોમ ડિલિવરી',
+      viewInvoice: 'ઇનવોઇસ જુઓ',
+      noOrders: 'હજી સુધી કોઈ ઓર્ડર નથી',
+      noOrdersDesc: 'જ્યારે ગ્રાહકો તમારી હરાજીના ફાળવણી ખરીદશે, ત્યારે ઓર્ડર અહીં દેખાશે.'
+    },
+    machinery: {
+      summary: 'તમારા ખેતીના સાધનો અને ભાડાની બુકિંગ મેનેજ કરો.',
+      addMachinery: 'મશીનરી ઉમેરો',
+      dailyRent: 'દૈનિક ભાડું',
+      noMachinery: 'કોઈ મશીનરી યાદીબદ્ધ નથી',
+      noMachineryDesc: 'ભાડાની આવક મેળવવા માટે તમારા ટ્રેક્ટર, હાર્વેસ્ટર અથવા સાધનો યાદીબદ્ધ કરો.'
+    },
+    reviews: {
+      cropReviews: 'પાક ગ્રાહક સમીક્ષાઓ',
+      machineryReviews: 'મશીનરી ભાડાની સમીક્ષાઓ',
+      customerReviews: 'ગ્રાહક પ્રતિસાદ અને રેટિંગ'
     },
     validation: {
       required: 'આ ખાનું ફરજિયાત છે.',

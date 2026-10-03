@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Component, Inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +20,6 @@ export interface OrderReviewDialogData {
   selector: 'app-order-review-dialog',
   standalone: true,
   imports: [
-    TranslatePipe,
     CommonModule,
     FormsModule,
     MatDialogModule,

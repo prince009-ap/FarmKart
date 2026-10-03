@@ -23,7 +23,7 @@ public sealed class OrderInvoiceAndHistoryTests : IAsyncLifetime
     {
         var dbName = $"FarmKartDb_InvoiceHistoryTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\mssqllocaldb;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(dbName))
             .Options;
 
         _dbContext = new FarmKartDbContext(options);
@@ -297,3 +297,4 @@ public sealed class OrderInvoiceAndHistoryTests : IAsyncLifetime
             _orderService.UpdateCustomerOrderFulfillmentAsync(customerUser.Id, completedOrder.Id, new UpdateFulfillmentDetailsRequest("DELIVERY", "New Address")));
     }
 }
+

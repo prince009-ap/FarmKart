@@ -21,7 +21,7 @@ public class CustomerAnalyticsTests : IDisposable
     {
         _dbName = $"FarmKartDb_CustomerAnalyticsTest_{Guid.NewGuid():N}";
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString(_dbName))
             .Options;
 
         _db = new FarmKartDbContext(options);
@@ -243,3 +243,4 @@ public class CustomerAnalyticsTests : IDisposable
         _db.Dispose();
     }
 }
+

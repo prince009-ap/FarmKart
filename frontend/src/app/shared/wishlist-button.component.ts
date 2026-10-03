@@ -1,4 +1,3 @@
-import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +10,7 @@ import { WishlistItemType } from '../core/models/wishlist.models';
   selector: 'app-wishlist-button',
   standalone: true,
   imports: [
-    TranslatePipe,CommonModule, MatButtonModule, MatIconModule, MatSnackBarModule],
+    CommonModule, MatButtonModule, MatIconModule, MatSnackBarModule],
   template: `
     <button
       mat-icon-button

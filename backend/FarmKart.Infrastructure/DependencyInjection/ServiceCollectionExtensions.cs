@@ -108,6 +108,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAiConversationSessionStore, InMemoryAiConversationSessionStore>();
         services.AddScoped<IAiConversationEngine, AiConversationEngine>();
 
+        // AI Recommendation Engine Foundation (AI-01)
+        // AiRecommendationProvider wraps the existing IAiProvider — no second HTTP client needed.
+        services.AddScoped<IAiRecommendationProvider, AiRecommendationProvider>();
+        services.AddScoped<IRecommendationEngine, RecommendationEngine>();
+
         services.AddHostedService<AuctionFinalizationBackgroundService>();
 
         // Register JWT options and services

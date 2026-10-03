@@ -30,7 +30,7 @@ public class IdentityRoleSeedingTests
         var services = new ServiceCollection();
 
         services.AddDbContext<FarmKartDbContext>(options =>
-            options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+            options.UseSqlServer(TestSqlServer.ConnectionString(dbName)));
 
         services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole<Guid>>()
@@ -93,3 +93,4 @@ public class IdentityRoleSeedingTests
         }
     }
 }
+

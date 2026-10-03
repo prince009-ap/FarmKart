@@ -62,7 +62,7 @@ export class FarmerDashboardComponent implements OnInit {
       descriptionKey: 'customer.dashboardSubtitle',
       icon: 'construction',
       route: '/farmer/machinery',
-      isPlaceholder: true
+      isPlaceholder: false
     },
     {
       titleKey: 'nav.auctions',

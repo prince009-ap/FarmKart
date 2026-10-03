@@ -86,9 +86,10 @@ public class IdentityFoundationTests
     private static FarmKartDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<FarmKartDbContext>()
-            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FarmKartDb.Tests;Trusted_Connection=True;TrustServerCertificate=True")
+            .UseSqlServer(TestSqlServer.ConnectionString("FarmKartDb.Tests"))
             .Options;
 
         return new FarmKartDbContext(options);
     }
 }
+

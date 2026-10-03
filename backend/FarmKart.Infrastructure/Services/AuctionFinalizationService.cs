@@ -45,7 +45,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
         var auction = await dbContext.Auctions
             .AsNoTracking()
-            .Include(a => a.AuctionWinner)
+            .Include(a => a.AuctionWinner!)
                 .ThenInclude(w => w.CustomerProfile)
             .Include(a => a.Allocations)
                 .ThenInclude(al => al.CustomerProfile)
@@ -65,7 +65,7 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
             auction = await dbContext.Auctions
                 .AsNoTracking()
-                .Include(a => a.AuctionWinner)
+                .Include(a => a.AuctionWinner!)
                     .ThenInclude(w => w.CustomerProfile)
                 .Include(a => a.Allocations)
                     .ThenInclude(al => al.CustomerProfile)
@@ -87,7 +87,8 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
 
         var totalAllocatedKg = allocationsList.Sum(al => al.AllocatedQuantityKg);
         var remainingKg = Math.Max(0m, totalAuctionKg - totalAllocatedKg);
-        var hasWinner = allocationsList.Any(al => al.AllocatedQuantityKg > 0);
+        var topAllocation = allocationsList.FirstOrDefault(al => al.AllocatedQuantityKg > 0);
+        var hasWinner = topAllocation != null;
 
         var allocationDtos = allocationsList.Select(al =>
         {
@@ -148,8 +149,6 @@ public sealed class AuctionFinalizationService(FarmKartDbContext dbContext) : IA
         }
 
         string effectiveStatus = now < auction.StartTimeUtc ? "UPCOMING" : (now <= auction.EndTimeUtc ? "LIVE" : "ENDED");
-
-        var topAllocation = allocationsList.FirstOrDefault(al => al.AllocatedQuantityKg > 0);
 
         return new AuctionResultResponse(
             AuctionId: auction.Id,

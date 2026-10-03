@@ -54,7 +54,7 @@ public class WorkerPreferencesTests : IClassFixture<WebApplicationFactory<Progra
                 }
 
                 services.AddDbContext<FarmKartDbContext>(options =>
-                    options.UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_dbName};Trusted_Connection=True;TrustServerCertificate=True"));
+                    options.UseSqlServer(TestSqlServer.ConnectionString(_dbName)));
 
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
@@ -219,7 +219,7 @@ public class WorkerPreferencesTests : IClassFixture<WebApplicationFactory<Progra
         var pref = await response.Content.ReadFromJsonAsync<WorkerPreferencesResponse>(_jsonOptions);
         Assert.NotNull(pref);
         Assert.Equal(2, pref.PreferredWorkCategories.Count);
-        Assert.Equal(1, pref.PreferredLocations.Count);
+        Assert.Single(pref.PreferredLocations);
     }
 
     [Fact]
@@ -447,3 +447,4 @@ public class WorkerPreferencesTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }
+
